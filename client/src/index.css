@@ -41,6 +41,9 @@
   .font-display { font-family: var(--font-display); }
   .font-sans { font-family: var(--font-sans); }
   .eyebrow { @apply font-sans text-[10px] font-bold uppercase tracking-[0.22em] text-[#C85A3F]; }
+  .language-switch { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; color: rgb(24 58 50 / 42%); font: 700 9px var(--font-sans); letter-spacing: .12em; }
+  .language-switch button { color: rgb(24 58 50 / 48%); font: inherit; }
+  .language-switch .language-active { color: #C85A3F; }
   .search-shell { border: 1px solid rgb(24 58 50 / 15%); border-radius: 2px; box-shadow: 0 10px 28px rgb(24 58 50 / 5%); transition: border-color 180ms ease, box-shadow 180ms ease; }
   .search-shell:focus-within { border-color: #C85A3F; box-shadow: 0 10px 28px rgb(200 90 63 / 12%); }
   .category-scroll { scrollbar-width: none; }
@@ -111,6 +114,9 @@
   .detail-grid { display: grid; gap: 18px; font: 13px/1.55 var(--font-sans); color: rgb(24 58 50 / 68%); }
   .detail-label { margin-bottom: 3px; color: #183A32; font: 700 10px var(--font-sans); letter-spacing: .12em; text-transform: uppercase; }
   .restaurant-info { font: 13px/1.55 var(--font-sans); }
+  .restaurant-links { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+  .restaurant-links a { color: #C85A3F; font: 600 12px var(--font-sans); text-decoration: underline; text-underline-offset: 3px; }
+
 
   .waiter-note { border-left: 3px solid #C85A3F; background: #183A32; color: #F7F2E9; box-shadow: 0 12px 24px rgb(24 58 50 / 12%); }
   .waiter-note .eyebrow { color: #E3A38E; }
