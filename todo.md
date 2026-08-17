@@ -213,3 +213,16 @@
 
 - [x] Validar explicitamente o recibo do painel em 58 mm e 80 mm após a correção da classe real do wrapper.
 - [x] Salvar checkpoint após as correções finais de rota, retry, largura e testes.
+
+## Bug: recibo vazio no preview do painel
+
+- [x] Corrigir o preview do recibo para renderizar os dados já visíveis no detalhe da mesa.
+- [x] Garantir que o alvo de impressão seja o mesmo recibo preenchido do preview.
+- [x] Validar 58 mm e 80 mm, impressão e ausência de páginas em branco.
+- [x] Salvar checkpoint da correção.
+
+## Validação específica do preview vazio
+
+- [x] Validar o ThermalReceipt preenchido no modal em 58 mm e 80 mm após a remoção do `display:none` legado.
+- [x] Validar que o alvo de impressão contém conteúdo e não produz recibo vazio.
+- [x] Salvar checkpoint depois desta validação final.

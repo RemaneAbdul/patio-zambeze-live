@@ -310,7 +310,6 @@
   .waiter-total { margin-top: 20px; border-top: 2px solid #C85A3F; padding-top: 15px; color: #183A32; font: 700 12px var(--font-sans); text-transform: uppercase; letter-spacing: .1em; }
   .waiter-total strong { color: #C85A3F; font-size: 22px; letter-spacing: 0; }
   .waiter-back-link { display: inline-flex; align-items: center; gap: 7px; margin-top: 32px; color: #C85A3F; font: 700 11px var(--font-sans); text-decoration: underline; text-underline-offset: 4px; }
-  .waiter-receipt-print { display: none; }
   @media (max-width: 640px) {
     .waiter-shell { padding-inline: 4px; }
     .waiter-header, .waiter-search-form, .waiter-result-heading { flex-direction: column; }
