@@ -262,3 +262,16 @@
   .receipt-modal.receipt-58mm { --receipt-print-width: 58mm; }
   .receipt-modal.receipt-80mm { --receipt-print-width: 80mm; }
 }
+
+@media print {
+  #root > .menu-app-shell { display: block !important; }
+  #root > .menu-app-shell > header,
+  #root > .menu-app-shell > main,
+  #root > .menu-app-shell > .history-bar,
+  #root > .menu-app-shell > .selection-bar,
+  #root > .menu-app-shell > .selection-toast,
+  #root > .menu-app-shell > .history-sync-note,
+  #root > .menu-app-shell > .history-sync-error,
+  #root > .menu-app-shell > .notice { display: none !important; }
+  #root > .menu-app-shell > .modal-backdrop:has(.receipt-print) { display: block !important; }
+}

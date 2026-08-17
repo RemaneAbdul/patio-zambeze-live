@@ -52,3 +52,9 @@
 - [x] Ocultar completamente o painel do Histórico, menu e navegação durante a impressão.
 - [x] Mostrar somente o bloco receipt-print em uma página térmica.
 - [x] Validar a impressão sem páginas extras e salvar checkpoint.
+
+## Sincronização e recibo em branco
+
+- [x] Confirmar a versão sincronizada e identificar por que receipt-print fica vazio na impressão.
+- [x] Corrigir a renderização do recibo sem voltar a imprimir o menu ou o painel.
+- [x] Validar preview, impressão e testes e criar checkpoint sincronizado.
