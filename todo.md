@@ -1,7 +1,8 @@
-# Atualização visual e responsiva
+# Rascunho comprovativo e imagens dos produtos
 
-- [x] Replicar a linguagem visual dos ícones de idioma da referência com PT | EN e ícones de acessibilidade.
-- [x] Adicionar dark mode persistente com controlo por ícone de lua/sol.
-- [x] Corrigir a barra Minha Seleção para ficar visível e não sobrepor conteúdo em smartphones.
-- [x] Garantir que o painel Minha Seleção tenha o mesmo fluxo em mobile e desktop.
-- [x] Validar claro/escuro e responsividade, salvar checkpoint e entregar.
+- [x] Gerar ou preparar uma imagem gastronómica individual para cada produto que ainda não tenha fotografia.
+- [x] Integrar imagens reais ou geradas em todos os cartões do menu, preservando carregamento adequado.
+- [x] Ao clicar em “Mostrar ao Garçom”, guardar a seleção como rascunho local com data/hora, itens, quantidades, subtotais e total estimado.
+- [x] Exibir o comprovativo local numa vista/modal acessível, com aviso claro de que não é pedido enviado.
+- [x] Permitir consultar, reabrir e limpar o rascunho sem login, backend ou pagamento.
+- [x] Validar desktop e mobile e salvar checkpoint.

@@ -98,6 +98,14 @@
   .selection-total { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-top: 2px solid #C85A3F; margin-top: 22px; padding-top: 15px; font: 700 12px var(--font-sans); letter-spacing: .12em; }
   .selection-total strong { color: #C85A3F; font: 700 24px var(--font-sans); letter-spacing: 0; }
   .selection-disclaimer { margin-top: 15px; color: rgb(24 58 50 / 58%); font: 12px/1.5 var(--font-sans); }
+  .saved-draft-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-left: 3px solid #C85A3F; background: rgb(200 90 63 / 8%); padding: 12px 13px; font: 11px/1.4 var(--font-sans); }
+  .saved-draft-card div { display: grid; gap: 3px; }
+  .saved-draft-card strong { color: #183A32; font-size: 12px; }
+  .saved-draft-card span { color: rgb(24 58 50 / 62%); }
+  .saved-draft-card button { color: #C85A3F; font: 700 10px var(--font-sans); text-decoration: underline; }
+  .theme-dark .saved-draft-card { background: rgb(200 90 63 / 14%); }
+  .theme-dark .saved-draft-card strong, .theme-dark .saved-draft-card span { color: #F4EEE4; }
+
   .selection-footer-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
   .clear-selection, .show-waiter { padding: 12px 14px; font: 700 10px var(--font-sans); letter-spacing: .08em; text-transform: uppercase; }
   .clear-selection { border: 1px solid rgb(24 58 50 / 18%); color: rgb(24 58 50 / 65%); }
