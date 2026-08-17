@@ -435,7 +435,7 @@
   .receipt-preview-heading h3 { margin-top: 6px; font: 400 1.8rem var(--font-display); }
   .receipt-preview-close { display: grid; place-items: center; color: #C85A3F; }
   .receipt-preview-paper { display: flex; justify-content: center; margin-top: 18px; background: #f2eee6; padding: 18px; }
-  .receipt-print.receipt-preview { display: block; width: min(100%, 80mm); min-height: 20mm; margin: 0; padding: 14px 12px; color: #000; background: #fff; font: 10px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace; box-shadow: 0 5px 14px rgb(24 58 50 / 13%); }
+  .receipt-preview-paper > .receipt-print.receipt-preview { display: block !important; visibility: visible !important; width: min(100%, 80mm); min-height: 20mm; margin: 0; padding: 14px 12px; color: #000 !important; background: #fff !important; font: 10px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace; box-shadow: 0 5px 14px rgb(24 58 50 / 13%); }
   .receipt-preview .receipt-selection { margin-top: 12px; }
   .receipt-preview .receipt-selection > strong, .receipt-preview .receipt-selection > time, .receipt-preview .receipt-selection > span { display: block; }
   .receipt-preview .receipt-selection > time { margin-top: 2px; }

@@ -226,3 +226,18 @@
 - [x] Validar o ThermalReceipt preenchido no modal em 58 mm e 80 mm após a remoção do `display:none` legado.
 - [x] Validar que o alvo de impressão contém conteúdo e não produz recibo vazio.
 - [x] Salvar checkpoint depois desta validação final.
+
+## Correção prioritária: preview vazio e folhas brancas
+
+- [x] Garantir que o modal mostra o ThermalReceipt preenchido com os dados da seleção consultada.
+- [x] Isolar o preview de regras CSS legadas e de seletores de impressão.
+- [x] Bloquear Imprimir agora quando o recibo não tiver conteúdo real.
+- [x] Imprimir somente uma cópia preenchida, sem folhas em branco.
+- [x] Validar 58 mm/80 mm e adicionar testes de regressão.
+- [x] Salvar checkpoint prioritário da correção.
+
+## Fecho prioritário do recibo
+
+- [x] Validar o modal preenchido do painel em 58 mm e 80 mm após o override final.
+- [x] Validar a impressão final do painel com um único recibo preenchido e sem páginas brancas.
+- [x] Salvar checkpoint novo desta correção prioritária.
