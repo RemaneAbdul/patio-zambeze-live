@@ -32,8 +32,10 @@ integration("tableHistory persistence", () => {
     if (!db) throw new Error("DATABASE_URL is required for this integration test");
 
     try {
-      const firstSession = await ensureTableSession(tokenA);
-      const secondSession = await ensureTableSession(tokenA);
+      const [firstSession, secondSession] = await Promise.all([
+        ensureTableSession(tokenA),
+        ensureTableSession(tokenA),
+      ]);
       expect(secondSession.id).toBe(firstSession.id);
 
       const created = await createTableSelection({

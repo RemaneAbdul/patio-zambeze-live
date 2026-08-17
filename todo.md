@@ -81,3 +81,20 @@
 - [x] Verificar e limpar apenas sessões abertas antigas sem seleções; o banco reportou 0 registos elegíveis e não encontrou sessionTokens duplicados.
 - [x] Validar chamadas repetidas e isolamento por token no teste de integração; o frontend reutiliza o token guardado no dispositivo.
 - [x] Salvar checkpoint da correção.
+
+## Correção de duas table_sessions
+
+- [x] Identificar por que o cliente está usando dois sessionTokens diferentes.
+- [x] Unificar o token no frontend e impedir inicializações concorrentes de sessão.
+- [x] Garantir idempotência no backend para chamadas repetidas.
+- [x] Verificar os dois registos atuais e remover apenas duplicados sem seleções associadas.
+- [x] Testar recarregamento, chamadas concorrentes e preservação do Histórico.
+- [x] Salvar checkpoint da correção.
+
+## Validação final de sessão
+
+- [x] Coordenar a criação do sessionToken com lock entre abas quando suportado.
+- [x] Adicionar teste de chamadas concorrentes com o mesmo token.
+- [x] Validar recarregamento no mesmo dispositivo e preservação do Histórico.
+- [x] Confirmar no banco que permanece apenas uma sessão ativa para o uso atual.
+- [x] Salvar checkpoint final.

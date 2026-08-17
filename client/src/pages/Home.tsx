@@ -1,5 +1,5 @@
 /* Pátio Solar: máximo de simplicidade, consulta editorial e atendimento humano presencial. */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { getFloatingBarVisibility } from "@/lib/menuState";
 import { formatHistoryTime } from "@/lib/historyTime";
@@ -56,12 +56,30 @@ export default function Home() {
   const [selection, setSelection] = useState<Selection>({});
   const [lang, setLang] = useState<Lang>("pt");
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("patio-zambeze-dark-mode") === "true");
-  const [sessionToken] = useState(() => { const key = "patio-zambeze-session-token"; const existing = localStorage.getItem(key); if (existing) return existing; const created = `${crypto.randomUUID()}${crypto.randomUUID()}`; localStorage.setItem(key, created); return created; });
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
+  useEffect(() => {
+    const storageKey = "patio-zambeze-session-token";
+    const cookieKey = "patio_zambeze_session";
+    const resolveToken = () => {
+      const cookieMatch = document.cookie.split("; ").find((part) => part.startsWith(`${cookieKey}=`));
+      const cookieToken = cookieMatch?.slice(cookieKey.length + 1);
+      const existing = cookieToken || localStorage.getItem(storageKey);
+      const token = existing || `${crypto.randomUUID()}${crypto.randomUUID()}`;
+      localStorage.setItem(storageKey, token);
+      document.cookie = `${cookieKey}=${token}; Path=/; Max-Age=31536000; SameSite=Lax`;
+      setSessionToken(token);
+    };
+    if (navigator.locks) {
+      void navigator.locks.request("patio-zambeze-session-init", resolveToken);
+    } else {
+      resolveToken();
+    }
+  }, []);
   const copy = lang === "pt" ? { menu: "Menu digital", open: "Aberto hoje · 08:00–22:00", search: "Pesquisar no menu...", choices: "Escolhas da casa", recommended: "Recomendados", share: "Feito para partilhar", house: "O menu da casa", filter: "Filtrar por preço", favorites: "Meus favoritos", order: "Ordenar por", clear: "Limpar filtros", start: "Para começar", items: "itens", details: "Ver detalhes", select: "+ Selecionar", selected: "Selecionado", waiter: "Para fazer o pedido, chame o garçom.", about: "Sobre o restaurante", address: "Endereço", phone: "Telefone", whatsapp: "WhatsApp", social: "Redes sociais", continue: "Continuar a consultar", selection: "Minha Seleção", draft: "Histórico da mesa", estimated: "TOTAL ESTIMADO", showWaiter: "Confirmar ao Garçom", emptySelection: "A sua seleção está vazia.", unit: "por unidade", subtotal: "Subtotal", remove: "Remover" } : { menu: "Digital menu", open: "Open today · 08:00–22:00", search: "Search the menu...", choices: "House choices", recommended: "Recommended", share: "Made to share", house: "The house menu", filter: "Filter by price", favorites: "My favourites", order: "Sort by", clear: "Clear filters", start: "To start", items: "items", details: "View details", select: "+ Select", selected: "Selected", waiter: "To order, please call the waiter.", about: "About the restaurant", address: "Address", phone: "Phone", whatsapp: "WhatsApp", social: "Social media", continue: "Continue browsing", selection: "My Selection", draft: "Table history", estimated: "ESTIMATED TOTAL", showWaiter: "Confirm to Waiter", emptySelection: "Your selection is empty.", unit: "per unit", subtotal: "Subtotal", remove: "Remove" };
   const [showSelection, setShowSelection] = useState(false);
   const [selectionNotice, setSelectionNotice] = useState(false);
   const [selectionNoticeText, setSelectionNoticeText] = useState("");
-  const historyQuery = trpc.tableHistory.list.useQuery({ sessionToken });
+  const historyQuery = trpc.tableHistory.list.useQuery({ sessionToken: sessionToken || "" }, { enabled: Boolean(sessionToken) });
   const historyMutation = trpc.tableHistory.addSelection.useMutation({ onSuccess: () => historyQuery.refetch() });
   const history: HistoryEntry[] = (historyQuery.data || []).map((entry) => ({ id: entry.selectionNumber, createdAt: new Date(entry.createdAt).toISOString(), subtotal: entry.subtotal, items: entry.items.map((item) => ({ name: item.productName, quantity: item.quantity, price: item.unitPrice })) }));
   const [pendingConfirmation, setPendingConfirmation] = useState(false);
@@ -98,7 +116,7 @@ export default function Home() {
   const productDescription = (product: Product) => lang === "en" ? englishDescriptions[product.name] || product.description : product.description;
   const productImage = (product: Product) => productImages[product.name] || product.image;
   const showToWaiter = () => { setPendingConfirmation(true); };
-  const confirmHistory = () => { if (!selectionItems.length || historyMutation.isPending) return; historyMutation.mutate({ sessionToken, subtotal: selectionTotal, items: selectionItems.map((product) => ({ productName: product.name, quantity: selection[product.name], unitPrice: product.price })) }, { onSuccess: () => { updateSelection({}); setPendingConfirmation(false); setShowSelection(false); setSelectionNoticeText(lang === "pt" ? "✓ Seleção adicionada ao histórico da mesa." : "✓ Selection added to table history."); setSelectionNotice(true); window.setTimeout(() => setSelectionNotice(false), 3200); } }); };
+  const confirmHistory = () => { if (!sessionToken || !selectionItems.length || historyMutation.isPending) return; historyMutation.mutate({ sessionToken, subtotal: selectionTotal, items: selectionItems.map((product) => ({ productName: product.name, quantity: selection[product.name], unitPrice: product.price })) }, { onSuccess: () => { updateSelection({}); setPendingConfirmation(false); setShowSelection(false); setSelectionNoticeText(lang === "pt" ? "✓ Seleção adicionada ao histórico da mesa." : "✓ Selection added to table history."); setSelectionNotice(true); window.setTimeout(() => setSelectionNotice(false), 3200); } }); };
   const receiptNow = new Date();
   const receiptDateTime = receiptNow.toLocaleString(lang === "pt" ? "pt-PT" : "en-GB", { dateStyle: "short", timeStyle: "short" });
   const historyText = () => [`PÁTIO ZAMBEZE`, `HISTÓRICO DA MESA`, receiptDateTime, ``, ...history.flatMap((entry) => [`Seleção ${entry.id} — ${formatHistoryTime(entry.createdAt, lang)}`, ...entry.items.flatMap((item) => [`${productName(products.find((p) => p.name === item.name) || products[0])}`, `${item.quantity} × ${money(item.price)} = ${money(item.quantity * item.price)}`]), `Subtotal: ${money(entry.subtotal)}`, `--------------------`]), `TOTAL ESTIMADO DA MESA: ${money(historyTotal)}`, ``, lang === "pt" ? "Este histórico é apenas um resumo temporário. Confirme os produtos e valores com o garçom." : "This history is only a temporary summary. Confirm products and prices with the waiter."].join("\n");
