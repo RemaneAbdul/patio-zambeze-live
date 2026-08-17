@@ -12,6 +12,29 @@ const ctx: TrpcContext = {
 };
 
 describe("tableHistory validation", () => {
+  it("rejects staff lookup for an anonymous customer", async () => {
+    const caller = appRouter.createCaller(ctx);
+    await expect(caller.tableHistory.staffLookup({ sessionToken: "a".repeat(64) })).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("rejects staff lookup for a regular authenticated user", async () => {
+    const caller = appRouter.createCaller({
+      ...ctx,
+      user: {
+        id: 42,
+        openId: "regular-user",
+        email: "regular@example.com",
+        name: "Regular User",
+        loginMethod: "manus",
+        role: "user",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        lastSignedIn: new Date(),
+      },
+    });
+    await expect(caller.tableHistory.staffLookup({ sessionToken: "a".repeat(64) })).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
   it("rejects a session token that is too short", async () => {
     const caller = appRouter.createCaller(ctx);
     await expect(caller.tableHistory.list({ sessionToken: "short" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
@@ -45,6 +68,21 @@ integration("tableHistory persistence", () => {
       });
       const historyA = await getTableHistory(tokenA);
       const historyB = await getTableHistory(tokenB);
+      const staffCaller = appRouter.createCaller({
+        ...ctx,
+        user: {
+          id: 1,
+          openId: "admin-user",
+          email: "admin@example.com",
+          name: "Admin User",
+          loginMethod: "manus",
+          role: "admin",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          lastSignedIn: new Date(),
+        },
+      });
+      const staffResult = await staffCaller.tableHistory.staffLookup({ sessionToken: tokenA });
 
       expect(created.selectionNumber).toBe(1);
       expect(historyA).toHaveLength(1);
@@ -52,6 +90,8 @@ integration("tableHistory persistence", () => {
       expect(historyA[0]?.items).toEqual([expect.objectContaining({ productName: "Frango Grelhado", quantity: 2, unitPrice: 300, subtotal: 600 })]);
       expect(historyB).toHaveLength(0);
       expect(typeof historyA[0]?.createdAt).toBe("object");
+      expect(staffResult?.session.sessionToken).toBe(tokenA);
+      expect(staffResult?.selections[0]?.items[0]).toEqual(expect.objectContaining({ productName: "Frango Grelhado", quantity: 2, unitPrice: 300, subtotal: 600 }));
     } finally {
       const sessionA = await db.select().from(tableSessions).where(eq(tableSessions.sessionToken, tokenA)).limit(1);
       const sessionB = await db.select().from(tableSessions).where(eq(tableSessions.sessionToken, tokenB)).limit(1);

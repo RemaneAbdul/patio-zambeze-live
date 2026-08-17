@@ -134,6 +134,39 @@ export async function getTableHistory(sessionToken: string) {
   }));
 }
 
+export async function getTableHistoryForStaff(sessionToken: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+
+  const session = await db.select().from(tableSessions)
+    .where(eq(tableSessions.sessionToken, sessionToken))
+    .limit(1);
+  if (!session[0]) return null;
+
+  const selections = await db.select().from(tableSelections)
+    .where(eq(tableSelections.sessionId, session[0].id))
+    .orderBy(desc(tableSelections.createdAt));
+  const items = selections.length
+    ? await db.select().from(tableSelectionItems)
+      .where(inArray(tableSelectionItems.selectionId, selections.map((selection) => selection.id)))
+    : [];
+
+  return {
+    session: session[0],
+    selections: selections.map((selection) => ({
+      ...selection,
+      subtotal: Number(selection.subtotal),
+      items: items
+        .filter((item) => item.selectionId === selection.id)
+        .map((item) => ({
+          ...item,
+          unitPrice: Number(item.unitPrice),
+          subtotal: Number(item.unitPrice) * item.quantity,
+        })),
+    })),
+  };
+}
+
 export async function createTableSelection(input: {
   sessionToken: string;
   items: Array<{ productName: string; quantity: number; unitPrice: number }>;

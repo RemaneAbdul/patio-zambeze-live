@@ -98,3 +98,20 @@
 - [x] Validar recarregamento no mesmo dispositivo e preservação do Histórico.
 - [x] Confirmar no banco que permanece apenas uma sessão ativa para o uso atual.
 - [x] Salvar checkpoint final.
+
+## Painel interno do garçom
+
+- [x] Criar rota interna protegida para o painel do garçom.
+- [x] Exigir autenticação e restringir consulta a utilizadores autorizados.
+- [x] Permitir pesquisar uma mesa por sessionToken/código partilhado.
+- [x] Mostrar seleções, produtos, quantidades, subtotais e total estimado.
+- [x] Permitir imprimir apenas o recibo da mesa consultada.
+- [x] Tratar estados de login, código inválido, carregamento e ausência de histórico.
+- [x] Criar testes de autorização e consulta.
+- [x] Validar painel em desktop/mobile e salvar checkpoint.
+
+## Ajustes de validação do painel interno
+
+- [x] Mostrar mensagem explícita quando o código temporário da mesa tiver formato inválido.
+- [x] Testar consulta bem-sucedida do histórico por uma conta admin.
+- [x] Salvar checkpoint final após os ajustes de validação.
