@@ -7,10 +7,12 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import WaiterPanel from "./pages/WaiterPanel";
+import QrCodesPanel from "./pages/QrCodesPanel";
+import { PrintsPanel, SettingsPanel } from "./pages/InternalSettingsPanel";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
-  return <Switch><Route path="/" component={Home} /><Route path="/painel" component={WaiterPanel} /><Route path="/waiter" component={WaiterPanel} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>;
+  return <Switch><Route path="/" component={Home} /><Route path="/painel/qr-codes" component={QrCodesPanel} /><Route path="/painel" component={WaiterPanel} /><Route path="/painel/mesas" component={WaiterPanel} /><Route path="/painel/impressoes" component={PrintsPanel} /><Route path="/painel/definicoes" component={SettingsPanel} /><Route path="/waiter" component={WaiterPanel} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>;
 }
 
 export default function App() {

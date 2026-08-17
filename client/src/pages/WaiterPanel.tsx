@@ -6,7 +6,6 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, Circle, Eye, LockKeyhole, Printer, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Link } from "wouter";
 
 const money = (value: number) => `${value.toFixed(2)} MT`;
 const dateTime = (value: Date | string | number) => new Date(value).toLocaleString("pt-PT", { dateStyle: "short", timeStyle: "medium" });
@@ -27,7 +26,7 @@ export default function WaiterPanel() {
   const closeSession = trpc.tableHistory.closeSession.useMutation({ onSuccess: () => { setSelectedToken(""); void utils.tableHistory.staffTables.invalidate(); } });
 
   if (!isAuthorized) {
-    return <DashboardLayout><div className="waiter-shell"><div className="waiter-alert" role="alert">Esta área é exclusiva para o restaurante. Entre com uma conta autorizada para continuar.</div><Link href="/" className="waiter-back-link"><ArrowLeft className="h-4 w-4" /> Voltar ao menu público</Link></div></DashboardLayout>;
+    return <DashboardLayout><div className="waiter-shell"><div className="waiter-alert" role="alert">Esta área é exclusiva para o restaurante. Entre com uma conta autorizada para continuar.</div></div></DashboardLayout>;
   }
 
   const filteredTables = (tables.data ?? []).filter((table) => table.tableNumber.toLowerCase().includes(search.trim().toLowerCase()));
@@ -71,7 +70,6 @@ export default function WaiterPanel() {
           </section>
         )}
 
-        <Link href="/" className="waiter-back-link"><ArrowLeft className="h-4 w-4" /> Voltar ao menu público</Link>
       </div>
     </DashboardLayout>
   );

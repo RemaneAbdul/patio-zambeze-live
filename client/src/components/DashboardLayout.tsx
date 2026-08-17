@@ -21,15 +21,18 @@ import {
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Utensils } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Printer, QrCode, Settings, Table2 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Painel do garçom", path: "/waiter" },
-  { icon: Utensils, label: "Menu público", path: "/" },
+  { icon: LayoutDashboard, label: "Painel", path: "/painel" },
+  { icon: Table2, label: "Mesas", path: "/painel/mesas" },
+  { icon: QrCode, label: "QR Codes", path: "/painel/qr-codes" },
+  { icon: Printer, label: "Impressões", path: "/painel/impressoes" },
+  { icon: Settings, label: "Definições", path: "/painel/definicoes" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -224,7 +227,7 @@ function DashboardLayoutContent({
                   className="cursor-pointer text-destructive focus:text-destructive"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
+                  <span>Sair</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -248,7 +251,7 @@ function DashboardLayoutContent({
               <div className="flex items-center gap-3">
                 <div className="flex flex-col gap-1">
                   <span className="tracking-tight text-foreground">
-                    {activeMenuItem?.label ?? "Menu"}
+                    {activeMenuItem?.label ?? "Painel"}
                   </span>
                 </div>
               </div>

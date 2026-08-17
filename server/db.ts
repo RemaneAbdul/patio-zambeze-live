@@ -93,7 +93,7 @@ export async function getUserByOpenId(openId: string) {
 
 
 import { and, desc, eq, inArray, isNull, lt, sql } from "drizzle-orm";
-import { tableSelectionItems, tableSelections, tableSessions, InsertTableSelectionItem } from "../drizzle/schema";
+import { tableQrCodes, tableSelectionItems, tableSelections, tableSessions, InsertTableSelectionItem } from "../drizzle/schema";
 
 let lastSessionCleanupAt = 0;
 
@@ -134,6 +134,24 @@ export async function getTableHistory(sessionToken: string, tableNumber = "01") 
     subtotal: Number(selection.subtotal),
     items: items.filter((item) => item.selectionId === selection.id).map((item) => ({ ...item, unitPrice: Number(item.unitPrice), subtotal: Number(item.unitPrice) * item.quantity })),
   }));
+}
+
+export async function listTableQrCodes() {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  return db.select().from(tableQrCodes).orderBy(tableQrCodes.tableNumber);
+}
+
+export async function upsertTableQrCode(tableNumber: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const normalized = tableNumber.trim();
+  if (!normalized) throw new Error("Table number is required");
+  const qrToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
+  await db.insert(tableQrCodes).values({ tableNumber: normalized, qrToken }).onDuplicateKeyUpdate({ set: { qrToken, updatedAt: new Date() } });
+  const rows = await db.select().from(tableQrCodes).where(eq(tableQrCodes.tableNumber, normalized)).limit(1);
+  if (!rows[0]) throw new Error("Could not create QR code");
+  return rows[0];
 }
 
 export async function getStaffTables() {

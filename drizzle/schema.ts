@@ -62,3 +62,14 @@ export type TableSelection = typeof tableSelections.$inferSelect;
 export type InsertTableSelection = typeof tableSelections.$inferInsert;
 export type TableSelectionItem = typeof tableSelectionItems.$inferSelect;
 export type InsertTableSelectionItem = typeof tableSelectionItems.$inferInsert;
+
+export const tableQrCodes = mysqlTable("table_qr_codes", {
+  id: int("id").autoincrement().primaryKey(),
+  tableNumber: varchar("tableNumber", { length: 64 }).notNull().unique(),
+  qrToken: varchar("qrToken", { length: 128 }).notNull().unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TableQrCode = typeof tableQrCodes.$inferSelect;
+export type InsertTableQrCode = typeof tableQrCodes.$inferInsert;

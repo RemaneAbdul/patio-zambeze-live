@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { appRouter } from "./routers";
-import { closeTableSessionByStaff, createTableSelection, ensureTableSession, getDb, getStaffTables, getTableHistory, getTableHistoryForStaff, markTableViewedByStaff } from "./db";
-import { tableSelectionItems, tableSelections, tableSessions } from "../drizzle/schema";
+import { closeTableSessionByStaff, createTableSelection, ensureTableSession, getDb, getStaffTables, getTableHistory, getTableHistoryForStaff, listTableQrCodes, markTableViewedByStaff, upsertTableQrCode } from "./db";
+import { tableQrCodes, tableSelectionItems, tableSelections, tableSessions } from "../drizzle/schema";
 import type { TrpcContext } from "./_core/context";
 
 const ctx: TrpcContext = {
@@ -15,6 +15,12 @@ describe("tableHistory validation", () => {
   it("rejects staff lookup for an anonymous customer", async () => {
     const caller = appRouter.createCaller(ctx);
     await expect(caller.tableHistory.staffLookup({ sessionToken: "a".repeat(64) })).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("rejects QR code management for an anonymous customer", async () => {
+    const caller = appRouter.createCaller(ctx);
+    await expect(caller.tableHistory.qrCodes()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.tableHistory.generateQrCode({ tableNumber: "04" })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
   it("rejects staff lookup for a regular authenticated user", async () => {
@@ -33,6 +39,11 @@ describe("tableHistory validation", () => {
       },
     });
     await expect(caller.tableHistory.staffLookup({ sessionToken: "a".repeat(64) })).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("rejects QR code management for a regular authenticated user", async () => {
+    const caller = appRouter.createCaller({ ...ctx, user: { id: 42, openId: "regular-user", email: "regular@example.com", name: "Regular User", loginMethod: "manus", role: "user", createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() } });
+    await expect(caller.tableHistory.qrCodes()).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
   it("rejects a session token that is too short", async () => {
@@ -68,7 +79,7 @@ integration("tableHistory persistence", () => {
         items: [{ productName: "Frango Grelhado", quantity: 2, unitPrice: 300 }],
       });
       const historyA = await getTableHistory(tokenA);
-      const historyB = await getTableHistory(tokenB);
+      const historyB = await getTableHistory(tokenB, "02");
       const staffCaller = appRouter.createCaller({
         ...ctx,
         user: {
@@ -122,6 +133,25 @@ integration("tableHistory persistence", () => {
         await db.delete(tableSelections).where(eq(tableSelections.sessionId, sessionId));
         await db.delete(tableSessions).where(eq(tableSessions.id, sessionId));
       }
+    }
+  });
+});
+
+
+(process.env.DATABASE_URL ? describe : describe.skip)("qr code persistence", () => {
+  it("creates and regenerates one QR code per table without limits", async () => {
+    const db = await getDb();
+    if (!db) return;
+    const tableNumber = `TEST-${crypto.randomUUID()}`;
+    try {
+      const first = await upsertTableQrCode(tableNumber);
+      const second = await upsertTableQrCode(tableNumber);
+      expect(first.id).toBe(second.id);
+      expect(second.qrToken).not.toBe(first.qrToken);
+      expect((await listTableQrCodes()).some((code) => code.tableNumber === tableNumber)).toBe(true);
+    } finally {
+      const created = await db.select({ id: tableQrCodes.id }).from(tableQrCodes).where(eq(tableQrCodes.tableNumber, tableNumber)).limit(1);
+      if (created[0]) await db.delete(tableQrCodes).where(eq(tableQrCodes.id, created[0].id));
     }
   });
 });

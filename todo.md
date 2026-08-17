@@ -142,3 +142,26 @@
 
 - [x] Cobrir a atualização do token retornado por addSelection após encerramento e garantir que o histórico anterior não reaparece no cliente.
 - [x] Salvar checkpoint final das correções da expansão.
+
+## Atualização do painel conforme prompt anexado
+
+- [x] Remover do painel todos os links e botões para o menu público.
+- [x] Ajustar a navegação interna para Painel, Mesas, QR Codes, Impressões, Definições e Sair.
+- [x] Criar gestão ilimitada de QR Codes associados a mesa/nome.
+- [x] Permitir gerar, visualizar, baixar e imprimir QR Codes individualmente.
+- [x] Garantir que cada QR Code abre apenas o menu do cliente com `?mesa=`.
+- [x] Persistir a configuração dos QR Codes na base de dados.
+- [x] Validar segurança por restaurante/conta autorizada e manter recibo único.
+- [x] Criar testes de QR Codes e atualizar validação responsiva.
+- [x] Salvar checkpoint da atualização.
+
+## Fecho da atualização do painel
+
+- [x] Criar secções reais de Impressões e Definições ou apresentar estado explícito de implementação futura.
+- [x] Formalizar no painel e na documentação que a instalação atual é de restaurante único.
+- [x] Salvar checkpoint final da atualização de QR Codes.
+
+## Documentação final
+
+- [x] Adicionar ao README o escopo atual de restaurante único e a ausência de multi-tenant.
+- [x] Salvar checkpoint depois da documentação final.
