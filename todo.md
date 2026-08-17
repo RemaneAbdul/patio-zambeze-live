@@ -14,3 +14,18 @@
 - [x] Adicionar estados de carregamento e erro para leitura e gravação do Histórico da Mesa.
 - [x] Testar persistência bem-sucedida, isolamento por sessionToken e histórico somente leitura.
 - [x] Validar no browser o round-trip: confirmar seleção, recarregar, reabrir histórico e imprimir recibo em mobile e desktop.
+
+## Recibo térmico conforme exemplo
+
+- [x] Exibir Pátio Zambeze e “HISTÓRICO MESA” no cabeçalho impresso.
+- [x] Exibir data/hora atuais, separadores, seleções e itens com quantidade e preço alinhados.
+- [x] Destacar subtotal, TOTAL ESTIMADO e mensagem curta para confirmação com o garçom.
+- [x] Manter impressão compacta, dinâmica, sem fotos, menu, filtros ou navegação.
+- [x] Validar 58 mm e 80 mm e salvar checkpoint.
+
+## Revisão final do recibo térmico
+
+- [x] Trocar o rótulo impresso para “TOTAL ESTIMADO”.
+- [x] Validar explicitamente o conteúdo e largura de 58 mm.
+- [x] Validar explicitamente o conteúdo e largura de 80 mm.
+- [x] Salvar novo checkpoint após a validação.

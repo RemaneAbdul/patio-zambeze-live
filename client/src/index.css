@@ -212,3 +212,28 @@
   .receipt-modal .p-6, .receipt-modal .sm\\:p-8 { padding: 0 !important; }
   @page { size: auto; margin: 4mm; }
 }
+
+.receipt-print { display: none; }
+@media print {
+  .modal-backdrop:has(.receipt-print) .receipt-modal > .p-6 > :not(.receipt-print) { display: none !important; }
+  .modal-backdrop:has(.receipt-print) .receipt-print { display: block !important; width: 100%; color: #000 !important; background: #fff !important; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important; font-size: 10px; line-height: 1.25; }
+  .receipt-print header { text-align: center; margin-bottom: 10px; }
+  .receipt-print header strong, .receipt-print header span, .receipt-print header time { display: block; }
+  .receipt-print header strong { font-size: 13px; letter-spacing: .08em; }
+  .receipt-print header span { font-size: 11px; font-weight: 700; }
+  .receipt-print header time { margin-top: 5px; font-size: 10px; }
+  .receipt-selection { border-top: 1px dashed #000; padding: 8px 0 7px; }
+  .receipt-selection > strong { display: block; font-size: 11px; }
+  .receipt-rule { display: block; white-space: nowrap; overflow: hidden; }
+  .receipt-item { display: block; margin-top: 5px; }
+  .receipt-item > span:first-child { display: block; max-width: 100%; overflow-wrap: anywhere; }
+  .receipt-item > span:last-child { display: flex; justify-content: space-between; gap: 4px; white-space: nowrap; }
+  .receipt-item b { font-weight: 800; }
+  .receipt-subtotal { display: flex; justify-content: space-between; gap: 4px; margin-top: 7px; padding-top: 5px; border-top: 1px dashed #000; font-weight: 700; }
+  .receipt-total { display: flex; justify-content: space-between; gap: 4px; margin-top: 5px; padding: 9px 0; border-top: 2px solid #000; border-bottom: 2px solid #000; font-weight: 900; font-size: 12px; }
+  .receipt-print > p { margin: 11px 0 0; text-align: center; }
+  .receipt-print footer { margin-top: 11px; text-align: center; font-weight: 700; }
+  .receipt-modal.receipt-58mm { width: 58mm !important; max-width: 58mm !important; }
+  .receipt-modal.receipt-80mm { width: 80mm !important; max-width: 80mm !important; }
+  .receipt-modal .p-6 { padding: 0 !important; }
+}
