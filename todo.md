@@ -241,3 +241,26 @@
 - [x] Validar o modal preenchido do painel em 58 mm e 80 mm após o override final.
 - [x] Validar a impressão final do painel com um único recibo preenchido e sem páginas brancas.
 - [x] Salvar checkpoint novo desta correção prioritária.
+
+## Bug prioritário: janela de impressão em branco
+
+- [x] Garantir que o documento enviado ao navegador contém o recibo preenchido.
+- [x] Isolar o documento de impressão do DOM e do CSS do painel.
+- [x] Preservar 58 mm e 80 mm no documento térmico.
+- [x] Bloquear impressão sem dados e mostrar erro acionável.
+- [x] Testar o fluxo com conteúdo, sem páginas brancas, e salvar checkpoint.
+
+## Validação temporária autorizada: Mesa 01
+
+- [x] Criar uma seleção temporária na Mesa 01 exclusivamente para testar o recibo.
+- [x] Abrir o histórico no painel e confirmar o conteúdo do preview.
+- [x] Acionar a impressão e confirmar um único recibo preenchido, sem páginas brancas.
+- [x] Remover a sessão e os itens de teste da Mesa 01 após a validação.
+- [x] Salvar checkpoint depois da limpeza e documentar o resultado.
+
+## Fecho da validação temporária da Mesa 01
+
+- [x] Adicionar/confirmar uma regressão técnica observável para garantir que o portal de impressão contém um único recibo preenchido e não o menu.
+- [x] Salvar checkpoint final após a limpeza da Mesa 01 e documentar o resultado no histórico do projeto.
+- [x] Documentar ao utilizador que a Mesa 01 voltou a Sem pedido após a validação.
+

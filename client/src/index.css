@@ -369,14 +369,23 @@
   @page { margin: 0; size: auto; }
   html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
   /* O modal é um portal direto no body: escondemos o app e preservamos apenas o papel do recibo. */
+  body[data-receipt-printing="true"] > *:not(.receipt-preview-backdrop) { display: none !important; }
+  body[data-receipt-printing="true"] > .receipt-preview-backdrop { display: block !important; }
   body:has(> .receipt-preview-backdrop) > *:not(.receipt-preview-backdrop) { display: none !important; }
+  body[data-receipt-printing="true"] > .receipt-preview-backdrop,
   body:has(> .receipt-preview-backdrop) > .receipt-preview-backdrop { display: block !important; position: static !important; inset: auto !important; width: 100% !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; background: #fff !important; }
+  body[data-receipt-printing="true"] .receipt-preview-dialog,
   body:has(> .receipt-preview-backdrop) .receipt-preview-dialog { display: block !important; position: static !important; width: auto !important; max-width: none !important; max-height: none !important; overflow: visible !important; margin: 0 !important; padding: 0 !important; border: 0 !important; box-shadow: none !important; background: #fff !important; }
+  body[data-receipt-printing="true"] .receipt-preview-heading,
+  body[data-receipt-printing="true"] .receipt-preview-actions,
   body:has(> .receipt-preview-backdrop) .receipt-preview-heading,
   body:has(> .receipt-preview-backdrop) .receipt-preview-actions { display: none !important; }
+  body[data-receipt-printing="true"] .receipt-preview-paper,
   body:has(> .receipt-preview-backdrop) .receipt-preview-paper { display: block !important; width: 58mm !important; margin: 0 !important; padding: 0 !important; background: #fff !important; }
+  body[data-receipt-printing="true"] .receipt-preview-paper.receipt-80mm,
   body:has(> .receipt-preview-backdrop) .receipt-preview-paper.receipt-80mm { width: 80mm !important; }
-  body:has(> .receipt-preview-backdrop) .receipt-preview-paper .receipt-print { display: block !important; width: 100% !important; min-height: 0 !important; margin: 0 !important; padding: 4mm 3mm !important; color: #000 !important; background: #fff !important; box-shadow: none !important; }
+  body[data-receipt-printing="true"] .receipt-preview-paper .receipt-print,
+  body:has(> .receipt-preview-backdrop) .receipt-preview-paper .receipt-print { display: block !important; visibility: visible !important; width: 100% !important; min-height: 0 !important; margin: 0 !important; padding: 4mm 3mm !important; color: #000 !important; background: #fff !important; box-shadow: none !important; }
 }
 
 @layer components {
