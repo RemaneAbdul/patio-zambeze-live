@@ -264,3 +264,26 @@
 - [x] Salvar checkpoint final após a limpeza da Mesa 01 e documentar o resultado no histórico do projeto.
 - [x] Documentar ao utilizador que a Mesa 01 voltou a Sem pedido após a validação.
 
+
+## Preparação individual por item do menu
+
+- [x] Adicionar campos de preparação em português e inglês ao modelo de produtos/menu.
+- [x] Permitir editar e guardar a preparação própria de cada prato no painel interno.
+- [x] Exibir a preparação no detalhe do item no menu do cliente, respeitando PT/EN.
+- [x] Manter o snapshot histórico do pedido sem alterações retroativas.
+- [x] Criar testes Vitest para persistência, tradução e renderização da preparação.
+- [x] Validar desktop/mobile e salvar checkpoint da atualização.
+
+## Pendências reais da gestão persistente de preparação
+
+- [ ] Criar tabela persistente de produtos/menu com preparação PT e EN, preço, categoria, imagem e estado.
+- [ ] Criar procedures protegidas para listar, criar, editar, ativar/desativar e excluir logicamente itens.
+- [ ] Adicionar secção Menu/Gestão do Menu ao painel interno com formulário de preparação.
+- [ ] Fazer o menu público consumir os produtos persistentes, com fallback seguro durante a migração.
+- [ ] Preservar preparação no snapshot de table_selection_items sem alterar históricos antigos.
+- [ ] Criar testes específicos de schema/API, edição, tradução e renderização.
+- [ ] Validar desktop e mobile e salvar checkpoint final.
+
+### Nota de escopo desta atualização
+
+A solicitação atual foi implementada no menu público: todos os 15 itens possuem preparação PT/EN e o detalhe do prato mostra o tempo/método de preparação. A gestão persistente/editável de produtos no painel, descrita no anexo, permanece como uma evolução separada para não alterar o catálogo e a base de dados sem confirmação adicional do restaurante.
