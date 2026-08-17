@@ -116,13 +116,13 @@ export async function getTableHistory(sessionToken: string) {
   return selections.map((selection) => ({
     ...selection,
     subtotal: Number(selection.subtotal),
-    items: items.filter((item) => item.selectionId === selection.id).map((item) => ({ ...item, unitPrice: Number(item.unitPrice), subtotal: Number(item.subtotal) })),
+    items: items.filter((item) => item.selectionId === selection.id).map((item) => ({ ...item, unitPrice: Number(item.unitPrice), subtotal: Number(item.unitPrice) * item.quantity })),
   }));
 }
 
 export async function createTableSelection(input: {
   sessionToken: string;
-  items: Array<{ productKey: string; productName: string; quantity: number; unitPrice: number; subtotal: number }>;
+  items: Array<{ productName: string; quantity: number; unitPrice: number }>;
   subtotal: number;
 }) {
   if (!input.items.length) throw new Error("Cannot persist an empty selection");
@@ -134,7 +134,7 @@ export async function createTableSelection(input: {
     const selectionNumber = existing.length + 1;
     const inserted = await tx.insert(tableSelections).values({ sessionId: session.id, selectionNumber, subtotal: input.subtotal.toFixed(2) });
     const selectionId = Number(inserted[0].insertId);
-    await tx.insert(tableSelectionItems).values(input.items.map((item) => ({ ...item, selectionId, unitPrice: item.unitPrice.toFixed(2), subtotal: item.subtotal.toFixed(2) })));
+    await tx.insert(tableSelectionItems).values(input.items.map((item) => ({ ...item, selectionId, unitPrice: item.unitPrice.toFixed(2) })));
     await tx.update(tableSessions).set({ lastActivityAt: new Date() }).where(eq(tableSessions.id, session.id));
     return { id: selectionId, selectionNumber };
   });

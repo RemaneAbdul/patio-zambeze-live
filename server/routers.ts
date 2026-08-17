@@ -25,11 +25,9 @@ export const appRouter = router({
       sessionToken: z.string().min(32).max(128),
       subtotal: z.number().nonnegative(),
       items: z.array(z.object({
-        productKey: z.string().min(1).max(160),
-        productName: z.string().min(1).max(240),
+        productName: z.string().min(1).max(160),
         quantity: z.number().int().positive(),
         unitPrice: z.number().nonnegative(),
-        subtotal: z.number().nonnegative(),
       })).min(1).max(100),
     })).mutation(({ input }) => createTableSelection(input)),
   }),

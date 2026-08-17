@@ -35,7 +35,7 @@ integration("tableHistory persistence", () => {
       const created = await createTableSelection({
         sessionToken: tokenA,
         subtotal: 600,
-        items: [{ productKey: "Frango Grelhado", productName: "Frango Grelhado", quantity: 2, unitPrice: 300, subtotal: 600 }],
+        items: [{ productName: "Frango Grelhado", quantity: 2, unitPrice: 300 }],
       });
       const historyA = await getTableHistory(tokenA);
       const historyB = await getTableHistory(tokenB);

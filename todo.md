@@ -29,3 +29,20 @@
 - [x] Validar explicitamente o conteúdo e largura de 58 mm.
 - [x] Validar explicitamente o conteúdo e largura de 80 mm.
 - [x] Salvar novo checkpoint após a validação.
+
+## Otimização e ciclo de seleção
+
+- [x] Reduzir duplicação em table_selection_items, mantendo apenas os campos necessários ao comprovativo e índices essenciais.
+- [x] Avaliar normalização de nome/preço e preservar snapshot mínimo no momento da confirmação.
+- [x] Garantir que Minha Seleção contenha apenas itens pendentes e desapareça quando vazia.
+- [x] Fazer novos itens reaparecerem em Minha Seleção sem alterar o Histórico.
+- [x] Confirmar novas seleções somente após Mostrar ao Garçom + Confirmar.
+- [x] Testar isolamento entre seleção pendente e histórico, consumo e persistência.
+- [x] Salvar checkpoint após a validação.
+
+## Lacunas finais da otimização
+
+- [x] Remover o rótulo Histórico da Mesa do modal Minha Seleção.
+- [x] Validar a redução de colunas e o subtotal por item reconstruído.
+- [x] Validar o estado simultâneo de Histórico existente e nova Minha Seleção.
+- [x] Criar checkpoint após a validação final.

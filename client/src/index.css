@@ -237,3 +237,8 @@
   .receipt-modal.receipt-80mm { width: 80mm !important; max-width: 80mm !important; }
   .receipt-modal .p-6 { padding: 0 !important; }
 }
+
+.history-bar-with-selection { bottom: max(84px, calc(env(safe-area-inset-bottom) + 72px)); }
+@media (max-width: 560px) {
+  .history-bar-with-selection { bottom: max(82px, calc(env(safe-area-inset-bottom) + 70px)); }
+}

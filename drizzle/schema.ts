@@ -48,11 +48,9 @@ export const tableSelections = mysqlTable("table_selections", {
 export const tableSelectionItems = mysqlTable("table_selection_items", {
   id: int("id").autoincrement().primaryKey(),
   selectionId: int("selectionId").notNull(),
-  productKey: varchar("productKey", { length: 160 }).notNull(),
-  productName: varchar("productName", { length: 240 }).notNull(),
+  productName: varchar("productName", { length: 160 }).notNull(),
   quantity: int("quantity").notNull(),
   unitPrice: decimal("unitPrice", { precision: 10, scale: 2 }).notNull(),
-  subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
 }, (table) => ({ selectionIdx: index("table_selection_items_selection_idx").on(table.selectionId) }));
 
 export type TableSession = typeof tableSessions.$inferSelect;
