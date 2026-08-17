@@ -1,7 +1,6 @@
-# Minha Seleção temporária e resumo visual
+# Atualização a partir do novo arquivo
 
-- [x] Remover a persistência permanente do rascunho e manter o histórico apenas em memória durante a sessão.
-- [x] Permitir ver a seleção anterior enquanto o cliente permanecer no menu.
-- [x] Adicionar botão “Resumo visual” com layout próprio para impressão.
-- [x] Ocultar a barra fixa enquanto o resumo estiver aberto e restaurá-la ao fechar.
-- [x] Garantir que os dados desapareçam ao sair/recarregar o menu e validar mobile/desktop.
+- [x] Ler o arquivo e identificar requisitos novos.
+- [x] Comparar os requisitos com a implementação atual.
+- [x] Aplicar as alterações sem remover recursos existentes.
+- [x] Validar mobile e desktop e salvar checkpoint.
