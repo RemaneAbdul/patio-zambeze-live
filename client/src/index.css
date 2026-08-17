@@ -350,3 +350,50 @@
   .theme-dark .waiter-code-card strong, .theme-dark .waiter-code-card span { color: #F4EEE4; }
   @media (max-width: 520px) { .waiter-code-card { align-items: flex-start; flex-direction: column; } }
 }
+
+@layer components {
+  .waiter-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 24px; }
+  .waiter-summary-grid > div { border: 1px solid rgb(24 58 50 / 14%); background: rgb(255 255 255 / 55%); padding: 16px; }
+  .waiter-summary-grid span, .waiter-summary-grid strong { display: block; font-family: var(--font-sans); }
+  .waiter-summary-grid span { color: rgb(24 58 50 / 60%); font-size: 11px; text-transform: uppercase; letter-spacing: .1em; }
+  .waiter-summary-grid strong { margin-top: 7px; color: #C85A3F; font-size: 28px; }
+  .waiter-tables-section { margin-top: 32px; }
+  .waiter-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; border-bottom: 2px solid #C85A3F; padding-bottom: 14px; }
+  .waiter-section-heading h2 { margin-top: 6px; color: #183A32; font: 400 2.2rem var(--font-display); }
+  .waiter-table-search { display: flex; align-items: center; gap: 8px; width: min(260px, 100%); color: #C85A3F; }
+  .waiter-table-search input { min-height: 38px; }
+  .waiter-table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-top: 18px; }
+  .waiter-table-card { border: 1px solid rgb(24 58 50 / 14%); background: #fffdf8; padding: 16px; text-align: left; transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+  .waiter-table-card:hover { transform: translateY(-2px); border-color: #C85A3F; box-shadow: 0 12px 26px rgb(24 58 50 / 8%); }
+  .waiter-table-card-title { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .waiter-table-card-title span { color: rgb(24 58 50 / 58%); font: 700 10px var(--font-sans); text-transform: uppercase; letter-spacing: .12em; }
+  .waiter-table-card-title strong { color: #183A32; font: 400 2rem var(--font-display); }
+  .waiter-status { display: inline-flex; align-items: center; gap: 5px; margin-top: 15px; font: 700 10px var(--font-sans); letter-spacing: .08em; }
+  .waiter-status-new { color: #3c8450; }
+  .waiter-status-viewed { color: #b17923; }
+  .waiter-status-empty { color: rgb(24 58 50 / 46%); }
+  .waiter-table-card p { margin-top: 13px; color: rgb(24 58 50 / 70%); font: 12px var(--font-sans); }
+  .waiter-table-card small { display: block; margin-top: 5px; color: rgb(24 58 50 / 48%); font: 10px var(--font-sans); }
+  .waiter-table-card b { display: block; margin-top: 14px; color: #C85A3F; font: 700 14px var(--font-sans); }
+  .waiter-back-action { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 18px; color: #C85A3F; font: 700 11px var(--font-sans); text-decoration: underline; text-underline-offset: 4px; }
+  .waiter-result-actions { display: flex; align-items: flex-end; gap: 10px; }
+  .waiter-result-actions label { display: grid; gap: 5px; color: rgb(24 58 50 / 58%); font: 700 10px var(--font-sans); text-transform: uppercase; letter-spacing: .08em; }
+  .waiter-result-actions select { border: 1px solid rgb(24 58 50 / 18%); background: #fffdf8; padding: 9px; color: #183A32; font: 700 11px var(--font-sans); }
+  .waiter-detail-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+  .waiter-detail-actions button { background: #183A32; color: #F7F2E9; font: 700 11px var(--font-sans); }
+  .waiter-detail-actions button:hover { background: #C85A3F; }
+  .waiter-detail-actions button[disabled] { opacity: .55; }
+  @media (max-width: 640px) { .waiter-summary-grid { grid-template-columns: 1fr; } .waiter-section-heading, .waiter-result-heading, .waiter-result-actions { align-items: stretch; flex-direction: column; } .waiter-table-search { width: 100%; } .waiter-result-actions label, .waiter-result-actions select, .waiter-print-button { width: 100%; } }
+}
+
+@media print {
+  body:has(.waiter-receipt-print) .waiter-receipt-print.receipt-80mm { width: 80mm; }
+}
+
+@media print {
+  body:has(.waiter-shell) * { visibility: hidden !important; }
+  body:has(.waiter-shell) .receipt-print,
+  body:has(.waiter-shell) .receipt-print * { visibility: visible !important; }
+  body:has(.waiter-shell) .receipt-print { display: block !important; position: absolute; inset: 0 auto auto 0; width: 58mm; margin: 0; padding: 4mm 3mm; color: #000 !important; background: #fff !important; }
+  body:has(.waiter-shell) .receipt-print.receipt-80mm { width: 80mm; }
+}

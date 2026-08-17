@@ -115,3 +115,30 @@
 - [x] Mostrar mensagem explícita quando o código temporário da mesa tiver formato inválido.
 - [x] Testar consulta bem-sucedida do histórico por uma conta admin.
 - [x] Salvar checkpoint final após os ajustes de validação.
+
+## Expansão do painel interno conforme prompt anexado
+
+- [x] Adicionar identificação persistente da mesa e associação do QR Code à mesa.
+- [x] Criar visão geral de mesas com estados Novo, Visto e Sem pedido.
+- [x] Indicar a seleção mais recente e a hora original da submissão.
+- [x] Permitir abrir uma mesa e consultar todo o histórico acumulado.
+- [x] Adicionar ação protegida para marcar seleções como vistas sem alterar dados.
+- [x] Permitir encerrar a sessão da mesa sem apagar o histórico.
+- [x] Garantir nova sessão após encerramento e isolamento do histórico anterior.
+- [x] Reutilizar exatamente o modelo de recibo térmico oficial do menu.
+- [x] Adicionar testes de estados, marcação, encerramento e isolamento.
+- [x] Validar o painel em desktop, tablet e smartphone e salvar checkpoint.
+
+## Correções finais da expansão do painel
+
+- [x] Tratar SESSION_CLOSED também ao confirmar uma seleção no menu.
+- [x] Criar novo token para a mesma mesa após encerramento e garantir isolamento do histórico.
+- [x] Extrair o recibo térmico oficial para reutilização entre menu e painel.
+- [x] Adicionar teste de encerramento, nova sessão e isolamento no cliente.
+- [x] Validar explicitamente o painel em viewport tablet.
+- [x] Salvar checkpoint após esta expansão.
+
+## Última validação do cliente
+
+- [x] Cobrir a atualização do token retornado por addSelection após encerramento e garantir que o histórico anterior não reaparece no cliente.
+- [x] Salvar checkpoint final das correções da expansão.

@@ -10,7 +10,7 @@ import WaiterPanel from "./pages/WaiterPanel";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
-  return <Switch><Route path="/" component={Home} /><Route path="/waiter" component={WaiterPanel} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>;
+  return <Switch><Route path="/" component={Home} /><Route path="/painel" component={WaiterPanel} /><Route path="/waiter" component={WaiterPanel} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>;
 }
 
 export default function App() {

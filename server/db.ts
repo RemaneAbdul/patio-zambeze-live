@@ -92,7 +92,7 @@ export async function getUserByOpenId(openId: string) {
 // TODO: add feature queries here as your schema grows.
 
 
-import { and, desc, eq, inArray, lt, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, lt, sql } from "drizzle-orm";
 import { tableSelectionItems, tableSelections, tableSessions, InsertTableSelectionItem } from "../drizzle/schema";
 
 let lastSessionCleanupAt = 0;
@@ -108,21 +108,23 @@ async function cleanupAbandonedTableSessions(db: Awaited<ReturnType<typeof getDb
   ));
 }
 
-export async function ensureTableSession(sessionToken: string) {
+export async function ensureTableSession(sessionToken: string, tableNumber = "01") {
   if (!sessionToken || sessionToken.length < 32) throw new Error("A valid session token is required");
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   await cleanupAbandonedTableSessions(db);
-  await db.insert(tableSessions).values({ sessionToken }).onDuplicateKeyUpdate({ set: { lastActivityAt: new Date(), status: "open" } });
+  const existing = await db.select().from(tableSessions).where(eq(tableSessions.sessionToken, sessionToken)).limit(1);
+  if (existing[0]?.status === "closed") throw new Error("SESSION_CLOSED");
+  await db.insert(tableSessions).values({ sessionToken, tableNumber }).onDuplicateKeyUpdate({ set: { lastActivityAt: new Date(), status: "open", tableNumber } });
   const rows = await db.select().from(tableSessions).where(eq(tableSessions.sessionToken, sessionToken)).limit(1);
   if (!rows[0]) throw new Error("Could not create table session");
   return rows[0];
 }
 
-export async function getTableHistory(sessionToken: string) {
+export async function getTableHistory(sessionToken: string, tableNumber = "01") {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const session = await ensureTableSession(sessionToken);
+  const session = await ensureTableSession(sessionToken, tableNumber);
   const selections = await db.select().from(tableSelections).where(eq(tableSelections.sessionId, session.id)).orderBy(desc(tableSelections.createdAt));
   const items = selections.length
     ? await db.select().from(tableSelectionItems).where(inArray(tableSelectionItems.selectionId, selections.map((selection) => selection.id)))
@@ -132,6 +134,57 @@ export async function getTableHistory(sessionToken: string) {
     subtotal: Number(selection.subtotal),
     items: items.filter((item) => item.selectionId === selection.id).map((item) => ({ ...item, unitPrice: Number(item.unitPrice), subtotal: Number(item.unitPrice) * item.quantity })),
   }));
+}
+
+export async function getStaffTables() {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+
+  const sessions = await db.select().from(tableSessions)
+    .where(eq(tableSessions.status, "open"))
+    .orderBy(tableSessions.tableNumber, desc(tableSessions.lastActivityAt));
+  const tableNumbers = Array.from(new Set([...Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, "0")), ...sessions.map((session) => session.tableNumber)])).sort();
+  const result = [];
+  for (const tableNumber of tableNumbers) {
+    const session = sessions.find((candidate) => candidate.tableNumber === tableNumber);
+    if (!session) {
+      result.push({ id: -Number(tableNumber), sessionToken: "", tableNumber, status: "open" as const, selectionCount: 0, unviewedCount: 0, statusLabel: "empty" as const, total: 0, latestSelectionAt: null });
+      continue;
+    }
+    const selections = await db.select().from(tableSelections)
+      .where(eq(tableSelections.sessionId, session.id))
+      .orderBy(desc(tableSelections.createdAt));
+    const unviewed = selections.filter((selection) => !selection.viewedAt).length;
+    result.push({
+      ...session,
+      selectionCount: selections.length,
+      unviewedCount: unviewed,
+      statusLabel: unviewed > 0 ? "new" as const : selections.length > 0 ? "viewed" as const : "empty" as const,
+      total: selections.reduce((sum, selection) => sum + Number(selection.subtotal), 0),
+      latestSelectionAt: selections[0]?.createdAt ?? null,
+    });
+  }
+  return result;
+}
+
+export async function markTableViewedByStaff(sessionToken: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const session = await db.select({ id: tableSessions.id }).from(tableSessions)
+    .where(and(eq(tableSessions.sessionToken, sessionToken), eq(tableSessions.status, "open")))
+    .limit(1);
+  if (!session[0]) return null;
+  await db.update(tableSelections).set({ viewedAt: new Date() })
+    .where(and(eq(tableSelections.sessionId, session[0].id), isNull(tableSelections.viewedAt)));
+  return { success: true } as const;
+}
+
+export async function closeTableSessionByStaff(sessionToken: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const updated = await db.update(tableSessions).set({ status: "closed", closedAt: new Date() })
+    .where(and(eq(tableSessions.sessionToken, sessionToken), eq(tableSessions.status, "open")));
+  return { success: Number(updated[0]?.affectedRows ?? 0) > 0 } as const;
 }
 
 export async function getTableHistoryForStaff(sessionToken: string) {
@@ -169,13 +222,25 @@ export async function getTableHistoryForStaff(sessionToken: string) {
 
 export async function createTableSelection(input: {
   sessionToken: string;
+  tableNumber?: string;
   items: Array<{ productName: string; quantity: number; unitPrice: number }>;
   subtotal: number;
 }) {
   if (!input.items.length) throw new Error("Cannot persist an empty selection");
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const session = await ensureTableSession(input.sessionToken);
+  let effectiveToken = input.sessionToken;
+  let session;
+  try {
+    session = await ensureTableSession(effectiveToken, input.tableNumber || "01");
+  } catch (error) {
+    if (error instanceof Error && error.message === "SESSION_CLOSED") {
+      effectiveToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
+      session = await ensureTableSession(effectiveToken, input.tableNumber || "01");
+    } else {
+      throw error;
+    }
+  }
   return db.transaction(async (tx) => {
     const existing = await tx.select({ id: tableSelections.id }).from(tableSelections).where(eq(tableSelections.sessionId, session.id));
     const selectionNumber = existing.length + 1;
@@ -183,6 +248,6 @@ export async function createTableSelection(input: {
     const selectionId = Number(inserted[0].insertId);
     await tx.insert(tableSelectionItems).values(input.items.map((item) => ({ ...item, selectionId, unitPrice: item.unitPrice.toFixed(2) })));
     await tx.update(tableSessions).set({ lastActivityAt: new Date() }).where(eq(tableSessions.id, session.id));
-    return { id: selectionId, selectionNumber };
+    return { id: selectionId, selectionNumber, sessionToken: effectiveToken };
   });
 }

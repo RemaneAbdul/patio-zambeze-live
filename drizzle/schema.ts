@@ -28,17 +28,20 @@ export type InsertUser = typeof users.$inferInsert;
 export const tableSessions = mysqlTable("table_sessions", {
   id: int("id").autoincrement().primaryKey(),
   sessionToken: varchar("sessionToken", { length: 128 }).notNull().unique(),
+  tableNumber: varchar("tableNumber", { length: 32 }).notNull().default("01"),
   status: mysqlEnum("status", ["open", "closed"]).default("open").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastActivityAt: timestamp("lastActivityAt").defaultNow().notNull(),
-}, (table) => ({ statusIdx: index("table_sessions_status_idx").on(table.status) }));
+  closedAt: timestamp("closedAt"),
+}, (table) => ({ statusIdx: index("table_sessions_status_idx").on(table.status), tableNumberIdx: index("table_sessions_table_number_idx").on(table.tableNumber) }));
 
 export const tableSelections = mysqlTable("table_selections", {
   id: int("id").autoincrement().primaryKey(),
   sessionId: int("sessionId").notNull(),
   selectionNumber: int("selectionNumber").notNull(),
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
+  viewedAt: timestamp("viewedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   sessionNumberUnique: uniqueIndex("table_selections_session_number_idx").on(table.sessionId, table.selectionNumber),

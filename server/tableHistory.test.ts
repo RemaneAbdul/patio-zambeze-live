@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { appRouter } from "./routers";
-import { createTableSelection, ensureTableSession, getDb, getTableHistory } from "./db";
+import { closeTableSessionByStaff, createTableSelection, ensureTableSession, getDb, getStaffTables, getTableHistory, getTableHistoryForStaff, markTableViewedByStaff } from "./db";
 import { tableSelectionItems, tableSelections, tableSessions } from "../drizzle/schema";
 import type { TrpcContext } from "./_core/context";
 
@@ -51,6 +51,7 @@ integration("tableHistory persistence", () => {
   it("persists a selection, isolates sessions and exposes a read-only history view", async () => {
     const tokenA = `vitest-${crypto.randomUUID()}${crypto.randomUUID()}`;
     const tokenB = `vitest-${crypto.randomUUID()}${crypto.randomUUID()}`;
+    let replacementToken = "";
     const db = await getDb();
     if (!db) throw new Error("DATABASE_URL is required for this integration test");
 
@@ -92,15 +93,34 @@ integration("tableHistory persistence", () => {
       expect(typeof historyA[0]?.createdAt).toBe("object");
       expect(staffResult?.session.sessionToken).toBe(tokenA);
       expect(staffResult?.selections[0]?.items[0]).toEqual(expect.objectContaining({ productName: "Frango Grelhado", quantity: 2, unitPrice: 300, subtotal: 600 }));
+      const beforeViewed = await getStaffTables();
+      expect(beforeViewed.find((table) => table.sessionToken === tokenA)?.statusLabel).toBe("new");
+      await markTableViewedByStaff(tokenA);
+      const afterViewed = await getStaffTables();
+      expect(afterViewed.find((table) => table.sessionToken === tokenA)?.statusLabel).toBe("viewed");
+      expect((await closeTableSessionByStaff(tokenA)).success).toBe(true);
+      const closedHistory = await getTableHistoryForStaff(tokenA);
+      expect(closedHistory?.session.status).toBe("closed");
+      expect(closedHistory?.selections).toHaveLength(1);
+      const replacement = await createTableSelection({ sessionToken: tokenA, tableNumber: "04", subtotal: 80, items: [{ productName: "Coca-Cola", quantity: 1, unitPrice: 80 }] });
+      replacementToken = replacement.sessionToken;
+      expect(replacementToken).not.toBe(tokenA);
+      expect(replacement.selectionNumber).toBe(1);
+      const newHistory = await getTableHistoryForStaff(replacementToken);
+      expect(newHistory?.session.tableNumber).toBe("04");
+      expect(newHistory?.selections).toHaveLength(1);
+      expect(newHistory?.selections[0]?.items[0]?.productName).toBe("Coca-Cola");
+      expect((await getTableHistoryForStaff(tokenA))?.selections).toHaveLength(1);
     } finally {
       const sessionA = await db.select().from(tableSessions).where(eq(tableSessions.sessionToken, tokenA)).limit(1);
       const sessionB = await db.select().from(tableSessions).where(eq(tableSessions.sessionToken, tokenB)).limit(1);
-      const sessionIds = [...sessionA, ...sessionB].map((session) => session.id);
-      if (sessionIds.length) {
-        const selections = await db.select().from(tableSelections).where(eq(tableSelections.sessionId, sessionIds[0]!));
+      const sessionC = replacementToken ? await db.select().from(tableSessions).where(eq(tableSessions.sessionToken, replacementToken)).limit(1) : [];
+      const sessionIds = [...sessionA, ...sessionB, ...sessionC].map((session) => session.id);
+      for (const sessionId of sessionIds) {
+        const selections = await db.select().from(tableSelections).where(eq(tableSelections.sessionId, sessionId));
         for (const selection of selections) await db.delete(tableSelectionItems).where(eq(tableSelectionItems.selectionId, selection.id));
-        for (const sessionId of sessionIds) await db.delete(tableSelections).where(eq(tableSelections.sessionId, sessionId));
-        for (const sessionId of sessionIds) await db.delete(tableSessions).where(eq(tableSessions.id, sessionId));
+        await db.delete(tableSelections).where(eq(tableSelections.sessionId, sessionId));
+        await db.delete(tableSessions).where(eq(tableSessions.id, sessionId));
       }
     }
   });
