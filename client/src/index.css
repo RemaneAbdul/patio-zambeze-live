@@ -179,3 +179,19 @@
   .modal-backdrop:has(.history-entry) .selection-disclaimer { color: #183A32 !important; }
   @page { margin: 18mm; }
 }
+
+.receipt-width-control { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; color: rgb(24 58 50 / 65%); font: 700 11px var(--font-sans); }
+.receipt-width-control select { border: 1px solid rgb(24 58 50 / 18%); background: transparent; padding: 7px 9px; color: #183A32; font: 700 11px var(--font-sans); }
+.theme-dark .receipt-width-control, .theme-dark .receipt-width-control select { color: #F4EEE4; }
+@media print {
+  .receipt-modal.receipt-58mm { width: 58mm !important; }
+  .receipt-modal.receipt-80mm { width: 80mm !important; }
+  .receipt-modal .receipt-width-control { display: none !important; }
+  .receipt-modal .selection-total { margin-top: 12px; padding-top: 8px; font-size: 11px; }
+  .receipt-modal .history-entry { padding-top: 8px; }
+  .receipt-modal .history-line { margin-top: 4px; font-size: 10px; }
+  .receipt-modal .history-subtotal { margin-top: 7px; padding-top: 5px; font-size: 10px; }
+  .receipt-modal .eyebrow { margin-bottom: 2px; font-size: 9px; }
+  .receipt-modal h2 { margin-top: 0; font-size: 17px; }
+  .receipt-modal .selection-disclaimer { margin-top: 10px; font-size: 9px; }
+}
