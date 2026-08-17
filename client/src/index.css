@@ -169,3 +169,13 @@
 @media (max-width: 560px) { .history-bar { bottom: max(10px, env(safe-area-inset-bottom)); width: calc(100% - 24px); padding: 13px 14px; } .header-tools { gap: 6px; } .selection-bar { bottom: max(10px, env(safe-area-inset-bottom)); width: calc(100% - 24px); padding: 13px 14px; } .selection-row { align-items: flex-start; } .selection-modal .detail-modal { max-height: 94vh; } .recommended-list { grid-template-columns: 1fr; } .recommended-item { padding: 9px 10px; } .menu-tools { align-items: stretch; } .sort-control { flex: 1; justify-content: space-between; } }
 @media (min-width: 640px) { .modal-backdrop { align-items: center; padding: 24px; } .detail-modal { max-width: 600px; } .modal-close { padding: 18px 28px 14px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+
+@media print {
+  body * { visibility: hidden !important; }
+  .modal-backdrop:has(.history-entry), .modal-backdrop:has(.history-entry) * { visibility: visible !important; }
+  .modal-backdrop:has(.history-entry) { position: static !important; display: block !important; background: transparent !important; padding: 0 !important; }
+  .modal-backdrop:has(.history-entry) .selection-modal { position: static !important; width: 100% !important; max-width: 720px !important; max-height: none !important; margin: 0 auto !important; overflow: visible !important; box-shadow: none !important; }
+  .modal-backdrop:has(.history-entry) .modal-close, .modal-backdrop:has(.history-entry) .history-actions { display: none !important; }
+  .modal-backdrop:has(.history-entry) .selection-disclaimer { color: #183A32 !important; }
+  @page { margin: 18mm; }
+}
