@@ -178,3 +178,11 @@
 - [x] Validar explicitamente o painel corrigido em desktop e smartphone, incluindo navegação aberta.
 - [x] Verificar o fluxo da pré-visualização e impressão do recibo oficial no painel.
 - [x] Salvar checkpoint final do bugfix.
+
+## Correção final do recibo no painel
+
+- [x] Garantir que a pré-visualização mostra as seleções e itens consultados.
+- [x] Corrigir o botão Imprimir agora para acionar a impressão térmica.
+- [x] Eliminar páginas em branco e imprimir somente um recibo preenchido.
+- [x] Validar com dados reais, mobile/desktop e testes automatizados.
+- [x] Salvar checkpoint da correção.

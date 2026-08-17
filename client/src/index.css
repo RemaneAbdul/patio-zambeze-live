@@ -319,26 +319,6 @@
   }
 }
 
-@media print {
-  body:has(.waiter-receipt-print) * { visibility: hidden !important; }
-  body:has(.waiter-receipt-print) .waiter-receipt-print,
-  body:has(.waiter-receipt-print) .waiter-receipt-print * { visibility: visible !important; }
-  body:has(.waiter-receipt-print) .waiter-receipt-print { display: block !important; position: absolute; inset: 0 auto auto 0; width: 58mm; margin: 0; padding: 4mm 3mm; color: #000; background: #fff; font: 10px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace; }
-  body:has(.waiter-receipt-print) .waiter-receipt-print header { display: grid; gap: 2px; text-align: center; }
-  body:has(.waiter-receipt-print) .waiter-receipt-print header strong { font-size: 13px; }
-  body:has(.waiter-receipt-print) .waiter-receipt-print header span { font-weight: 700; }
-  body:has(.waiter-receipt-print) .waiter-receipt-print header time { margin-top: 3px; }
-  body:has(.waiter-receipt-print) .waiter-receipt-selection { margin-top: 12px; }
-  body:has(.waiter-receipt-print) .waiter-receipt-selection > strong, body:has(.waiter-receipt-print) .waiter-receipt-selection > time, body:has(.waiter-receipt-print) .waiter-receipt-selection > span { display: block; }
-  body:has(.waiter-receipt-print) .waiter-receipt-selection > time { margin-top: 2px; }
-  body:has(.waiter-receipt-print) .waiter-receipt-selection > span { overflow: hidden; white-space: nowrap; }
-  body:has(.waiter-receipt-print) .waiter-receipt-selection > div, body:has(.waiter-receipt-print) .waiter-receipt-selection > p, body:has(.waiter-receipt-print) .waiter-receipt-total { display: flex; justify-content: space-between; gap: 6px; margin: 5px 0 0; }
-  body:has(.waiter-receipt-print) .waiter-receipt-selection > p { border-top: 1px dashed #000; padding-top: 4px; }
-  body:has(.waiter-receipt-print) .waiter-receipt-total { border-top: 1px solid #000; margin-top: 14px; padding-top: 7px; font-weight: 700; }
-  body:has(.waiter-receipt-print) .waiter-receipt-print > p { margin-top: 14px; text-align: center; }
-  body:has(.waiter-receipt-print) .waiter-receipt-print footer { margin-top: 9px; text-align: center; font-weight: 700; }
-}
-
 @layer components {
   .waiter-code-card { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 14px; border-left: 3px solid #C85A3F; background: rgb(200 90 63 / 8%); padding: 12px 13px; }
   .waiter-code-card div { min-width: 0; }
@@ -387,15 +367,15 @@
 }
 
 @media print {
-  body:has(.waiter-receipt-print) .waiter-receipt-print.receipt-80mm { width: 80mm; }
-}
-
-@media print {
-  body:has(.waiter-shell) * { visibility: hidden !important; }
-  body:has(.waiter-shell) .receipt-print,
-  body:has(.waiter-shell) .receipt-print * { visibility: visible !important; }
-  body:has(.waiter-shell) .receipt-print { display: block !important; position: absolute; inset: 0 auto auto 0; width: 58mm; margin: 0; padding: 4mm 3mm; color: #000 !important; background: #fff !important; }
-  body:has(.waiter-shell) .receipt-print.receipt-80mm { width: 80mm; }
+  /* O modal é um portal direto no body: escondemos o app e preservamos apenas o papel do recibo. */
+  body:has(> .receipt-preview-backdrop) > *:not(.receipt-preview-backdrop) { display: none !important; }
+  body:has(> .receipt-preview-backdrop) > .receipt-preview-backdrop { display: block !important; position: static !important; inset: auto !important; width: 100% !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; background: #fff !important; }
+  body:has(> .receipt-preview-backdrop) .receipt-preview-dialog { display: block !important; position: static !important; width: auto !important; max-width: none !important; max-height: none !important; overflow: visible !important; margin: 0 !important; padding: 0 !important; border: 0 !important; box-shadow: none !important; background: #fff !important; }
+  body:has(> .receipt-preview-backdrop) .receipt-preview-heading,
+  body:has(> .receipt-preview-backdrop) .receipt-preview-actions { display: none !important; }
+  body:has(> .receipt-preview-backdrop) .receipt-preview-paper { display: block !important; width: 58mm !important; margin: 0 !important; padding: 0 !important; background: #fff !important; }
+  body:has(> .receipt-preview-backdrop) .receipt-preview-paper.receipt-80mm { width: 80mm !important; }
+  body:has(> .receipt-preview-backdrop) .receipt-preview-paper .receipt-print { display: block !important; width: 100% !important; min-height: 0 !important; margin: 0 !important; padding: 4mm 3mm !important; color: #000 !important; background: #fff !important; box-shadow: none !important; }
 }
 
 @layer components {
