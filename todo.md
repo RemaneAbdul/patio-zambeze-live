@@ -46,3 +46,9 @@
 - [x] Validar a redução de colunas e o subtotal por item reconstruído.
 - [x] Validar o estado simultâneo de Histórico existente e nova Minha Seleção.
 - [x] Criar checkpoint após a validação final.
+
+## Correção da impressão do recibo
+
+- [x] Ocultar completamente o painel do Histórico, menu e navegação durante a impressão.
+- [x] Mostrar somente o bloco receipt-print em uma página térmica.
+- [x] Validar a impressão sem páginas extras e salvar checkpoint.

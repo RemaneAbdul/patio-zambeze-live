@@ -242,3 +242,23 @@
 @media (max-width: 560px) {
   .history-bar-with-selection { bottom: max(82px, calc(env(safe-area-inset-bottom) + 70px)); }
 }
+
+/* Impressão final: o recibo é o único conteúdo imprimível. */
+@media print {
+  @page { size: auto; margin: 0; }
+  html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+  body > * { display: none !important; }
+  body > #root { display: block !important; }
+  #root > * { display: none !important; }
+  #root .modal-backdrop:has(.receipt-print) { display: block !important; position: static !important; inset: auto !important; width: 100% !important; min-height: 0 !important; padding: 0 !important; background: #fff !important; }
+  #root .modal-backdrop:has(.receipt-print) > .receipt-modal { display: block !important; position: static !important; width: var(--receipt-print-width, 58mm) !important; max-width: var(--receipt-print-width, 58mm) !important; min-height: 0 !important; max-height: none !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; background: #fff !important; color: #000 !important; box-shadow: none !important; }
+  #root .modal-backdrop:has(.receipt-print) > .receipt-modal > .modal-close,
+  #root .modal-backdrop:has(.receipt-print) > .receipt-modal > .p-6 > :not(.receipt-print) { display: none !important; }
+  #root .modal-backdrop:has(.receipt-print) > .receipt-modal > .p-6 { display: block !important; padding: 0 !important; margin: 0 !important; }
+  #root .modal-backdrop:has(.receipt-print) .receipt-print { display: block !important; visibility: visible !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+  #root .modal-backdrop:has(.receipt-print) .receipt-print * { visibility: visible !important; }
+  #root .modal-backdrop:has(.receipt-print) .history-actions,
+  #root .modal-backdrop:has(.receipt-print) .receipt-width-control { display: none !important; }
+  .receipt-modal.receipt-58mm { --receipt-print-width: 58mm; }
+  .receipt-modal.receipt-80mm { --receipt-print-width: 80mm; }
+}
