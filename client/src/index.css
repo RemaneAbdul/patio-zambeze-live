@@ -63,6 +63,16 @@
 
   .product-image-placeholder span { font: 700 10px var(--font-sans); letter-spacing: .18em; text-transform: uppercase; color: rgb(24 58 50 / 52%); }
   .price-tag { font: 700 13px var(--font-sans); color: #C85A3F; white-space: nowrap; }
+  .product-tag { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 8px; font: 700 9px var(--font-sans); letter-spacing: .04em; text-transform: uppercase; }
+  .tag-house, .tag-chef { background: rgb(200 90 63 / 12%); color: #A44832; }
+  .tag-popular { background: rgb(24 58 50 / 10%); color: #183A32; }
+  .tag-new { background: rgb(208 160 62 / 17%); color: #80601C; }
+  .tag-unavailable { background: rgb(24 58 50 / 10%); color: rgb(24 58 50 / 58%); }
+  .product-card-unavailable { opacity: .58; filter: grayscale(.35); }
+  .detail-grid { display: grid; gap: 18px; font: 13px/1.55 var(--font-sans); color: rgb(24 58 50 / 68%); }
+  .detail-label { margin-bottom: 3px; color: #183A32; font: 700 10px var(--font-sans); letter-spacing: .12em; text-transform: uppercase; }
+  .restaurant-info { font: 13px/1.55 var(--font-sans); }
+
   .waiter-note { border-left: 3px solid #C85A3F; background: #183A32; color: #F7F2E9; box-shadow: 0 12px 24px rgb(24 58 50 / 12%); }
   .waiter-note .eyebrow { color: #E3A38E; }
   .waiter-button { @apply px-4 py-3 font-sans text-xs font-bold uppercase tracking-[0.14em]; border: 1px solid rgb(247 242 233 / 30%); color: #F7F2E9; transition: background 180ms ease, color 180ms ease; }
