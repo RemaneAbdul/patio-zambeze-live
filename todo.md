@@ -165,3 +165,16 @@
 
 - [x] Adicionar ao README o escopo atual de restaurante único e a ausência de multi-tenant.
 - [x] Salvar checkpoint depois da documentação final.
+
+## Correções reportadas no painel mobile
+
+- [x] Corrigir sobreposição/transparência da navegação lateral e cabeçalho no smartphone.
+- [x] Fazer o botão Imprimir Recibo apresentar o recibo oficial antes/durante a impressão.
+- [x] Validar impressão térmica, mobile e desktop sem regressões.
+- [x] Salvar checkpoint da correção.
+
+## Validação final dos bugs reportados
+
+- [x] Validar explicitamente o painel corrigido em desktop e smartphone, incluindo navegação aberta.
+- [x] Verificar o fluxo da pré-visualização e impressão do recibo oficial no painel.
+- [x] Salvar checkpoint final do bugfix.
