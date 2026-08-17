@@ -367,6 +367,8 @@
 }
 
 @media print {
+  @page { margin: 0; size: auto; }
+  html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
   /* O modal é um portal direto no body: escondemos o app e preservamos apenas o papel do recibo. */
   body:has(> .receipt-preview-backdrop) > *:not(.receipt-preview-backdrop) { display: none !important; }
   body:has(> .receipt-preview-backdrop) > .receipt-preview-backdrop { display: block !important; position: static !important; inset: auto !important; width: 100% !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; background: #fff !important; }

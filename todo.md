@@ -186,3 +186,30 @@
 - [x] Eliminar páginas em branco e imprimir somente um recibo preenchido.
 - [x] Validar com dados reais, mobile/desktop e testes automatizados.
 - [x] Salvar checkpoint da correção.
+
+## Atualização final: mesa, garçom, rotas e impressão
+
+- [x] Separar o menu do cliente em `/menu` e manter `/painel` interno protegido.
+- [x] Fazer QR Codes apontarem para `/menu?table=ID_INTERNO` sem expor o painel.
+- [x] Garantir identificador único persistente para cada mesa/QR Code.
+- [x] Criar identificação de garçons com ID, nome, estado ativo/inativo e sessão autenticada.
+- [x] Associar o garçom autenticado à sessão quando a mesa for atendida.
+- [x] Preservar a associação do garçom e criar nova associação ao abrir nova sessão.
+- [x] Corrigir a impressão sem alterar o design do recibo único compartilhado.
+- [x] Aguardar dados/renderização, validar conteúdo e bloquear impressão vazia.
+- [x] Mostrar estados Preparando, A imprimir, erro e Tentar novamente.
+- [x] Consolidar CSS para imprimir somente o recibo em 58/80 mm.
+- [x] Criar testes de mesa, garçom, sessão, autorização e impressão.
+- [x] Validar menu/painel em mobile e desktop e salvar checkpoint.
+
+## Lacunas finais da atualização mesa/garçom
+
+- [x] Adicionar ação visível de Tentar novamente no erro de impressão do menu do cliente.
+- [x] Aplicar corretamente a classe de largura 80 mm ao alvo real do recibo e validar 58/80 mm.
+- [x] Adicionar testes explícitos para rota `/menu?table=`, identidade/associação do garçom e impressão validada.
+- [x] Validar esta atualização em desktop e mobile e salvar checkpoint final.
+
+## Verificação final de impressão térmica
+
+- [x] Validar explicitamente o recibo do painel em 58 mm e 80 mm após a correção da classe real do wrapper.
+- [x] Salvar checkpoint após as correções finais de rota, retry, largura e testes.

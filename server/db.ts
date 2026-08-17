@@ -60,6 +60,12 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.role = 'admin';
     }
 
+    if ((values.role === 'admin' || user.openId === ENV.ownerOpenId) && !user.waiterCode) {
+      const generatedWaiterCode = `GAR-${user.openId.slice(-6).toUpperCase()}`;
+      values.waiterCode = generatedWaiterCode;
+      updateSet.waiterCode = generatedWaiterCode;
+    }
+
     if (!values.lastSignedIn) {
       values.lastSignedIn = new Date();
     }
@@ -121,10 +127,17 @@ export async function ensureTableSession(sessionToken: string, tableNumber = "01
   return rows[0];
 }
 
-export async function getTableHistory(sessionToken: string, tableNumber = "01") {
+async function resolveTableReference(db: Awaited<ReturnType<typeof getDb>>, tableReference: string) {
+  if (!db) throw new Error("Database is not available");
+  const qr = await db.select().from(tableQrCodes).where(eq(tableQrCodes.qrToken, tableReference)).limit(1);
+  return qr[0] ? { tableNumber: qr[0].tableNumber, tableId: qr[0].qrToken } : { tableNumber: tableReference, tableId: tableReference };
+}
+
+export async function getTableHistory(sessionToken: string, tableNumber = "01", tableId?: string) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const session = await ensureTableSession(sessionToken, tableNumber);
+  const table = await resolveTableReference(db, tableId || tableNumber);
+  const session = await ensureTableSession(sessionToken, table.tableNumber);
   const selections = await db.select().from(tableSelections).where(eq(tableSelections.sessionId, session.id)).orderBy(desc(tableSelections.createdAt));
   const items = selections.length
     ? await db.select().from(tableSelectionItems).where(inArray(tableSelectionItems.selectionId, selections.map((selection) => selection.id)))
@@ -134,6 +147,15 @@ export async function getTableHistory(sessionToken: string, tableNumber = "01") 
     subtotal: Number(selection.subtotal),
     items: items.filter((item) => item.selectionId === selection.id).map((item) => ({ ...item, unitPrice: Number(item.unitPrice), subtotal: Number(item.unitPrice) * item.quantity })),
   }));
+}
+
+export async function getTableSessionInfo(sessionToken: string, tableNumber = "01", tableId?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const table = await resolveTableReference(db, tableId || tableNumber);
+  const session = await ensureTableSession(sessionToken, table.tableNumber);
+  const waiter = session.waiterId ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode, waiterActive: users.waiterActive }).from(users).where(eq(users.id, session.waiterId)).limit(1) : [];
+  return { session, waiter: waiter[0] ?? null };
 }
 
 export async function listTableQrCodes() {
@@ -205,7 +227,7 @@ export async function closeTableSessionByStaff(sessionToken: string) {
   return { success: Number(updated[0]?.affectedRows ?? 0) > 0 } as const;
 }
 
-export async function getTableHistoryForStaff(sessionToken: string) {
+export async function getTableHistoryForStaff(sessionToken: string, assignWaiterId?: number) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
 
@@ -213,6 +235,11 @@ export async function getTableHistoryForStaff(sessionToken: string) {
     .where(eq(tableSessions.sessionToken, sessionToken))
     .limit(1);
   if (!session[0]) return null;
+  if (assignWaiterId && session[0].status === "open" && session[0].waiterId !== assignWaiterId) {
+    await db.update(tableSessions).set({ waiterId: assignWaiterId }).where(eq(tableSessions.id, session[0].id));
+    session[0].waiterId = assignWaiterId;
+  }
+  const waiter = session[0].waiterId ? await db.select({ id: users.id, name: users.name, email: users.email, waiterCode: users.waiterCode, waiterActive: users.waiterActive }).from(users).where(eq(users.id, session[0].waiterId)).limit(1) : [];
 
   const selections = await db.select().from(tableSelections)
     .where(eq(tableSelections.sessionId, session[0].id))
@@ -224,6 +251,7 @@ export async function getTableHistoryForStaff(sessionToken: string) {
 
   return {
     session: session[0],
+    waiter: waiter[0] ?? null,
     selections: selections.map((selection) => ({
       ...selection,
       subtotal: Number(selection.subtotal),
@@ -238,23 +266,33 @@ export async function getTableHistoryForStaff(sessionToken: string) {
   };
 }
 
+export async function assignWaiterToSession(sessionToken: string, waiterId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.update(tableSessions).set({ waiterId, lastActivityAt: new Date() })
+    .where(and(eq(tableSessions.sessionToken, sessionToken), eq(tableSessions.status, "open")));
+  return getTableHistoryForStaff(sessionToken, waiterId);
+}
+
 export async function createTableSelection(input: {
   sessionToken: string;
   tableNumber?: string;
+  tableId?: string;
   items: Array<{ productName: string; quantity: number; unitPrice: number }>;
   subtotal: number;
 }) {
   if (!input.items.length) throw new Error("Cannot persist an empty selection");
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
+  const table = await resolveTableReference(db, input.tableId || input.tableNumber || "01");
   let effectiveToken = input.sessionToken;
   let session;
   try {
-    session = await ensureTableSession(effectiveToken, input.tableNumber || "01");
+    session = await ensureTableSession(effectiveToken, table.tableNumber);
   } catch (error) {
     if (error instanceof Error && error.message === "SESSION_CLOSED") {
       effectiveToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
-      session = await ensureTableSession(effectiveToken, input.tableNumber || "01");
+      session = await ensureTableSession(effectiveToken, table.tableNumber);
     } else {
       throw error;
     }

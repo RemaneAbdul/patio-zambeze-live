@@ -103,6 +103,7 @@ integration("tableHistory persistence", () => {
       expect(historyB).toHaveLength(0);
       expect(typeof historyA[0]?.createdAt).toBe("object");
       expect(staffResult?.session.sessionToken).toBe(tokenA);
+      expect(staffResult?.session.waiterId).toBe(1);
       expect(staffResult?.selections[0]?.items[0]).toEqual(expect.objectContaining({ productName: "Frango Grelhado", quantity: 2, unitPrice: 300, subtotal: 600 }));
       const beforeViewed = await getStaffTables();
       expect(beforeViewed.find((table) => table.sessionToken === tokenA)?.statusLabel).toBe("new");

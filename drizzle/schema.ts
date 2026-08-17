@@ -1,4 +1,4 @@
-import { decimal, index, int, mysqlEnum, mysqlTable, primaryKey, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
+import { decimal, index, int, mysqlEnum, mysqlTable, primaryKey, text, timestamp, tinyint, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -17,6 +17,8 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  waiterCode: varchar("waiterCode", { length: 32 }).unique(),
+  waiterActive: tinyint("waiterActive").default(1).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -34,6 +36,7 @@ export const tableSessions = mysqlTable("table_sessions", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastActivityAt: timestamp("lastActivityAt").defaultNow().notNull(),
   closedAt: timestamp("closedAt"),
+  waiterId: int("waiterId"),
 }, (table) => ({ statusIdx: index("table_sessions_status_idx").on(table.status), tableNumberIdx: index("table_sessions_table_number_idx").on(table.tableNumber) }));
 
 export const tableSelections = mysqlTable("table_selections", {
