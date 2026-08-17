@@ -58,3 +58,9 @@
 - [x] Confirmar a versão sincronizada e identificar por que receipt-print fica vazio na impressão.
 - [x] Corrigir a renderização do recibo sem voltar a imprimir o menu ou o painel.
 - [x] Validar preview, impressão e testes e criar checkpoint sincronizado.
+
+## Hora independente por submissão
+
+- [x] Exibir hora, minuto e segundo próprios em cada seleção confirmada.
+- [x] Usar o timestamp de cada seleção no painel e no recibo impresso.
+- [x] Validar múltiplas submissões e salvar checkpoint.

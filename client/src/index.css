@@ -275,3 +275,5 @@
   #root > .menu-app-shell > .notice { display: none !important; }
   #root > .menu-app-shell > .modal-backdrop:has(.receipt-print) { display: block !important; }
 }
+
+.receipt-selection-time { display: block; margin-top: 2px; font-size: 10px; font-weight: 700; }
