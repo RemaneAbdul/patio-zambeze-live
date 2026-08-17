@@ -1,8 +1,7 @@
-# Rascunho comprovativo e imagens dos produtos
+# Minha Seleção temporária e resumo visual
 
-- [x] Gerar ou preparar uma imagem gastronómica individual para cada produto que ainda não tenha fotografia.
-- [x] Integrar imagens reais ou geradas em todos os cartões do menu, preservando carregamento adequado.
-- [x] Ao clicar em “Mostrar ao Garçom”, guardar a seleção como rascunho local com data/hora, itens, quantidades, subtotais e total estimado.
-- [x] Exibir o comprovativo local numa vista/modal acessível, com aviso claro de que não é pedido enviado.
-- [x] Permitir consultar, reabrir e limpar o rascunho sem login, backend ou pagamento.
-- [x] Validar desktop e mobile e salvar checkpoint.
+- [x] Remover a persistência permanente do rascunho e manter o histórico apenas em memória durante a sessão.
+- [x] Permitir ver a seleção anterior enquanto o cliente permanecer no menu.
+- [x] Adicionar botão “Resumo visual” com layout próprio para impressão.
+- [x] Ocultar a barra fixa enquanto o resumo estiver aberto e restaurá-la ao fechar.
+- [x] Garantir que os dados desapareçam ao sair/recarregar o menu e validar mobile/desktop.
