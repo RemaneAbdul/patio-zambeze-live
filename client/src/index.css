@@ -195,3 +195,20 @@
   .receipt-modal h2 { margin-top: 0; font-size: 17px; }
   .receipt-modal .selection-disclaimer { margin-top: 10px; font-size: 9px; }
 }
+
+.history-bar { transition: opacity 220ms cubic-bezier(.23,1,.32,1), transform 220ms cubic-bezier(.23,1,.32,1), visibility 220ms linear; }
+.history-bar-enter { opacity: 1; transform: translateX(-50%) translateY(0); visibility: visible; }
+.history-bar-exit { opacity: 0; transform: translateX(-50%) translateY(18px); visibility: hidden; pointer-events: none; }
+.receipt-datetime { margin-top: 7px; color: rgb(24 58 50 / 58%); font: 600 11px var(--font-sans); letter-spacing: .06em; }
+@media print {
+  body > * { visibility: hidden !important; }
+  .modal-backdrop:has(.receipt-modal), .modal-backdrop:has(.receipt-modal) * { visibility: visible !important; }
+  .modal-backdrop:has(.receipt-modal) { position: static !important; display: block !important; inset: auto !important; background: #fff !important; padding: 0 !important; }
+  .modal-backdrop:has(.receipt-modal) .receipt-modal { position: static !important; display: block !important; width: var(--receipt-print-width, 58mm) !important; max-width: var(--receipt-print-width, 58mm) !important; max-height: none !important; margin: 0 !important; overflow: visible !important; background: #fff !important; color: #000 !important; box-shadow: none !important; }
+  .receipt-modal.receipt-58mm { --receipt-print-width: 58mm; }
+  .receipt-modal.receipt-80mm { --receipt-print-width: 80mm; }
+  .modal-backdrop:has(.receipt-modal) .modal-close, .modal-backdrop:has(.receipt-modal) .receipt-width-control, .modal-backdrop:has(.receipt-modal) .history-actions { display: none !important; }
+  .receipt-modal .receipt-datetime, .receipt-modal .history-entry-title, .receipt-modal .history-line, .receipt-modal .history-subtotal, .receipt-modal .selection-total, .receipt-modal .selection-disclaimer, .receipt-modal .eyebrow, .receipt-modal h2 { color: #000 !important; }
+  .receipt-modal .p-6, .receipt-modal .sm\\:p-8 { padding: 0 !important; }
+  @page { size: auto; margin: 4mm; }
+}

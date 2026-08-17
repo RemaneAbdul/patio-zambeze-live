@@ -1,8 +1,7 @@
-# Histórico dinâmico e recibo térmico
+# Correção do Histórico e impressão
 
-- [x] Garantir que a barra do Histórico só apareça quando houver histórico confirmado.
-- [x] Esconder a barra enquanto o painel do Histórico estiver aberto e restaurá-la ao voltar ao menu.
-- [x] Manter seleção atual ao fechar o Histórico e não mostrar barra quando estiver vazia.
-- [x] Criar configuração de largura térmica 58 mm/80 mm e layout de recibo compacto.
-- [x] Renomear ação para “Imprimir Recibo” e ocultar elementos do menu na impressão.
-- [x] Validar mobile, desktop e renderização de impressão; salvar checkpoint.
+- [x] Ocultar completamente a barra fixa ao abrir o painel do Histórico.
+- [x] Garantir que a impressão mostre apenas o recibo do Histórico, nunca as páginas do menu.
+- [x] Adicionar data e hora atuais no cabeçalho do recibo impresso.
+- [x] Aplicar animação suave ao aparecer e desaparecer da barra fixa.
+- [x] Validar mobile, desktop e impressão e salvar checkpoint.
