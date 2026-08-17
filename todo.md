@@ -64,3 +64,11 @@
 - [x] Exibir hora, minuto e segundo próprios em cada seleção confirmada.
 - [x] Usar o timestamp de cada seleção no painel e no recibo impresso.
 - [x] Validar múltiplas submissões e salvar checkpoint.
+
+## Rótulo de confirmação ao garçom
+
+- [x] Confirmar o texto atual do botão no fluxo de confirmação.
+- [x] Aplicar “👨‍🍳 Confirmar ao Garçom” em português e o equivalente em inglês.
+- [x] Validar a renderização e salvar checkpoint.
+
+- [x] Confirmar no painel Minha Seleção o rótulo Confirmar ao Garçom em PT e EN.
