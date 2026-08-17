@@ -72,3 +72,12 @@
 - [x] Validar a renderização e salvar checkpoint.
 
 - [x] Confirmar no painel Minha Seleção o rótulo Confirmar ao Garçom em PT e EN.
+
+## Duplicação de table_sessions
+
+- [x] Identificar se duplicados vêm de múltiplos tokens, chamadas repetidas ou ausência de unicidade no banco.
+- [x] Tornar a criação de table_sessions idempotente por token e reutilizar a sessão no frontend.
+- [x] Adicionar índice/constraint adequado sem apagar históricos válidos.
+- [x] Verificar e limpar apenas sessões abertas antigas sem seleções; o banco reportou 0 registos elegíveis e não encontrou sessionTokens duplicados.
+- [x] Validar chamadas repetidas e isolamento por token no teste de integração; o frontend reutiliza o token guardado no dispositivo.
+- [x] Salvar checkpoint da correção.

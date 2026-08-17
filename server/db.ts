@@ -92,13 +92,27 @@ export async function getUserByOpenId(openId: string) {
 // TODO: add feature queries here as your schema grows.
 
 
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import { tableSelectionItems, tableSelections, tableSessions, InsertTableSelectionItem } from "../drizzle/schema";
+
+let lastSessionCleanupAt = 0;
+
+async function cleanupAbandonedTableSessions(db: Awaited<ReturnType<typeof getDb>>) {
+  if (!db || Date.now() - lastSessionCleanupAt < 10 * 60 * 1000) return;
+  lastSessionCleanupAt = Date.now();
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  await db.delete(tableSessions).where(and(
+    eq(tableSessions.status, "open"),
+    lt(tableSessions.lastActivityAt, cutoff),
+    sql`NOT EXISTS (SELECT 1 FROM table_selections WHERE table_selections.sessionId = ${tableSessions.id})`,
+  ));
+}
 
 export async function ensureTableSession(sessionToken: string) {
   if (!sessionToken || sessionToken.length < 32) throw new Error("A valid session token is required");
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
+  await cleanupAbandonedTableSessions(db);
   await db.insert(tableSessions).values({ sessionToken }).onDuplicateKeyUpdate({ set: { lastActivityAt: new Date(), status: "open" } });
   const rows = await db.select().from(tableSessions).where(eq(tableSessions.sessionToken, sessionToken)).limit(1);
   if (!rows[0]) throw new Error("Could not create table session");

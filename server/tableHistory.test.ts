@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { appRouter } from "./routers";
-import { createTableSelection, getDb, getTableHistory } from "./db";
+import { createTableSelection, ensureTableSession, getDb, getTableHistory } from "./db";
 import { tableSelectionItems, tableSelections, tableSessions } from "../drizzle/schema";
 import type { TrpcContext } from "./_core/context";
 
@@ -32,6 +32,10 @@ integration("tableHistory persistence", () => {
     if (!db) throw new Error("DATABASE_URL is required for this integration test");
 
     try {
+      const firstSession = await ensureTableSession(tokenA);
+      const secondSession = await ensureTableSession(tokenA);
+      expect(secondSession.id).toBe(firstSession.id);
+
       const created = await createTableSelection({
         sessionToken: tokenA,
         subtotal: 600,
