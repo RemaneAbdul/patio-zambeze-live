@@ -5,7 +5,8 @@ import { adminProcedure, publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { closeTableSessionByStaff, setTableSelectionStatus, createMenuCategory, createMenuProduct, createTableSelection, getStaffTables, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, listMenuCategories, listMenuProducts, listTableQrCodes, markTableViewedByStaff, setMenuProductStatus, updateMenuProduct, upsertTableQrCode } from "./db";
 
-export const menuImageUrlSchema = z.string().max(8_000_000).refine((value) => /^(https?:\/\/|data:image\/(jpeg|png|webp);base64,)/.test(value), "Formato de imagem inválido").optional();
+const allowedMenuImageUrl = /^(https?:\/\/|\/|data:image\/(jpeg|jpg|png|webp|avif);base64,)/;
+export const menuImageUrlSchema = z.string().max(8_000_000).refine((value) => allowedMenuImageUrl.test(value), "Formato de imagem inválido").optional();
 export const selectionStatusSchema = z.enum(["PENDING", "PREPARING", "READY", "DELIVERED", "COMPLETED"]);
 
 export const appRouter = router({

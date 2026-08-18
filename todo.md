@@ -394,3 +394,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Confirmar feedback de sucesso/erro e evitar cliques duplicados.
 - [x] Criar regressões para edição e sincronização do catálogo.
 - [x] Validar mobile/desktop e publicar checkpoint.
+
+## Correcção da validação de imageUrl
+
+- [x] Auditar formatos imageUrl gerados pela galeria/câmara e enviados no update.
+- [x] Aceitar data URLs válidos e preservar a foto existente quando não houver nova foto.
+- [x] Rejeitar apenas formatos realmente inválidos com mensagem clara.
+- [x] Testar criar, editar sem trocar foto e substituir foto.
+- [x] Publicar checkpoint da correcção.
