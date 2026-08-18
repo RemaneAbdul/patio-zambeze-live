@@ -26,7 +26,7 @@ describe("receipt print validation", () => {
     const receipt = { textContent: "PÁTIO ZAMBEZE HISTÓRICO MESA MESA 01 GARÇOM: João Seleção 1 Frango Grelhado 1 x 350 MT 350 MT TOTAL ESTIMADO: 350 MT Obrigado!" };
     const documentLike = {
       querySelector: () => receipt,
-      querySelectorAll: (selector: string) => selector === ".receipt-preview-backdrop" ? ["portal"] : [receipt],
+      querySelectorAll: (selector: string) => selector === ".receipt-print-source" ? ["portal"] : [receipt],
     };
     expect(receiptPrintPortalHasSingleReceipt(documentLike)).toBe(true);
   });
@@ -35,9 +35,17 @@ describe("receipt print validation", () => {
     const empty = { textContent: "" };
     const documentLike = {
       querySelector: () => empty,
-      querySelectorAll: (selector: string) => selector === ".receipt-preview-backdrop" ? ["portal-a", "portal-b"] : [empty],
+      querySelectorAll: (selector: string) => selector === ".receipt-print-source" ? ["portal-a", "portal-b"] : [empty],
     };
     expect(receiptPrintPortalHasSingleReceipt(documentLike)).toBe(false);
+  });
+
+  it("accepts a previously opened preview as the source of a second print", () => {
+    const receipt = { textContent: "PÁTIO ZAMBEZE HISTÓRICO MESA MESA 04 Seleção 1 Frango Grelhado 1 x 300 MT TOTAL ESTIMADO: 300 MT Obrigado!" };
+    const documentLike = {
+      querySelectorAll: (selector: string) => selector === ".receipt-print-source" ? ["temporary-portal"] : selector.includes(".receipt-print-source") ? [receipt] : [],
+    };
+    expect(receiptPrintPortalHasSingleReceipt(documentLike)).toBe(true);
   });
 
   it("reports the PDF preparation state while keeping the receipt isolated", () => {
@@ -48,7 +56,7 @@ describe("receipt print validation", () => {
     const documentLike = {
       body,
       querySelector: () => receipt,
-      querySelectorAll: (selector: string) => selector === ".receipt-preview-backdrop" ? ["portal"] : [receipt],
+      querySelectorAll: (selector: string) => selector === ".receipt-print-source" ? ["portal"] : [receipt],
     };
     const windowLike = {
       setTimeout,
@@ -80,7 +88,7 @@ describe("receipt print validation", () => {
     const documentLike = {
       body,
       querySelector: () => receipt,
-      querySelectorAll: (selector: string) => selector === ".receipt-preview-backdrop" ? ["portal"] : [receipt],
+      querySelectorAll: (selector: string) => selector === ".receipt-print-source" ? ["portal"] : [receipt],
     };
     const windowLike = {
       setTimeout,

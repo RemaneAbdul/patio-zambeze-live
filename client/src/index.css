@@ -749,3 +749,11 @@ body[data-receipt-printing="true"] > .receipt-print-source { position: fixed !im
   .prints-archive-security { justify-content: flex-start; }
   .prints-archive-card button { width: 100%; }
 }
+
+/* O portal temporário é a única fonte imprimível; a pré-visualização original nunca entra na impressão. */
+@media print {
+  body:has(> .receipt-print-source) > .receipt-preview-backdrop:not(.receipt-print-source) { display: none !important; visibility: hidden !important; }
+  body:has(> .receipt-print-source) > .receipt-print-source,
+  body:has(> .receipt-print-source) > .receipt-print-source * { visibility: visible !important; }
+  body:has(> .receipt-print-source) > .receipt-print-source .receipt-print { display: block !important; opacity: 1 !important; height: auto !important; max-height: none !important; overflow: visible !important; }
+}

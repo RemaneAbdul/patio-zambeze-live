@@ -548,3 +548,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Implementar as alterações preservando as funcionalidades existentes.
 - [x] Testar alterações, regressões, build e mobile.
 - [x] Publicar checkpoint da implementação.
+
+## Alterações descritas no pasted_content_10.txt
+
+- [x] Ler e decompor todos os requisitos do ficheiro.
+- [x] Implementar as alterações preservando as funcionalidades existentes.
+- [x] Testar alterações, regressões, build e mobile.
+- [x] Publicar checkpoint da implementação.

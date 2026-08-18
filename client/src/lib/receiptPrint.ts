@@ -19,10 +19,11 @@ type PrintDocumentLike = {
 type ReceiptElement = HTMLElement & { textContent: string | null };
 
 function createIsolatedReceiptPortal(source: ReceiptElement) {
-  const existing = document.querySelectorAll(".receipt-preview-backdrop");
+  const existing = document.querySelectorAll(".receipt-print-source");
   if (existing.length > 0 || !source.outerHTML || !document.body?.appendChild) return null;
 
-  const sourceWidth = source.closest(".receipt-modal")?.className.match(/receipt-(58mm|80mm)/)?.[1] ?? "58mm";
+  const receiptContainer = source.closest(".receipt-modal, .receipt-preview-paper");
+  const sourceWidth = receiptContainer?.className.match(/receipt-(58mm|80mm)/)?.[1] ?? "58mm";
   const backdrop = document.createElement("div");
   backdrop.className = `receipt-preview-backdrop receipt-print-source receipt-${sourceWidth}`;
   const dialog = document.createElement("div");
@@ -37,8 +38,8 @@ function createIsolatedReceiptPortal(source: ReceiptElement) {
 }
 
 export function receiptPrintPortalHasSingleReceipt(documentLike: PrintDocumentLike) {
-  const portals = documentLike.querySelectorAll(".receipt-preview-backdrop");
-  const receipts = documentLike.querySelectorAll(".receipt-preview-backdrop .receipt-preview-paper .receipt-print");
+  const portals = documentLike.querySelectorAll(".receipt-print-source");
+  const receipts = documentLike.querySelectorAll(".receipt-print-source .receipt-preview-paper .receipt-print");
   const receipt = receipts.length === 1 ? receipts[0] : null;
   return portals.length === 1 && receipts.length === 1 && receiptHasContent(receipt);
 }
