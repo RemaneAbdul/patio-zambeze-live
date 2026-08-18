@@ -675,3 +675,14 @@
   body[data-receipt-preparing="true"] > #root { display: none !important; }
   body[data-receipt-preparing="true"] > .receipt-print-source { display: block !important; }
 }
+
+.icon-tool-active { color: #C85A3F; border-color: rgb(200 90 63 / 34%); background: rgb(200 90 63 / 9%); }
+.status-notification-history { margin: 16px 0; border: 1px solid rgb(24 58 50 / 12%); border-radius: 14px; padding: 14px; background: rgb(255 255 255 / 72%); }
+.status-notification-history-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.status-notification-history-heading h3 { margin-top: 3px; color: #183A32; font: 700 16px/1.2 var(--font-sans); }
+.status-notification-history-heading button { border: 0; background: transparent; color: #C85A3F; font: 700 12px var(--font-sans); cursor: pointer; }
+.status-notification-list { display: grid; gap: 8px; margin-top: 12px; }
+.status-notification-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 8px; border-top: 1px solid rgb(24 58 50 / 9%); padding-top: 8px; color: #183A32; font: 13px var(--font-sans); }
+.status-notification-row strong { color: #C85A3F; font-weight: 800; }
+.status-notification-row time { color: rgb(24 58 50 / 55%); font-size: 11px; }
+@media (max-width: 560px) { .status-notification-row { grid-template-columns: 1fr auto; } .status-notification-row time { grid-column: 1 / -1; } }

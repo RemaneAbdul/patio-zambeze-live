@@ -471,3 +471,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Garantir que o cliente não vê a pré-visualização ao imprimir ou guardar PDF.
 - [x] Corrigir o portal/CSS para imprimir somente o recibo preenchido em uma página.
 - [x] Testar notificações, PDF, impressão mobile e regressões; publicar checkpoint.
+
+## Preferências e histórico de notificações do cliente
+
+- [x] Adicionar controlo persistente para activar/desactivar som e vibração.
+- [x] Mostrar um histórico curto das mudanças de estado do pedido.
+- [x] Integrar o histórico com a actualização automática do menu.
+- [x] Testar preferências, histórico, mobile e publicar checkpoint.
