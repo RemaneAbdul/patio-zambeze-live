@@ -647,3 +647,12 @@
 .back-to-tables-button:active { transform: scale(.98); }
 .receipt-release-note { margin-top: 16px; border: 1px solid rgb(200 90 63 / 28%); border-radius: 12px; padding: 12px 14px; color: #6b3b2e; background: #fff4ec; font: 13px/1.5 var(--font-sans); }
 .history-actions button:disabled { cursor: not-allowed; opacity: .48; }
+
+.viewed-confirmation { display: flex; align-items: center; gap: 12px; margin: 0 0 16px; border: 1px solid rgb(36 139 93 / 24%); border-radius: 14px; padding: 13px 15px; color: #145a3c; background: #eaf8ef; box-shadow: 0 10px 24px rgb(20 90 60 / 10%); animation: viewed-confirmation-in 240ms cubic-bezier(.23,1,.32,1); }
+.viewed-confirmation svg { flex: 0 0 auto; color: #208a5b; }
+.viewed-confirmation div { display: grid; gap: 2px; }
+.viewed-confirmation strong { font: 700 14px var(--font-sans); }
+.viewed-confirmation span { font: 13px/1.4 var(--font-sans); }
+@keyframes viewed-confirmation-in { from { opacity: 0; transform: translateY(-8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.receipt-selection-status { display: block; margin-top: 3px; font-size: 10px; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .viewed-confirmation { animation: none; } }

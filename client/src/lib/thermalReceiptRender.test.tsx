@@ -20,4 +20,10 @@ describe("ThermalReceipt preview widths", () => {
     expect(html).toContain("Frango Grelhado");
     expect(html).toContain("GAR-001");
   });
+
+  it("renders the customer-visible order status", () => {
+    const html = renderToStaticMarkup(<ThermalReceipt selections={[{ ...selection[0], status: "PREPARING" }]} total={600} width="58mm" />);
+    expect(html).toContain("Estado:");
+    expect(html).toContain("Em preparação");
+  });
 });

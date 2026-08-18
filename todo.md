@@ -456,3 +456,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Manter impressão e pré-visualização coerentes com a permissão definida.
 - [x] Adicionar botão visível “Voltar para as mesas” no ecrã do recibo.
 - [x] Testar permissões, navegação e responsividade; publicar checkpoint.
+
+## Estados do pedido, impressão directa e confirmação de mesa vista
+
+- [x] Mostrar ao cliente o estado de cada selecção: Pendente, Em preparação, Entregue e Concluído.
+- [x] Actualizar o recibo térmico com o estado de cada selecção.
+- [x] Fazer Imprimir Recibo e Guardar como PDF abrirem directamente a tela de impressão do sistema.
+- [x] Mostrar confirmação animada após o garçom marcar a mesa como vista.
+- [x] Testar estados, impressão, animação e publicar checkpoint.

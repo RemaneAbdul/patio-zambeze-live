@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { printRenderedReceipt, receiptPaperClass, type ReceiptPrintState } from "@/lib/receiptPrint";
-import { ArrowLeft, Circle, Eye, LockKeyhole, Printer, Search, X } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Circle, Eye, LockKeyhole, Printer, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -21,12 +21,13 @@ export default function WaiterPanel() {
   const [receiptWidth, setReceiptWidth] = useState<ReceiptWidth>("58mm");
   const [showReceipt, setShowReceipt] = useState(false);
   const [printState, setPrintState] = useState<ReceiptPrintState>("idle");
+  const [viewedConfirmation, setViewedConfirmation] = useState(false);
   const isAuthorized = user?.role === "admin";
   const tables = trpc.tableHistory.staffTables.useQuery(undefined, { enabled: isAuthorized, refetchInterval: 15000, retry: false });
   const lookupInput = useMemo(() => ({ sessionToken: selectedToken }), [selectedToken]);
   const lookup = trpc.tableHistory.staffLookup.useQuery(lookupInput, { enabled: isAuthorized && selectedToken.length >= 32, retry: false });
   const utils = trpc.useUtils();
-  const markViewed = trpc.tableHistory.markViewed.useMutation({ onSuccess: () => { void utils.tableHistory.staffTables.invalidate(); void lookup.refetch(); } });
+  const markViewed = trpc.tableHistory.markViewed.useMutation({ onSuccess: () => { void utils.tableHistory.staffTables.invalidate(); void lookup.refetch(); setViewedConfirmation(true); window.setTimeout(() => setViewedConfirmation(false), 3200); } });
   const closeSession = trpc.tableHistory.closeSession.useMutation({ onSuccess: () => { setSelectedToken(""); void utils.tableHistory.staffTables.invalidate(); } });
   const updateSelectionStatus = trpc.tableHistory.updateSelectionStatus.useMutation({ onSuccess: () => { void lookup.refetch(); void utils.tableHistory.staffTables.invalidate(); } });
   const statusLabel = (status: string) => ({ PENDING: "Pendente", PREPARING: "Em preparação", READY: "Pronto", DELIVERED: "Entregue", COMPLETED: "Concluído" }[status] ?? status);
@@ -73,6 +74,7 @@ export default function WaiterPanel() {
 
         {selectedToken && (
           <section className="waiter-result" aria-live="polite">
+            {viewedConfirmation && <div className="viewed-confirmation" role="status"><CheckCircle2 className="h-5 w-5" /><div><strong>Mesa marcada como vista</strong><span>O recibo do cliente foi liberado.</span></div></div>}
             <button className="waiter-back-action" onClick={() => setSelectedToken("")}><ArrowLeft className="h-4 w-4" /> Voltar às mesas</button>
             {lookup.isFetching ? <div className="waiter-empty">A carregar o histórico…</div> : lookup.error || !session ? <div className="waiter-alert">Não foi possível abrir esta mesa.</div> : (
               <>
