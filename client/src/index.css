@@ -606,3 +606,9 @@
 .products-shell .product-form-card .category-field button:hover { background: #eaf4ed !important; color: #173d2f !important; }
 .products-shell .product-form-card > button[data-slot="button"] { background: #17633e !important; border-color: #17633e !important; color: #ffffff !important; opacity: 1 !important; }
 .products-shell .products-notice[data-state="error"] { background: #fff1ef !important; border-color: #c85a3f !important; color: #8c2f22 !important; }
+
+.photo-processing-feedback,
+.save-processing-feedback { display:flex; align-items:center; gap:8px; margin-top:10px; border:1px solid #b9d7c3; border-radius:10px; background:#edf8f0 !important; color:#145a37 !important; padding:10px 12px; font-size:13px; font-weight:700; opacity:1 !important; }
+.loading-spinner { width:15px; height:15px; flex:0 0 15px; border:2px solid #b9d7c3; border-top-color:#17633e; border-radius:999px; animation: menu-spinner .75s linear infinite; }
+@keyframes menu-spinner { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .loading-spinner { animation:none; } }

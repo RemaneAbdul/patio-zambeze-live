@@ -386,3 +386,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Permitir guardar o prato sem imagem com fallback visível.
 - [x] Adicionar testes de imagem e validar o fluxo mobile.
 - [x] Publicar checkpoint e documentar como adicionar fotos.
+
+## Sincronização de edição e feedback de carregamento
+
+- [x] Garantir que editar actualiza a base de dados e invalida o menu público.
+- [x] Mostrar progresso durante processamento da foto e gravação do prato.
+- [x] Confirmar feedback de sucesso/erro e evitar cliques duplicados.
+- [x] Criar regressões para edição e sincronização do catálogo.
+- [x] Validar mobile/desktop e publicar checkpoint.
