@@ -686,3 +686,13 @@
 .status-notification-row strong { color: #C85A3F; font-weight: 800; }
 .status-notification-row time { color: rgb(24 58 50 / 55%); font-size: 11px; }
 @media (max-width: 560px) { .status-notification-row { grid-template-columns: 1fr auto; } .status-notification-row time { grid-column: 1 / -1; } }
+
+/* Durante o gesto de impressão, não mostrar a pré-visualização nem a aplicação por baixo. */
+body[data-receipt-preparing="true"] > #root,
+body[data-receipt-printing="true"] > #root { visibility: hidden !important; pointer-events: none !important; }
+body[data-receipt-preparing="true"] > .receipt-print-source,
+body[data-receipt-printing="true"] > .receipt-print-source { position: fixed !important; left: -10000px !important; top: 0 !important; width: 1px !important; height: 1px !important; overflow: hidden !important; opacity: 0 !important; pointer-events: none !important; }
+@media print {
+  body[data-receipt-printing="true"] > #root { display: none !important; }
+  body[data-receipt-printing="true"] > .receipt-print-source { position: static !important; left: auto !important; top: auto !important; width: 100% !important; height: auto !important; overflow: visible !important; opacity: 1 !important; }
+}

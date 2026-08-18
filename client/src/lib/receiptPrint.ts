@@ -61,31 +61,25 @@ export function printRenderedReceipt(selector: string, onState: (state: ReceiptP
       return;
     }
     onState(mode === "pdf" ? "saving-pdf" : "printing");
-    window.setTimeout(() => {
+    delete document.body.dataset.receiptPreparing;
+    document.body.dataset.receiptPrinting = "true";
+    document.body.dataset.receiptPrintMode = mode;
+    let cleanedUp = false;
+    const cleanup = () => {
+      if (cleanedUp) return;
+      cleanedUp = true;
       delete document.body.dataset.receiptPreparing;
-      document.body.dataset.receiptPrinting = "true";
-      document.body.dataset.receiptPrintMode = mode;
-      let cleanedUp = false;
-      const cleanup = () => {
-        if (cleanedUp) return;
-        cleanedUp = true;
-        delete document.body.dataset.receiptPreparing;
-        delete document.body.dataset.receiptPrinting;
-        delete document.body.dataset.receiptPrintMode;
-        temporaryPortal?.remove();
-        window.removeEventListener("afterprint", cleanup);
-        onState("idle");
-      };
-      // Safari/iOS can return from window.print() before the preview is captured.
-      // Keep the print-only portal visible until afterprint, with a safe fallback.
-      window.addEventListener("afterprint", cleanup, { once: true });
-      window.print();
-      window.setTimeout(cleanup, 10_000);
-    }, 80);
+      delete document.body.dataset.receiptPrinting;
+      delete document.body.dataset.receiptPrintMode;
+      temporaryPortal?.remove();
+      window.removeEventListener("afterprint", cleanup);
+      onState("idle");
+    };
+    // Keep window.print in the original click call stack for Safari/iOS.
+    window.addEventListener("afterprint", cleanup, { once: true });
+    window.print();
+    window.setTimeout(cleanup, 10_000);
   };
-  if (typeof window.requestAnimationFrame === "function") {
-    window.requestAnimationFrame(() => window.requestAnimationFrame(render));
-  } else {
-    window.setTimeout(render, 50);
-  }
+  // Do not defer this: mobile Safari may reject a print call outside the user gesture.
+  render();
 }

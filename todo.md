@@ -478,3 +478,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Mostrar um histórico curto das mudanças de estado do pedido.
 - [x] Integrar o histórico com a actualização automática do menu.
 - [x] Testar preferências, histórico, mobile e publicar checkpoint.
+
+## Impressão directa no iPhone sem pré-visualização
+
+- [x] Corrigir o clique em Imprimir para abrir directamente a impressão nativa.
+- [x] Corrigir o clique em Guardar como PDF para abrir directamente a impressão nativa em modo PDF.
+- [x] Remover a pré-visualização e o menu visível por baixo durante a preparação/impressão.
+- [x] Testar Safari/iPhone, Android, desktop e publicar checkpoint.
