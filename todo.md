@@ -332,3 +332,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Aplicar as alterações no painel sem remover funções existentes.
 - [x] Criar ou actualizar testes para os novos fluxos.
 - [x] Validar desktop/mobile e publicar checkpoint.
+
+## Análise e aplicação do ficheiro 5
+
+- [x] Ler e analisar o conteúdo do ficheiro anexado.
+- [x] Corrigir e aplicar as alterações relevantes no painel.
+- [x] Actualizar testes e validar persistência, UI e responsividade.
+- [x] Publicar checkpoint e entregar o link actualizado.
