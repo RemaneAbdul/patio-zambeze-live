@@ -33,11 +33,19 @@ export function printRenderedReceipt(selector: string, onState: (state: ReceiptP
     onState("printing");
     window.setTimeout(() => {
       document.body.dataset.receiptPrinting = "true";
-      window.print();
-      window.setTimeout(() => {
+      let cleanedUp = false;
+      const cleanup = () => {
+        if (cleanedUp) return;
+        cleanedUp = true;
         delete document.body.dataset.receiptPrinting;
+        window.removeEventListener("afterprint", cleanup);
         onState("idle");
-      }, 120);
+      };
+      // Safari/iOS can return from window.print() before the preview is captured.
+      // Keep the print-only portal visible until afterprint, with a safe fallback.
+      window.addEventListener("afterprint", cleanup, { once: true });
+      window.print();
+      window.setTimeout(cleanup, 10_000);
     }, 80);
   };
   if (typeof window.requestAnimationFrame === "function") {

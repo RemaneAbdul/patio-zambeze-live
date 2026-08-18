@@ -1,7 +1,12 @@
-import { describe, expect, it } from "vitest";
-import { receiptHasContent, receiptPaperClass, receiptPrintPortalHasSingleReceipt } from "./receiptPrint";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { printRenderedReceipt, receiptHasContent, receiptPaperClass, receiptPrintPortalHasSingleReceipt } from "./receiptPrint";
 
 describe("receipt print validation", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    delete (globalThis as { document?: unknown }).document;
+    delete (globalThis as { window?: unknown }).window;
+  });
   it("rejects an empty print target", () => {
     const target = { textContent: "" };
     expect(receiptHasContent(target)).toBe(false);
@@ -33,5 +38,39 @@ describe("receipt print validation", () => {
       querySelectorAll: (selector: string) => selector === ".receipt-preview-backdrop" ? ["portal-a", "portal-b"] : [empty],
     };
     expect(receiptPrintPortalHasSingleReceipt(documentLike)).toBe(false);
+  });
+
+  it("keeps the isolated print state until Safari fires afterprint", () => {
+    vi.useFakeTimers();
+    const receipt = { textContent: "PÁTIO ZAMBEZE HISTÓRICO MESA MESA 01 Seleção 1 Frango Grelhado 1 x 300 MT TOTAL ESTIMADO: 300 MT Obrigado!" };
+    const body = { dataset: {} as Record<string, string> };
+    let afterPrint: (() => void) | undefined;
+    let printed = false;
+    const documentLike = {
+      body,
+      querySelector: () => receipt,
+      querySelectorAll: (selector: string) => selector === ".receipt-preview-backdrop" ? ["portal"] : [receipt],
+    };
+    const windowLike = {
+      setTimeout,
+      print: () => { printed = true; },
+      addEventListener: (_type: string, handler: () => void) => { afterPrint = handler; },
+      removeEventListener: () => undefined,
+    };
+    (globalThis as { document: unknown }).document = documentLike;
+    (globalThis as { window: unknown }).window = windowLike;
+    const states: string[] = [];
+
+    printRenderedReceipt(".receipt-preview-paper .receipt-print", (state) => states.push(state));
+    vi.advanceTimersByTime(50);
+    vi.advanceTimersByTime(80);
+
+    expect(printed).toBe(true);
+    expect(body.dataset.receiptPrinting).toBe("true");
+    expect(states).toEqual(["preparing", "printing"]);
+
+    afterPrint?.();
+    expect(body.dataset.receiptPrinting).toBeUndefined();
+    expect(states).toEqual(["preparing", "printing", "idle"]);
   });
 });

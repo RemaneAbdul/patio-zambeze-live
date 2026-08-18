@@ -287,3 +287,10 @@
 ### Nota de escopo desta atualização
 
 A solicitação atual foi implementada no menu público: todos os 15 itens possuem preparação PT/EN e o detalhe do prato mostra o tempo/método de preparação. A gestão persistente/editável de produtos no painel, descrita no anexo, permanece como uma evolução separada para não alterar o catálogo e a base de dados sem confirmação adicional do restaurante.
+
+## Correção da impressão no iPhone
+
+- [x] Reproduzir e diagnosticar por que a pré-visualização móvel recebe a página branca do painel.
+- [x] Isolar o portal único do recibo também no Safari/iOS e impedir a impressão do shell do painel.
+- [x] Adicionar regressão para impressão móvel e confirmar conteúdo real do recibo.
+- [x] Validar 58 mm/80 mm em desktop e smartphone e salvar checkpoint.
