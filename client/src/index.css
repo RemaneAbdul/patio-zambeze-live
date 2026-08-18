@@ -573,3 +573,11 @@
   .products-shell .managed-product-actions button, .products-shell .products-toolbar button { opacity:1 !important; color:#1b2d24; }
   .products-shell .products-header button, .products-shell button[class*="bg-"] { color:#fff !important; }
 }
+
+@layer components {
+  .products-auto-translation { align-self:end; margin:0; padding:12px; border:1px solid #dce9df; border-radius:10px; background:#f1f8f2 !important; color:#2b5e40 !important; font-size:12px; line-height:1.45; opacity:1 !important; }
+  .products-shell button:disabled { opacity:.72 !important; cursor:wait; }
+  .products-shell .products-notice { color:#173f2a !important; background:#eaf6ed !important; opacity:1 !important; }
+  .products-shell .products-notice svg { color:#14733f !important; opacity:1 !important; }
+  @media (max-width:640px) { .products-auto-translation { align-self:stretch; } }
+}

@@ -325,3 +325,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Remover transparência residual de textos, campos, cartões e acções do painel.
 - [x] Manter galeria/câmara, preparação automática e estados dos pratos.
 - [x] Validar criação/edição, testes, build e mobile antes do checkpoint.
+
+## Aplicação do ficheiro anexado
+
+- [x] Ler e mapear as alterações do ficheiro anexado.
+- [x] Aplicar as alterações no painel sem remover funções existentes.
+- [x] Criar ou actualizar testes para os novos fluxos.
+- [x] Validar desktop/mobile e publicar checkpoint.
