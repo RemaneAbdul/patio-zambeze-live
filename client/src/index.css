@@ -656,3 +656,22 @@
 @keyframes viewed-confirmation-in { from { opacity: 0; transform: translateY(-8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .receipt-selection-status { display: block; margin-top: 3px; font-size: 10px; font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .viewed-confirmation { animation: none; } }
+
+/* O portal isolado é anexado ao body para impedir que a pré-visualização apareça. */
+@media print {
+  body[data-receipt-printing="true"] > #root { display: none !important; }
+  body[data-receipt-printing="true"] > .receipt-print-source { display: block !important; position: static !important; inset: auto !important; width: 100% !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; background: #fff !important; }
+  body[data-receipt-printing="true"] > .receipt-print-source .receipt-preview-dialog { display: block !important; position: static !important; width: var(--receipt-print-width, 58mm) !important; max-width: var(--receipt-print-width, 58mm) !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; background: #fff !important; box-shadow: none !important; }
+  body[data-receipt-printing="true"] > .receipt-print-source .receipt-preview-paper { display: block !important; width: 100% !important; max-width: none !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; background: #fff !important; box-shadow: none !important; }
+  body[data-receipt-printing="true"] > .receipt-print-source .receipt-print { display: block !important; visibility: visible !important; width: 100% !important; max-width: none !important; min-height: 0 !important; margin: 0 !important; padding: 3mm !important; color: #000 !important; background: #fff !important; break-after: avoid-page !important; page-break-after: avoid !important; break-inside: avoid-page !important; page-break-inside: avoid !important; }
+  body[data-receipt-printing="true"] > .receipt-print-source .receipt-print * { visibility: visible !important; }
+  body[data-receipt-printing="true"] > .receipt-print-source .receipt-preview-heading,
+  body[data-receipt-printing="true"] > .receipt-print-source .receipt-preview-close { display: none !important; }
+  body[data-receipt-printing="true"] > .receipt-print-source.receipt-58mm { --receipt-print-width: 58mm; }
+  body[data-receipt-printing="true"] > .receipt-print-source.receipt-80mm { --receipt-print-width: 80mm; }
+}
+
+@media print {
+  body[data-receipt-preparing="true"] > #root { display: none !important; }
+  body[data-receipt-preparing="true"] > .receipt-print-source { display: block !important; }
+}

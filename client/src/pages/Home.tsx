@@ -1,5 +1,5 @@
 /* Pátio Solar: máximo de simplicidade, consulta editorial e atendimento humano presencial. */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { ThermalReceipt } from "@/components/ThermalReceipt";
 import { persistSessionToken, sessionCookieKey, sessionStorageKey } from "@/lib/sessionToken";
@@ -114,6 +114,36 @@ export default function Home() {
   const history: HistoryEntry[] = (historyQuery.data || []).map((entry) => ({ id: entry.selectionNumber, createdAt: new Date(entry.createdAt).toISOString(), subtotal: entry.subtotal, viewedAt: entry.viewedAt ? new Date(entry.viewedAt).toISOString() : null, status: entry.status ?? "PENDING", items: entry.items.map((item) => ({ name: item.productName, quantity: item.quantity, price: item.unitPrice })) }));
   const receiptReady = history.length > 0 && !historyQuery.isLoading;
   const receiptReleased = receiptReady && history.every((entry) => Boolean(entry.viewedAt));
+  const previousStatusesRef = useRef<Record<string, string>>({});
+  useEffect(() => {
+    const nextStatuses = Object.fromEntries(history.map((entry) => [String(entry.id), entry.status]));
+    const previousStatuses = previousStatusesRef.current;
+    const changed = history.find((entry) => previousStatuses[String(entry.id)] && previousStatuses[String(entry.id)] !== entry.status && ["READY", "DELIVERED"].includes(entry.status));
+    if (changed) {
+      try {
+        if (typeof navigator.vibrate === "function") navigator.vibrate([90, 45, 90]);
+        const AudioContextConstructor = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        if (AudioContextConstructor) {
+          const audioContext = new AudioContextConstructor();
+          const oscillator = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          oscillator.frequency.value = changed.status === "DELIVERED" ? 660 : 520;
+          oscillator.type = "sine";
+          gain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.08, audioContext.currentTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.22);
+          oscillator.connect(gain).connect(audioContext.destination);
+          oscillator.start();
+          oscillator.stop(audioContext.currentTime + 0.24);
+          window.setTimeout(() => void audioContext.close(), 400);
+        }
+      } catch { /* O browser pode bloquear áudio até existir uma interacção do utilizador. */ }
+      setSelectionNoticeText(lang === "pt" ? `🔔 Seleção ${changed.id}: ${changed.status === "READY" ? "Pronto" : "Entregue"}.` : `🔔 Selection ${changed.id}: ${changed.status === "READY" ? "Ready" : "Delivered"}.`);
+      setSelectionNotice(true);
+      window.setTimeout(() => setSelectionNotice(false), 3600);
+    }
+    previousStatusesRef.current = nextStatuses;
+  }, [history, lang]);
   const [pendingConfirmation, setPendingConfirmation] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [receiptWidth, setReceiptWidth] = useState<"58mm" | "80mm">("58mm");

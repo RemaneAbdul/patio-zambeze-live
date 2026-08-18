@@ -24,7 +24,7 @@ function createIsolatedReceiptPortal(source: ReceiptElement) {
 
   const sourceWidth = source.closest(".receipt-modal")?.className.match(/receipt-(58mm|80mm)/)?.[1] ?? "58mm";
   const backdrop = document.createElement("div");
-  backdrop.className = "receipt-preview-backdrop receipt-print-source";
+  backdrop.className = `receipt-preview-backdrop receipt-print-source receipt-${sourceWidth}`;
   const dialog = document.createElement("div");
   dialog.className = "receipt-preview-dialog";
   const paper = document.createElement("div");
@@ -45,26 +45,31 @@ export function receiptPrintPortalHasSingleReceipt(documentLike: PrintDocumentLi
 
 export function printRenderedReceipt(selector: string, onState: (state: ReceiptPrintState) => void, mode: ReceiptPrintMode = "print") {
   onState("preparing");
+  document.body.dataset.receiptPreparing = "true";
   const render = () => {
     const element = document.querySelector(selector) as ReceiptElement | null;
     if (!element || !receiptHasContent(element)) {
+      delete document.body.dataset.receiptPreparing;
       onState("error");
       return;
     }
     const temporaryPortal = createIsolatedReceiptPortal(element);
     if (!receiptPrintPortalHasSingleReceipt(document)) {
       temporaryPortal?.remove();
+      delete document.body.dataset.receiptPreparing;
       onState("error");
       return;
     }
     onState(mode === "pdf" ? "saving-pdf" : "printing");
     window.setTimeout(() => {
+      delete document.body.dataset.receiptPreparing;
       document.body.dataset.receiptPrinting = "true";
       document.body.dataset.receiptPrintMode = mode;
       let cleanedUp = false;
       const cleanup = () => {
         if (cleanedUp) return;
         cleanedUp = true;
+        delete document.body.dataset.receiptPreparing;
         delete document.body.dataset.receiptPrinting;
         delete document.body.dataset.receiptPrintMode;
         temporaryPortal?.remove();
