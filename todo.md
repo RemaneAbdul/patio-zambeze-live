@@ -492,3 +492,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Registar visualmente essas mudanças no histórico de notificações.
 - [x] Remover “Voltar para as mesas” do recibo/menu público do cliente.
 - [x] Testar alertas, histórico, mobile e publicar checkpoint.
+
+## Acompanhamento sincronizado com o recibo
+
+- [x] Remover o botão Limpar do bloco Acompanhamento/Actualizações do pedido.
+- [x] Mostrar no acompanhamento os estados Pendente, Em preparação, Pronto, Entregue e Concluído sincronizados com o recibo.
+- [x] Garantir que Mostrar ao garçom cria a nova selecção como Pendente.
+- [x] Testar sincronização, estados, alertas e mobile; publicar checkpoint.
