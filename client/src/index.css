@@ -587,3 +587,12 @@
   .waiter-selection-status select { min-height:38px; border:1px solid #b8c9bc; border-radius:8px; background:#fff; color:#1b2d24; padding:6px 10px; font-weight:700; opacity:1 !important; }
   @media (max-width:640px) { .waiter-selection-status { align-items:stretch; flex-direction:column; } .waiter-selection-status select { width:100%; } }
 }
+
+/* Contraste dos cartões indisponíveis: nunca reduzir a opacidade do conteúdo textual. */
+.menu-app-shell .product-card-unavailable { opacity: 1 !important; filter: none !important; background: #fffdf8 !important; color: #183a32 !important; }
+.menu-app-shell .product-card-unavailable .product-image { filter: grayscale(.38); }
+.menu-app-shell .product-card-unavailable > div:not(.product-image) { background: #fffdf8 !important; opacity: 1 !important; color: #183a32 !important; }
+.menu-app-shell .product-card-unavailable .price-tag,
+.menu-app-shell .product-card-unavailable .font-display,
+.menu-app-shell .product-card-unavailable .select-product-button,
+.menu-app-shell .product-card-unavailable .product-tag { opacity: 1 !important; }

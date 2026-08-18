@@ -354,3 +354,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Corrigir remoção lógica e exclusão do menu público.
 - [x] Adicionar testes de integração e feedback de erro/sucesso.
 - [x] Validar após recarregar a página em desktop/mobile e publicar checkpoint.
+
+## Correcção de contraste dos cartões móveis
+
+- [x] Auditar regras de layout e opacidade dos cartões de pratos.
+- [x] Separar imagem, conteúdo, preço, estado e acções em blocos sólidos.
+- [x] Garantir contraste legível em mobile e desktop.
+- [x] Adicionar regressão visual/estrutural e validar a interface.
+- [x] Publicar checkpoint da correcção.
