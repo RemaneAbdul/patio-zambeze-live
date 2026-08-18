@@ -402,3 +402,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Rejeitar apenas formatos realmente inválidos com mensagem clara.
 - [x] Testar criar, editar sem trocar foto e substituir foto.
 - [x] Publicar checkpoint da correcção.
+
+## Correcção do erro SQL ao actualizar imagem
+
+- [x] Verificar tipo e limite actual da coluna imageUrl.
+- [x] Evitar enviar base64 grande directamente no UPDATE.
+- [x] Guardar a imagem de forma compatível e manter o URL no prato.
+- [x] Testar editar com foto, sem trocar foto e apenas texto.
+- [x] Validar menu público e publicar checkpoint.
