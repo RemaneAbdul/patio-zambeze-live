@@ -499,3 +499,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Mostrar no acompanhamento os estados Pendente, Em preparação, Pronto, Entregue e Concluído sincronizados com o recibo.
 - [x] Garantir que Mostrar ao garçom cria a nova selecção como Pendente.
 - [x] Testar sincronização, estados, alertas e mobile; publicar checkpoint.
+
+## Alterações descritas no ficheiro enviado
+
+- [x] Ler e decompor todos os requisitos do ficheiro enviado.
+- [x] Implementar os requisitos aplicáveis sem quebrar as funcionalidades existentes.
+- [x] Testar as alterações, responsividade e regressões.
+- [x] Publicar checkpoint da implementação.
