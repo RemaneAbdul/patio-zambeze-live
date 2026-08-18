@@ -378,3 +378,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Mostrar mensagem específica e legível ao utilizador.
 - [x] Testar actualizar, recarregar e confirmar persistência no mobile.
 - [x] Publicar checkpoint da correcção.
+
+## Correcção do upload de fotos dos pratos
+
+- [x] Auditar inputs de galeria/câmara, pré-visualização e payload.
+- [x] Corrigir validação, selecção e persistência das imagens.
+- [x] Permitir guardar o prato sem imagem com fallback visível.
+- [x] Adicionar testes de imagem e validar o fluxo mobile.
+- [x] Publicar checkpoint e documentar como adicionar fotos.
