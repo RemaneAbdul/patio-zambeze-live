@@ -637,3 +637,7 @@
 .receipt-print .receipt-logo { display: block; width: 18mm; height: 18mm; margin: 0 auto 5px; object-fit: contain; }
 .receipt-preview .receipt-logo { width: 22mm; height: 22mm; }
 .receipt-print header span { overflow-wrap: anywhere; }
+
+.receipt-preview-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; color: rgb(24 58 50 / 64%); font: 13px/1.5 var(--font-sans); }
+.receipt-preview-meta p { margin: 0; }
+@media (max-width: 520px) { .receipt-preview-meta { align-items: flex-start; flex-direction: column; } }

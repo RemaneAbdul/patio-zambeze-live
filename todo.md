@@ -440,3 +440,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Incluir o nome do garçom que atendeu a mesa no cabeçalho.
 - [x] Testar impressão, PDF, mobile e regressões.
 - [x] Publicar checkpoint da correcção.
+
+## Consolidação do histórico numa única secção de recibo
+
+- [x] Remover a apresentação duplicada de “Histórico da Mesa”.
+- [x] Mostrar apenas “Recibo da mesa” com itens, subtotais e total.
+- [x] Manter apenas as acções Partilhar, Imprimir e Guardar como PDF.
+- [x] Corrigir estados de erro, carregamento e responsividade.
+- [x] Testar e publicar checkpoint da correcção.
