@@ -277,6 +277,41 @@ export async function getTableHistoryForStaff(sessionToken: string, assignWaiter
   };
 }
 
+export async function listViewedReceipts() {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const sessions = await db.select().from(tableSessions)
+    .where(sql`${tableSessions.viewedAt} IS NOT NULL`)
+    .orderBy(desc(tableSessions.viewedAt));
+  const result = [];
+  for (const session of sessions) {
+    const selections = await db.select().from(tableSelections)
+      .where(eq(tableSelections.sessionId, session.id))
+      .orderBy(tableSelections.selectionNumber);
+    if (!selections.length) continue;
+    const items = await db.select().from(tableSelectionItems)
+      .where(inArray(tableSelectionItems.selectionId, selections.map((selection) => selection.id)));
+    const waiter = session.waiterId
+      ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode }).from(users).where(eq(users.id, session.waiterId)).limit(1)
+      : [];
+    result.push({
+      session,
+      waiter: waiter[0] ?? null,
+      total: selections.reduce((sum, selection) => sum + Number(selection.subtotal), 0),
+      selections: selections.map((selection) => ({
+        ...selection,
+        subtotal: Number(selection.subtotal),
+        items: items.filter((item) => item.selectionId === selection.id).map((item) => ({
+          ...item,
+          unitPrice: Number(item.unitPrice),
+          subtotal: Number(item.unitPrice) * item.quantity,
+        })),
+      })),
+    });
+  }
+  return result;
+}
+
 export async function assignWaiterToSession(sessionToken: string, waiterId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");

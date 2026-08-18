@@ -724,3 +724,28 @@ body[data-receipt-printing="true"] > .receipt-print-source { position: fixed !im
   body[data-receipt-printing="true"] > .receipt-print-source .receipt-print > footer { break-before: auto !important; break-after: auto !important; page-break-before: auto !important; page-break-after: auto !important; }
   body[data-receipt-printing="true"] > .receipt-print-source .receipt-print > .receipt-selection { break-inside: avoid !important; page-break-inside: avoid !important; }
 }
+
+/* Arquivo de recibos vistos e emissão de segunda via */
+.prints-archive-shell { max-width: 1100px; }
+.prints-archive-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; border-bottom: 1px solid rgba(24,58,50,.14); padding-bottom: 1.5rem; }
+.prints-archive-count { display: grid; min-width: 9rem; gap: .15rem; border: 1px solid rgba(200,90,63,.32); background: rgba(255,255,255,.58); padding: .9rem 1rem; text-align: right; }
+.prints-archive-count strong { color: #C85A3F; font-family: Georgia, serif; font-size: 2rem; line-height: 1; }
+.prints-archive-count span { color: rgba(24,58,50,.62); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; }
+.prints-archive-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 1.25rem 0; }
+.prints-archive-search { display: flex; align-items: center; gap: .65rem; width: min(100%, 30rem); border: 1px solid rgba(24,58,50,.18); background: #fff; padding: .7rem .85rem; color: #C85A3F; }
+.prints-archive-search input { width: 100%; border: 0; outline: 0; background: transparent; color: #183A32; font: inherit; }
+.prints-archive-security { display: inline-flex; align-items: center; gap: .4rem; color: rgba(24,58,50,.62); font-size: .8rem; }
+.prints-archive-list { display: grid; gap: .75rem; }
+.prints-archive-card { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border: 1px solid rgba(24,58,50,.14); background: rgba(255,255,255,.72); padding: 1rem 1.15rem; }
+.prints-archive-card h2 { margin: .25rem 0; color: #183A32; font-family: Georgia, serif; font-size: 1.55rem; }
+.prints-archive-card p, .prints-archive-card small { display: block; margin: .15rem 0; color: rgba(24,58,50,.66); font-size: .86rem; }
+.receipt-archive-width { display: flex; justify-content: flex-end; padding: .65rem 0; }
+.receipt-archive-width label { display: flex; align-items: center; gap: .5rem; color: rgba(24,58,50,.72); font-size: .8rem; }
+.receipt-archive-width select { border: 1px solid rgba(24,58,50,.2); background: #fff; padding: .45rem .6rem; color: #183A32; }
+@media (max-width: 640px) {
+  .prints-archive-heading, .prints-archive-toolbar, .prints-archive-card { align-items: stretch; flex-direction: column; }
+  .prints-archive-count { min-width: 0; text-align: left; }
+  .prints-archive-search { width: 100%; }
+  .prints-archive-security { justify-content: flex-start; }
+  .prints-archive-card button { width: 100%; }
+}

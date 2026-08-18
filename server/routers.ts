@@ -5,7 +5,7 @@ import { adminProcedure, publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import { storagePut } from "./storage";
-import { closeTableSessionByStaff, setTableSelectionStatus, createMenuCategory, createMenuProduct, createTableSelection, getStaffTables, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, listMenuCategories, listMenuProducts, listTableQrCodes, markTableViewedByStaff, setMenuProductStatus, updateMenuProduct, upsertTableQrCode } from "./db";
+import { closeTableSessionByStaff, setTableSelectionStatus, createMenuCategory, createMenuProduct, createTableSelection, getStaffTables, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, listMenuCategories, listMenuProducts, listTableQrCodes, listViewedReceipts, markTableViewedByStaff, setMenuProductStatus, updateMenuProduct, upsertTableQrCode } from "./db";
 
 const allowedMenuImageUrl = /^(https?:\/\/|\/|data:image\/(jpeg|jpg|png|webp|avif);base64,)/;
 export const menuImageUrlSchema = z.string().max(8_000_000).refine((value) => allowedMenuImageUrl.test(value), "Formato de imagem inválido").optional();
@@ -52,6 +52,7 @@ export const appRouter = router({
     sessionInfo: publicProcedure.input(z.object({ sessionToken: z.string().min(32).max(128), tableNumber: z.string().min(1).max(64).default("01"), tableId: z.string().min(1).max(128).optional() })).query(({ input }) => getTableSessionInfo(input.sessionToken, input.tableNumber, input.tableId)),
     staffTables: adminProcedure.query(() => getStaffTables()),
     qrCodes: adminProcedure.query(() => listTableQrCodes()),
+    viewedReceipts: adminProcedure.query(() => listViewedReceipts()),
     generateQrCode: adminProcedure.input(z.object({ tableNumber: z.string().min(1).max(64) })).mutation(({ input }) => upsertTableQrCode(input.tableNumber)),
     markViewed: adminProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => markTableViewedByStaff(input.sessionToken, ctx.user.id)),
     closeSession: adminProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input }) => closeTableSessionByStaff(input.sessionToken)),

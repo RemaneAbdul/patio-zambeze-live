@@ -533,3 +533,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Diagnosticar por que mesas sem sessão recebem a mesma chave React.
 - [x] Garantir chaves únicas para todas as mesas e QR Codes.
 - [x] Testar `/painel/mesas`, actualizações e regressões; publicar checkpoint.
+
+## Arquivo de recibos vistos e segunda via
+
+- [x] Auditar as sessões e selecções marcadas como vistas.
+- [x] Criar consulta protegida de recibos vistos para o painel Impressões.
+- [x] Mostrar arquivo pesquisável com mesa, garçom, data, hora e total.
+- [x] Permitir abrir e imprimir uma segunda via usando o mesmo recibo.
+- [x] Testar autorização, impressão, regressões e mobile; publicar checkpoint.
