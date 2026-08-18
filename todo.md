@@ -410,3 +410,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Guardar a imagem de forma compatível e manter o URL no prato.
 - [x] Testar editar com foto, sem trocar foto e apenas texto.
 - [x] Validar menu público e publicar checkpoint.
+
+## Notificação visual após guardar prato
+
+- [x] Mostrar notificação de sucesso após criar ou actualizar prato.
+- [x] Tornar a notificação acessível, legível e responsiva.
+- [x] Testar sucesso, erro, dismiss e mobile.
+- [x] Publicar checkpoint da melhoria.

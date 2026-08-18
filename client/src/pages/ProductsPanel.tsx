@@ -5,6 +5,7 @@ import { trpc } from "@/lib/trpc";
 import { prepareMenuImage } from "@/lib/menuImage";
 import { useMemo, useRef, useState } from "react";
 import { Camera, Check, Grid2X2, ImagePlus, List, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
+import { toast } from "sonner";
 
 const money = (value: number) => `${value.toLocaleString("pt-MZ", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} MT`;
 const emptyForm = { name: "", categoryId: "", price: "", description: "", preparation: "", preparationEn: "", imageUrl: "" };
@@ -28,15 +29,17 @@ export default function ProductsPanel() {
   const showMutationError = (error: { message?: string }) => {
     const raw = error.message || "";
     const detail = raw.includes("PRODUCT_NOT_FOUND") ? "Este prato já não existe ou foi removido." : raw.includes("CATEGORY_NOT_FOUND") ? "Seleccione uma categoria activa." : raw.includes("Database is not available") ? "A base de dados está temporariamente indisponível." : raw.includes("PRODUCT_NAME_REQUIRED") ? "Informe o nome do prato." : "Verifique os dados e tente novamente.";
-    setNotice(`Não foi possível guardar: ${detail}`);
+    const message = `Não foi possível guardar: ${detail}`;
+    setNotice(message);
+    toast.error(message, { duration: 5000 });
   };
   const create = trpc.menu.create.useMutation({ onSuccess: () => finish("Prato adicionado com sucesso."), onError: showMutationError });
   const update = trpc.menu.update.useMutation({ onSuccess: () => finish("Prato actualizado com sucesso."), onError: showMutationError });
   const statusMutation = trpc.menu.setStatus.useMutation({ onSuccess: (_, variables) => finish(variables.status === "ACTIVE" ? "Prato activado." : variables.status === "INACTIVE" ? "Prato desactivado." : "Prato removido."), onError: showMutationError });
-  const createCategory = trpc.menu.createCategory.useMutation({ onSuccess: () => { void categories.refetch(); setNotice("Categoria criada."); }, onError: showMutationError });
+  const createCategory = trpc.menu.createCategory.useMutation({ onSuccess: () => { void categories.refetch(); setNotice("Categoria criada."); toast.success("Categoria criada.", { duration: 3500 }); }, onError: showMutationError });
 
   function finish(message: string) {
-    setEditingId(null); setForm(emptyForm); setNotice(message);
+    setEditingId(null); setForm(emptyForm); setNotice(message); toast.success(message, { duration: 3500 });
     void Promise.all([products.refetch(), utils.menu.active.invalidate(), utils.menu.active.refetch()]);
     window.setTimeout(() => setNotice(""), 3200);
   }
