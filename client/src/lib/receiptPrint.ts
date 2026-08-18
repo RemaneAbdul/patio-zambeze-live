@@ -1,4 +1,5 @@
-export type ReceiptPrintState = "idle" | "preparing" | "printing" | "error";
+export type ReceiptPrintState = "idle" | "preparing" | "printing" | "saving-pdf" | "error";
+export type ReceiptPrintMode = "print" | "pdf";
 export type ReceiptWidth = "58mm" | "80mm";
 
 export function receiptPaperClass(width: ReceiptWidth) {
@@ -42,7 +43,7 @@ export function receiptPrintPortalHasSingleReceipt(documentLike: PrintDocumentLi
   return portals.length === 1 && receipts.length === 1 && receiptHasContent(receipt);
 }
 
-export function printRenderedReceipt(selector: string, onState: (state: ReceiptPrintState) => void) {
+export function printRenderedReceipt(selector: string, onState: (state: ReceiptPrintState) => void, mode: ReceiptPrintMode = "print") {
   onState("preparing");
   const render = () => {
     const element = document.querySelector(selector) as ReceiptElement | null;
@@ -56,14 +57,16 @@ export function printRenderedReceipt(selector: string, onState: (state: ReceiptP
       onState("error");
       return;
     }
-    onState("printing");
+    onState(mode === "pdf" ? "saving-pdf" : "printing");
     window.setTimeout(() => {
       document.body.dataset.receiptPrinting = "true";
+      document.body.dataset.receiptPrintMode = mode;
       let cleanedUp = false;
       const cleanup = () => {
         if (cleanedUp) return;
         cleanedUp = true;
         delete document.body.dataset.receiptPrinting;
+        delete document.body.dataset.receiptPrintMode;
         temporaryPortal?.remove();
         window.removeEventListener("afterprint", cleanup);
         onState("idle");

@@ -612,3 +612,24 @@
 .loading-spinner { width:15px; height:15px; flex:0 0 15px; border:2px solid #b9d7c3; border-top-color:#17633e; border-radius:999px; animation: menu-spinner .75s linear infinite; }
 @keyframes menu-spinner { to { transform:rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .loading-spinner { animation:none; } }
+
+/* Pré-visualização e impressão térmica em página única. */
+@layer components {
+  .receipt-preview-heading { align-items: center; margin-top: 24px; }
+  .receipt-preview-heading h3 { color: #183A32; }
+  .receipt-preview-heading p:not(.eyebrow) { max-width: 560px; margin-top: 6px; color: rgb(24 58 50 / 64%); font: 13px/1.5 var(--font-sans); }
+  .receipt-page-badge { flex: 0 0 auto; border: 1px solid rgb(24 58 50 / 16%); border-radius: 999px; padding: 7px 11px; color: #183A32; background: #f1eadf; font: 700 11px var(--font-sans); text-transform: uppercase; letter-spacing: .08em; }
+  .receipt-preview-paper { min-height: 120px; }
+  .receipt-preview-paper > .receipt-print.receipt-preview { width: min(100%, 80mm); }
+  @media (max-width: 520px) { .receipt-preview-heading { align-items: flex-start; flex-direction: column; } }
+}
+
+@page { margin: 0; }
+@media print {
+  html, body { margin: 0 !important; padding: 0 !important; }
+  body[data-receipt-printing="true"] .receipt-preview-backdrop,
+  body[data-receipt-printing="true"] .receipt-preview-dialog,
+  body[data-receipt-printing="true"] .receipt-preview-paper,
+  body[data-receipt-printing="true"] .receipt-preview-paper .receipt-print { break-after: avoid-page !important; page-break-after: avoid !important; break-inside: avoid-page !important; page-break-inside: avoid !important; }
+  body[data-receipt-printing="true"] .receipt-preview-paper .receipt-print { max-height: none !important; overflow: visible !important; }
+}

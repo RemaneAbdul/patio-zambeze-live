@@ -40,6 +40,37 @@ describe("receipt print validation", () => {
     expect(receiptPrintPortalHasSingleReceipt(documentLike)).toBe(false);
   });
 
+  it("reports the PDF preparation state while keeping the receipt isolated", () => {
+    vi.useFakeTimers();
+    const receipt = { textContent: "PÁTIO ZAMBEZE HISTÓRICO MESA MESA 01 Seleção 1 Coca-Cola 1 x 80 MT TOTAL ESTIMADO: 80 MT Obrigado!" };
+    const body = { dataset: {} as Record<string, string> };
+    let afterPrint: (() => void) | undefined;
+    const documentLike = {
+      body,
+      querySelector: () => receipt,
+      querySelectorAll: (selector: string) => selector === ".receipt-preview-backdrop" ? ["portal"] : [receipt],
+    };
+    const windowLike = {
+      setTimeout,
+      print: () => undefined,
+      addEventListener: (_type: string, handler: () => void) => { afterPrint = handler; },
+      removeEventListener: () => undefined,
+    };
+    (globalThis as { document: unknown }).document = documentLike;
+    (globalThis as { window: unknown }).window = windowLike;
+    const states: string[] = [];
+
+    printRenderedReceipt(".receipt-preview-paper .receipt-print", (state) => states.push(state), "pdf");
+    vi.advanceTimersByTime(50);
+    vi.advanceTimersByTime(80);
+
+    expect(body.dataset.receiptPrinting).toBe("true");
+    expect(body.dataset.receiptPrintMode).toBe("pdf");
+    expect(states).toEqual(["preparing", "saving-pdf"]);
+    afterPrint?.();
+    expect(states).toEqual(["preparing", "saving-pdf", "idle"]);
+  });
+
   it("keeps the isolated print state until Safari fires afterprint", () => {
     vi.useFakeTimers();
     const receipt = { textContent: "PÁTIO ZAMBEZE HISTÓRICO MESA MESA 01 Seleção 1 Frango Grelhado 1 x 300 MT TOTAL ESTIMADO: 300 MT Obrigado!" };

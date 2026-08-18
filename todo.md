@@ -424,3 +424,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Corrigir a geração e os estados de erro do recibo.
 - [x] Validar pré-visualização e impressão em desktop e mobile/iPhone.
 - [x] Publicar checkpoint da correcção.
+
+## Pré-visualização, PDF e impressão de uma página
+
+- [x] Criar pré-visualização detalhada do recibo antes da impressão.
+- [x] Adicionar opção para guardar o recibo como PDF.
+- [x] Garantir que a impressão térmica gera apenas uma página.
+- [x] Validar 58 mm, 80 mm, mobile e regressões.
+- [x] Publicar checkpoint da melhoria.
