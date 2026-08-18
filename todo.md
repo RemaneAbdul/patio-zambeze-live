@@ -448,3 +448,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Manter apenas as acções Partilhar, Imprimir e Guardar como PDF.
 - [x] Corrigir estados de erro, carregamento e responsividade.
 - [x] Testar e publicar checkpoint da correcção.
+
+## Permissão do recibo e retorno às mesas
+
+- [x] Permitir apenas visualização do recibo antes de o garçom marcar a mesa como vista.
+- [x] Liberar download/partilha do recibo após estado Visto.
+- [x] Manter impressão e pré-visualização coerentes com a permissão definida.
+- [x] Adicionar botão visível “Voltar para as mesas” no ecrã do recibo.
+- [x] Testar permissões, navegação e responsividade; publicar checkpoint.
