@@ -219,6 +219,13 @@ export async function markTableViewedByStaff(sessionToken: string) {
   return { success: true } as const;
 }
 
+export async function setTableSelectionStatus(selectionId: number, status: "PENDING" | "PREPARING" | "READY" | "DELIVERED" | "COMPLETED") {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const updated = await db.update(tableSelections).set({ status }).where(eq(tableSelections.id, selectionId));
+  return { success: Number(updated[0]?.affectedRows ?? 0) > 0, selectionId, status } as const;
+}
+
 export async function closeTableSessionByStaff(sessionToken: string) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");

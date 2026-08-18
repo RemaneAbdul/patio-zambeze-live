@@ -339,3 +339,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Corrigir e aplicar as alterações relevantes no painel.
 - [x] Actualizar testes e validar persistência, UI e responsividade.
 - [x] Publicar checkpoint e entregar o link actualizado.
+
+## Aplicação do ficheiro 6
+
+- [x] Ler e mapear o conteúdo do ficheiro anexado.
+- [x] Aplicar as alterações relevantes no painel.
+- [x] Actualizar testes e validar interface e persistência.
+- [x] Publicar checkpoint e entregar o resultado.

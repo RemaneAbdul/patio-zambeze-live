@@ -581,3 +581,9 @@
   .products-shell .products-notice svg { color:#14733f !important; opacity:1 !important; }
   @media (max-width:640px) { .products-auto-translation { align-self:stretch; } }
 }
+
+@layer components {
+  .waiter-selection-status { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px; padding-top:10px; border-top:1px solid #e3e9e4; color:#1b2d24; font-size:13px; }
+  .waiter-selection-status select { min-height:38px; border:1px solid #b8c9bc; border-radius:8px; background:#fff; color:#1b2d24; padding:6px 10px; font-weight:700; opacity:1 !important; }
+  @media (max-width:640px) { .waiter-selection-status { align-items:stretch; flex-direction:column; } .waiter-selection-status select { width:100%; } }
+}

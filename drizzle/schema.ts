@@ -44,6 +44,8 @@ export const tableSelections = mysqlTable("table_selections", {
   sessionId: int("sessionId").notNull(),
   selectionNumber: int("selectionNumber").notNull(),
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
+  status: mysqlEnum("status", ["PENDING", "PREPARING", "READY", "DELIVERED", "COMPLETED"]).default("PENDING").notNull(),
+  notes: text("notes"),
   viewedAt: timestamp("viewedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({

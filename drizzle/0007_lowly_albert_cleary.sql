@@ -1,0 +1,2 @@
+ALTER TABLE `table_selections` ADD `status` enum('PENDING','PREPARING','READY','DELIVERED','COMPLETED') DEFAULT 'PENDING' NOT NULL;--> statement-breakpoint
+ALTER TABLE `table_selections` ADD `notes` text;
