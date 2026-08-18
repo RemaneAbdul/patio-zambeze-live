@@ -485,3 +485,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Corrigir o clique em Guardar como PDF para abrir directamente a impressão nativa em modo PDF.
 - [x] Remover a pré-visualização e o menu visível por baixo durante a preparação/impressão.
 - [x] Testar Safari/iPhone, Android, desktop e publicar checkpoint.
+
+## Alertas para todos os estados e remoção do botão público
+
+- [x] Emitir som e vibração quando o pedido mudar para Pendente, Em preparação, Pronto ou Entregue.
+- [x] Registar visualmente essas mudanças no histórico de notificações.
+- [x] Remover “Voltar para as mesas” do recibo/menu público do cliente.
+- [x] Testar alertas, histórico, mobile e publicar checkpoint.
