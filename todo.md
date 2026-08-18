@@ -362,3 +362,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Garantir contraste legível em mobile e desktop.
 - [x] Adicionar regressão visual/estrutural e validar a interface.
 - [x] Publicar checkpoint da correcção.
+
+## Correcção do formulário mobile e gravação de pratos
+
+- [x] Corrigir botões Galeria, Câmara e Guardar para ficarem visíveis no mobile.
+- [x] Auditar validação, payload e callbacks de guardar/actualizar.
+- [x] Garantir persistência e feedback de sucesso/erro após recarregar.
+- [x] Adicionar regressões para criação/edição e contraste dos botões.
+- [x] Validar mobile/desktop e publicar checkpoint.

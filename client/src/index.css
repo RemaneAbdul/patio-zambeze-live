@@ -596,3 +596,13 @@
 .menu-app-shell .product-card-unavailable .font-display,
 .menu-app-shell .product-card-unavailable .select-product-button,
 .menu-app-shell .product-card-unavailable .product-tag { opacity: 1 !important; }
+
+/* Botões do formulário: nunca depender de cor herdada ou fundo transparente. */
+.products-shell .photo-source-actions button,
+.products-shell .product-image-editor > div button[data-slot="button"],
+.products-shell .product-form-card .category-field button { background: #ffffff !important; border: 1px solid #8da99a !important; color: #173d2f !important; opacity: 1 !important; text-shadow: none !important; }
+.products-shell .photo-source-actions button:hover,
+.products-shell .product-image-editor > div button[data-slot="button"]:hover,
+.products-shell .product-form-card .category-field button:hover { background: #eaf4ed !important; color: #173d2f !important; }
+.products-shell .product-form-card > button[data-slot="button"] { background: #17633e !important; border-color: #17633e !important; color: #ffffff !important; opacity: 1 !important; }
+.products-shell .products-notice[data-state="error"] { background: #fff1ef !important; border-color: #c85a3f !important; color: #8c2f22 !important; }
