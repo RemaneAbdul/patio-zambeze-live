@@ -341,26 +341,43 @@ export async function listMenuProducts(includeRemoved = false) {
   return db.select({ product: menuProducts, category: menuCategories }).from(menuProducts).leftJoin(menuCategories, eq(menuProducts.categoryId, menuCategories.id)).where(and(eq(menuProducts.restaurantId, MENU_RESTAURANT_ID), inArray(menuProducts.status, statuses))).orderBy(desc(menuProducts.updatedAt));
 }
 
+async function assertMenuCategory(db: NonNullable<Awaited<ReturnType<typeof getDb>>>, categoryId: number) {
+  const rows = await db.select({ id: menuCategories.id }).from(menuCategories).where(and(eq(menuCategories.id, categoryId), eq(menuCategories.restaurantId, MENU_RESTAURANT_ID), eq(menuCategories.status, "ACTIVE"))).limit(1);
+  if (!rows[0]) throw new Error("CATEGORY_NOT_FOUND");
+}
+
 export async function createMenuProduct(input: { categoryId: number; name: string; description?: string; preparation?: string; preparationEn?: string; price: number; imageUrl?: string; }) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  await db.insert(menuProducts).values({ ...input, restaurantId: MENU_RESTAURANT_ID, price: input.price.toFixed(2), status: "ACTIVE" });
-  const rows = await db.select().from(menuProducts).where(and(eq(menuProducts.restaurantId, MENU_RESTAURANT_ID), eq(menuProducts.name, input.name.trim()))).orderBy(desc(menuProducts.id)).limit(1);
+  const name = input.name.trim();
+  if (!name) throw new Error("PRODUCT_NAME_REQUIRED");
+  await assertMenuCategory(db, input.categoryId);
+  const inserted = await db.insert(menuProducts).values({ ...input, name, description: input.description?.trim() || null, preparation: input.preparation?.trim() || null, preparationEn: input.preparationEn?.trim() || null, restaurantId: MENU_RESTAURANT_ID, price: input.price.toFixed(2), status: "ACTIVE" });
+  const productId = Number(inserted[0].insertId);
+  const rows = await db.select().from(menuProducts).where(eq(menuProducts.id, productId)).limit(1);
+  if (!rows[0]) throw new Error("PRODUCT_CREATE_FAILED");
   return rows[0];
 }
 
 export async function updateMenuProduct(id: number, input: { categoryId: number; name: string; description?: string; preparation?: string; preparationEn?: string; price: number; imageUrl?: string; }) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  await db.update(menuProducts).set({ ...input, price: input.price.toFixed(2), updatedAt: new Date() }).where(and(eq(menuProducts.id, id), eq(menuProducts.restaurantId, MENU_RESTAURANT_ID), inArray(menuProducts.status, ["ACTIVE", "INACTIVE"])));
+  const name = input.name.trim();
+  if (!name) throw new Error("PRODUCT_NAME_REQUIRED");
+  await assertMenuCategory(db, input.categoryId);
+  const updated = await db.update(menuProducts).set({ ...input, name, description: input.description?.trim() || null, preparation: input.preparation?.trim() || null, preparationEn: input.preparationEn?.trim() || null, price: input.price.toFixed(2), updatedAt: new Date() }).where(and(eq(menuProducts.id, id), eq(menuProducts.restaurantId, MENU_RESTAURANT_ID), inArray(menuProducts.status, ["ACTIVE", "INACTIVE"])));
+  if (Number(updated[0]?.affectedRows ?? 0) === 0) throw new Error("PRODUCT_NOT_FOUND");
   const rows = await db.select().from(menuProducts).where(eq(menuProducts.id, id)).limit(1);
+  if (!rows[0]) throw new Error("PRODUCT_UPDATE_FAILED");
   return rows[0];
 }
 
 export async function setMenuProductStatus(id: number, status: "ACTIVE" | "INACTIVE" | "REMOVED") {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  await db.update(menuProducts).set({ status, deletedAt: status === "REMOVED" ? new Date() : null, updatedAt: new Date() }).where(and(eq(menuProducts.id, id), eq(menuProducts.restaurantId, MENU_RESTAURANT_ID)));
+  const updated = await db.update(menuProducts).set({ status, deletedAt: status === "REMOVED" ? new Date() : null, updatedAt: new Date() }).where(and(eq(menuProducts.id, id), eq(menuProducts.restaurantId, MENU_RESTAURANT_ID), inArray(menuProducts.status, ["ACTIVE", "INACTIVE"])));
+  if (Number(updated[0]?.affectedRows ?? 0) === 0) throw new Error("PRODUCT_NOT_FOUND");
   const rows = await db.select().from(menuProducts).where(eq(menuProducts.id, id)).limit(1);
+  if (!rows[0]) throw new Error("PRODUCT_STATUS_UPDATE_FAILED");
   return rows[0];
 }

@@ -346,3 +346,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Aplicar as alterações relevantes no painel.
 - [x] Actualizar testes e validar interface e persistência.
 - [x] Publicar checkpoint e entregar o resultado.
+
+## Correcção de persistência de pratos
+
+- [x] Auditar o fluxo painel → tRPC → helpers → base de dados.
+- [x] Corrigir guardar e actualizar com dados persistentes.
+- [x] Corrigir remoção lógica e exclusão do menu público.
+- [x] Adicionar testes de integração e feedback de erro/sucesso.
+- [x] Validar após recarregar a página em desktop/mobile e publicar checkpoint.
