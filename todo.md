@@ -541,3 +541,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Mostrar arquivo pesquisável com mesa, garçom, data, hora e total.
 - [x] Permitir abrir e imprimir uma segunda via usando o mesmo recibo.
 - [x] Testar autorização, impressão, regressões e mobile; publicar checkpoint.
+
+## Alterações descritas no pasted_content_9.txt
+
+- [x] Ler e decompor todos os requisitos do ficheiro.
+- [x] Implementar as alterações preservando as funcionalidades existentes.
+- [x] Testar alterações, regressões, build e mobile.
+- [x] Publicar checkpoint da implementação.
