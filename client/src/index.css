@@ -563,3 +563,13 @@
 @layer components {
   .menu-app-shell .category-pill-active { color:#F7F2E9 !important; background:#183A32 !important; border-color:#183A32 !important; }
 }
+
+@layer components {
+  .products-shell, .products-shell p, .products-shell label, .products-shell h1, .products-shell h2, .products-shell h3, .products-shell small, .products-shell select, .products-shell input, .products-shell textarea { opacity:1 !important; }
+  .products-shell p, .products-shell label, .products-shell h1, .products-shell h2, .products-shell h3, .products-shell small { color:#1b2d24; }
+  .products-shell input::placeholder, .products-shell textarea::placeholder { color:#65736b !important; opacity:1 !important; }
+  .products-shell .products-notice, .products-shell .products-empty, .products-shell .product-form-card, .products-shell .products-list-section, .products-shell .managed-product-card { background:#fff !important; }
+  .products-shell .managed-product-image { background:#edf1ec !important; }
+  .products-shell .managed-product-actions button, .products-shell .products-toolbar button { opacity:1 !important; color:#1b2d24; }
+  .products-shell .products-header button, .products-shell button[class*="bg-"] { color:#fff !important; }
+}

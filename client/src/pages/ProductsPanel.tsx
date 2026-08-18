@@ -23,10 +23,11 @@ export default function ProductsPanel() {
   const products = trpc.menu.adminList.useQuery({ includeRemoved: false }, { retry: false });
   const categories = trpc.menu.categories.useQuery(undefined, { retry: false });
   const utils = trpc.useUtils();
-  const create = trpc.menu.create.useMutation({ onSuccess: () => finish("Prato adicionado com sucesso.") });
-  const update = trpc.menu.update.useMutation({ onSuccess: () => finish("Prato actualizado com sucesso.") });
-  const statusMutation = trpc.menu.setStatus.useMutation({ onSuccess: (_, variables) => finish(variables.status === "ACTIVE" ? "Prato activado." : variables.status === "INACTIVE" ? "Prato desactivado." : "Prato removido.") });
-  const createCategory = trpc.menu.createCategory.useMutation({ onSuccess: () => { void categories.refetch(); setNotice("Categoria criada."); } });
+  const showMutationError = (error: { message?: string }) => setNotice(`Não foi possível guardar: ${error.message || "verifique os campos e tente novamente."}`);
+  const create = trpc.menu.create.useMutation({ onSuccess: () => finish("Prato adicionado com sucesso."), onError: showMutationError });
+  const update = trpc.menu.update.useMutation({ onSuccess: () => finish("Prato actualizado com sucesso."), onError: showMutationError });
+  const statusMutation = trpc.menu.setStatus.useMutation({ onSuccess: (_, variables) => finish(variables.status === "ACTIVE" ? "Prato activado." : variables.status === "INACTIVE" ? "Prato desactivado." : "Prato removido."), onError: showMutationError });
+  const createCategory = trpc.menu.createCategory.useMutation({ onSuccess: () => { void categories.refetch(); setNotice("Categoria criada."); }, onError: showMutationError });
 
   function finish(message: string) {
     setEditingId(null); setForm(emptyForm); setNotice(message); void products.refetch(); void utils.menu.active.invalidate(); window.setTimeout(() => setNotice(""), 3200);
@@ -38,8 +39,9 @@ export default function ProductsPanel() {
   const setField = (key: keyof ProductForm, value: string) => setForm((current) => ({ ...current, [key]: value }));
   const startEdit = (entry: NonNullable<typeof products.data>[number]) => { setEditingId(entry.product.id); setForm({ name: entry.product.name, categoryId: String(entry.product.categoryId), price: String(entry.product.price), description: entry.product.description ?? "", preparation: entry.product.preparation ?? "", preparationEn: entry.product.preparationEn ?? "", imageUrl: entry.product.imageUrl ?? "" }); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const save = () => {
-    if (!form.name.trim() || !form.categoryId || !form.price) { setNotice("Preencha todos os campos obrigatórios."); return; }
-    const input = { categoryId: Number(form.categoryId), name: form.name.trim(), price: Number(form.price.replace(",", ".")), description: form.description || undefined, preparation: form.preparation || undefined, preparationEn: form.preparationEn || undefined, imageUrl: form.imageUrl || undefined };
+    const numericPrice = Number(form.price.replace(",", "."));
+    if (!form.name.trim() || !form.categoryId || !form.price || !Number.isFinite(numericPrice) || numericPrice < 0) { setNotice("Preencha nome, categoria e um preço válido."); return; }
+    const input = { categoryId: Number(form.categoryId), name: form.name.trim(), price: numericPrice, description: form.description || undefined, preparation: form.preparation || undefined, imageUrl: form.imageUrl || undefined };
     if (editingId) update.mutate({ id: editingId, ...input }); else create.mutate(input);
   };
   const chooseImage = (file?: File) => { if (!file) return; if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 5 * 1024 * 1024) { setNotice("Use JPG, PNG ou WEBP até 5 MB."); return; } const reader = new FileReader(); reader.onload = () => setField("imageUrl", String(reader.result)); reader.readAsDataURL(file); };

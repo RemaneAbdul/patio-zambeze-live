@@ -317,3 +317,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Corrigir textos transparentes e garantir contraste legível no menu e painel.
 - [x] Tornar PT/EN claramente disponíveis no menu público e no painel.
 - [x] Validar desktop/mobile, testes e salvar checkpoint prioritário.
+
+## Correção prioritária do formulário de pratos
+
+- [x] Corrigir o botão Guardar prato para aceitar e persistir os dados válidos do formulário.
+- [x] Mostrar estados de gravação, sucesso e erro de forma legível.
+- [x] Remover transparência residual de textos, campos, cartões e acções do painel.
+- [x] Manter galeria/câmara, preparação automática e estados dos pratos.
+- [x] Validar criação/edição, testes, build e mobile antes do checkpoint.
