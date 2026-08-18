@@ -57,6 +57,13 @@
       "when": 1787042558747,
       "tag": "0007_lowly_albert_cleary",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1787064603436,
+      "tag": "0008_curious_bloodaxe",
+      "breakpoints": true
     }
   ]
 }

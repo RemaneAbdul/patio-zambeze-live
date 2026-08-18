@@ -520,3 +520,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Persistir o garçom que executa “Marcar como visto”.
 - [x] Exibir nome e identificador do garçom no recibo do cliente.
 - [x] Testar backend, recibo, PDF e mobile; publicar checkpoint.
+
+## Hora de “Marcar como visto” no recibo
+
+- [x] Auditar o timestamp actual da sessão e da marcação como visto.
+- [x] Persistir a hora exacta em campo próprio quando o garçom marcar como visto.
+- [x] Exibir nome, identificador e hora do garçom no recibo do cliente.
+- [x] Testar backend, recibo, PDF e mobile; publicar checkpoint.

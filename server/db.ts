@@ -215,11 +215,12 @@ export async function markTableViewedByStaff(sessionToken: string, waiterId: num
     .where(and(eq(tableSessions.sessionToken, sessionToken), eq(tableSessions.status, "open")))
     .limit(1);
   if (!session[0]) return null;
-  await db.update(tableSessions).set({ waiterId, lastActivityAt: new Date() })
+  const viewedAt = new Date();
+  await db.update(tableSessions).set({ waiterId, viewedAt, lastActivityAt: viewedAt })
     .where(eq(tableSessions.id, session[0].id));
-  await db.update(tableSelections).set({ viewedAt: new Date() })
+  await db.update(tableSelections).set({ viewedAt })
     .where(and(eq(tableSelections.sessionId, session[0].id), isNull(tableSelections.viewedAt)));
-  return { success: true, waiterId } as const;
+  return { success: true, waiterId, viewedAt } as const;
 }
 
 export async function setTableSelectionStatus(selectionId: number, status: "PENDING" | "PREPARING" | "READY" | "DELIVERED" | "COMPLETED") {

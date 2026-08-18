@@ -37,6 +37,7 @@ export const tableSessions = mysqlTable("table_sessions", {
   lastActivityAt: timestamp("lastActivityAt").defaultNow().notNull(),
   closedAt: timestamp("closedAt"),
   waiterId: int("waiterId"),
+  viewedAt: timestamp("viewedAt"),
 }, (table) => ({ statusIdx: index("table_sessions_status_idx").on(table.status), tableNumberIdx: index("table_sessions_table_number_idx").on(table.tableNumber) }));
 
 export const tableSelections = mysqlTable("table_selections", {
