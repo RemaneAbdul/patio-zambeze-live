@@ -259,7 +259,7 @@ function DashboardLayoutContent({
             </div>
           </div>
         )}
-        <main className="flex-1 p-4">{children}</main>
+        <header className="internal-topbar"><div className="internal-brand"><div className="internal-brand-mark">🍴</div><div><strong>Sabores de Moçambique</strong><span>Painel do Restaurante</span></div></div><div className="internal-topbar-actions"><button className="internal-language" type="button">🇲🇿 PT⌄</button><button className="internal-notification" type="button" aria-label="Notificações">♧<b>3</b></button><div className="internal-user"><div className="internal-user-avatar">{user?.name?.charAt(0).toUpperCase()}</div><div><strong>{user?.name || "João"}</strong><span>{user?.waiterCode || "GAR-001"}</span></div><span>⌄</span></div></div></header><main className="flex-1 p-4">{children}</main>
       </SidebarInset>
     </>
   );

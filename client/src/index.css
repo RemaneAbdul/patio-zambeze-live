@@ -505,3 +505,40 @@
   @media (max-width: 900px) { .products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 640px) { .products-shell { padding: 20px 16px 42px; } .products-header { align-items: stretch; flex-direction: column; } .products-header h1 { font-size: 2.5rem; } .products-header button { width: 100%; } .products-form-grid, .products-toolbar, .products-grid { grid-template-columns: 1fr; } .products-form-wide { grid-column: auto; } .product-image-editor { align-items: flex-start; flex-direction: column; } .product-image-preview { height: 180px; width: 100%; } .managed-product-actions button { min-height: 42px; } }
 }
+
+@layer components {
+  .internal-topbar { display:flex; align-items:center; justify-content:space-between; min-height:80px; border-bottom:1px solid #e7e9e5; background:#fff; padding:14px 28px; }
+  .internal-brand, .internal-topbar-actions, .internal-user { display:flex; align-items:center; gap:12px; }
+  .internal-brand-mark, .internal-user-avatar { display:grid; place-items:center; height:40px; width:40px; border-radius:50%; background:#17633e; color:#fff; }
+  .internal-brand strong, .internal-user strong { display:block; color:#17251f; font:700 15px var(--font-sans); }
+  .internal-brand span, .internal-user span { display:block; color:#6f7a74; font:12px var(--font-sans); }
+  .internal-language, .internal-notification { position:relative; border:1px solid #e3e7e2; border-radius:12px; background:#fff; padding:10px 14px; color:#17251f; font:600 13px var(--font-sans); }
+  .internal-notification { border:0; font-size:20px; }
+  .internal-notification b { position:absolute; top:-4px; right:-3px; display:grid; height:18px; width:18px; place-items:center; border-radius:50%; background:#d94d3f; color:#fff; font:700 10px var(--font-sans); }
+  .internal-user { border-left:1px solid #e7e9e5; padding-left:18px; }
+  .internal-user-avatar { height:34px; width:34px; font-size:13px; }
+  .internal-user > span { margin-left:4px; color:#17251f; font-size:16px; }
+  .products-shell { max-width:1180px; }
+  .products-header { align-items:center; border-bottom:0; padding-bottom:10px; }
+  .products-header h1 { font-family:var(--font-sans); font-size:2.1rem; font-weight:800; letter-spacing:-.04em; }
+  .products-header p:not(.eyebrow) { margin-top:5px; }
+  .products-header button { border-radius:10px; background:#17633e; }
+  .products-list-section { border:1px solid #e8ebe7; border-radius:18px; background:#fff; padding:14px; }
+  .products-toolbar { grid-template-columns:2fr 1fr 1fr auto; }
+  .products-search, .products-toolbar select { border-radius:10px; background:#fff; }
+  .products-view-toggle { display:flex; align-items:center; gap:4px; border:1px solid #e3e7e2; border-radius:10px; padding:4px; }
+  .products-view-toggle button { display:grid; min-height:32px; min-width:34px; place-items:center; border-radius:7px; color:#64716a; }
+  .products-view-toggle button.active { background:#e5f2e9; color:#17633e; }
+  .products-grid { gap:12px; }
+  .managed-product-card { border-color:#e2e7e2; border-radius:14px; background:#fff; box-shadow:0 2px 8px rgb(23 37 31 / 4%); }
+  .managed-product-image { height:165px; }
+  .managed-product-body { padding:12px; }
+  .managed-product-top h3 { font-size:14px; }
+  .managed-product-actions button { border-radius:8px; font-size:11px; }
+  .products-list-view { grid-template-columns:1fr; }
+  .products-list-view .managed-product-card { display:flex; }
+  .products-list-view .managed-product-image { height:130px; width:180px; flex:0 0 180px; }
+  .products-list-view .managed-product-body { flex:1; }
+  .product-form-card { border-radius:18px; }
+  @media (max-width:700px) { .internal-topbar { min-height:58px; padding:10px 14px; } .internal-brand strong { font-size:12px; } .internal-brand span { font-size:10px; } .internal-brand-mark { height:32px; width:32px; } .internal-topbar-actions { gap:5px; } .internal-language { padding:7px 8px; } .internal-user { display:none; } .products-toolbar { grid-template-columns:1fr; } .products-view-toggle { justify-content:center; } }
+}

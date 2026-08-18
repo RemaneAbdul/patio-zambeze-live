@@ -301,3 +301,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Implementar as alterações no painel interno sem remover a proteção por autenticação.
 - [x] Validar desktop/mobile, testes e compatibilidade com histórico/recibos.
 - [x] Salvar checkpoint e entregar o link atualizado.
+
+## Adaptação visual do painel de pratos à referência
+
+- [x] Reproduzir cabeçalho e navegação visual da referência, incluindo identidade, idioma e perfil.
+- [x] Adaptar cartões de pratos para grelha com imagem, preço, categoria, estado e acções.
+- [x] Adaptar filtros, alternância grelha/lista e secção de adicionar prato.
+- [x] Manter funções persistentes de edição, estados, remoção, preparação e imagens.
+- [x] Validar desktop/mobile, testes e salvar checkpoint visual.
