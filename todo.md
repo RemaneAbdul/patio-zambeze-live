@@ -417,3 +417,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Tornar a notificação acessível, legível e responsiva.
 - [x] Testar sucesso, erro, dismiss e mobile.
 - [x] Publicar checkpoint da melhoria.
+
+## Correcção do recibo para impressão
+
+- [x] Diagnosticar a falha ao preparar o recibo no histórico da mesa.
+- [x] Corrigir a geração e os estados de erro do recibo.
+- [x] Validar pré-visualização e impressão em desktop e mobile/iPhone.
+- [x] Publicar checkpoint da correcção.

@@ -15,6 +15,26 @@ type PrintDocumentLike = {
   querySelectorAll: (selector: string) => ArrayLike<{ textContent: string | null }>;
 };
 
+type ReceiptElement = HTMLElement & { textContent: string | null };
+
+function createIsolatedReceiptPortal(source: ReceiptElement) {
+  const existing = document.querySelectorAll(".receipt-preview-backdrop");
+  if (existing.length > 0 || !source.outerHTML || !document.body?.appendChild) return null;
+
+  const sourceWidth = source.closest(".receipt-modal")?.className.match(/receipt-(58mm|80mm)/)?.[1] ?? "58mm";
+  const backdrop = document.createElement("div");
+  backdrop.className = "receipt-preview-backdrop receipt-print-source";
+  const dialog = document.createElement("div");
+  dialog.className = "receipt-preview-dialog";
+  const paper = document.createElement("div");
+  paper.className = `receipt-preview-paper receipt-${sourceWidth}`;
+  paper.innerHTML = source.outerHTML;
+  dialog.appendChild(paper);
+  backdrop.appendChild(dialog);
+  document.body.appendChild(backdrop);
+  return backdrop;
+}
+
 export function receiptPrintPortalHasSingleReceipt(documentLike: PrintDocumentLike) {
   const portals = documentLike.querySelectorAll(".receipt-preview-backdrop");
   const receipts = documentLike.querySelectorAll(".receipt-preview-paper .receipt-print");
@@ -25,8 +45,14 @@ export function receiptPrintPortalHasSingleReceipt(documentLike: PrintDocumentLi
 export function printRenderedReceipt(selector: string, onState: (state: ReceiptPrintState) => void) {
   onState("preparing");
   const render = () => {
-    const element = document.querySelector(selector);
-    if (!receiptHasContent(element) || !receiptPrintPortalHasSingleReceipt(document)) {
+    const element = document.querySelector(selector) as ReceiptElement | null;
+    if (!element || !receiptHasContent(element)) {
+      onState("error");
+      return;
+    }
+    const temporaryPortal = createIsolatedReceiptPortal(element);
+    if (!receiptPrintPortalHasSingleReceipt(document)) {
+      temporaryPortal?.remove();
       onState("error");
       return;
     }
@@ -38,6 +64,7 @@ export function printRenderedReceipt(selector: string, onState: (state: ReceiptP
         if (cleanedUp) return;
         cleanedUp = true;
         delete document.body.dataset.receiptPrinting;
+        temporaryPortal?.remove();
         window.removeEventListener("afterprint", cleanup);
         onState("idle");
       };
