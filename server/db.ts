@@ -208,16 +208,18 @@ export async function getStaffTables() {
   return result;
 }
 
-export async function markTableViewedByStaff(sessionToken: string) {
+export async function markTableViewedByStaff(sessionToken: string, waiterId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const session = await db.select({ id: tableSessions.id }).from(tableSessions)
     .where(and(eq(tableSessions.sessionToken, sessionToken), eq(tableSessions.status, "open")))
     .limit(1);
   if (!session[0]) return null;
+  await db.update(tableSessions).set({ waiterId, lastActivityAt: new Date() })
+    .where(eq(tableSessions.id, session[0].id));
   await db.update(tableSelections).set({ viewedAt: new Date() })
     .where(and(eq(tableSelections.sessionId, session[0].id), isNull(tableSelections.viewedAt)));
-  return { success: true } as const;
+  return { success: true, waiterId } as const;
 }
 
 export async function setTableSelectionStatus(selectionId: number, status: "PENDING" | "PREPARING" | "READY" | "DELIVERED" | "COMPLETED") {

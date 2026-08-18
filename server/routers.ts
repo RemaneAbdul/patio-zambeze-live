@@ -53,7 +53,7 @@ export const appRouter = router({
     staffTables: adminProcedure.query(() => getStaffTables()),
     qrCodes: adminProcedure.query(() => listTableQrCodes()),
     generateQrCode: adminProcedure.input(z.object({ tableNumber: z.string().min(1).max(64) })).mutation(({ input }) => upsertTableQrCode(input.tableNumber)),
-    markViewed: adminProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input }) => markTableViewedByStaff(input.sessionToken)),
+    markViewed: adminProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => markTableViewedByStaff(input.sessionToken, ctx.user.id)),
     closeSession: adminProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input }) => closeTableSessionByStaff(input.sessionToken)),
     updateSelectionStatus: adminProcedure.input(z.object({ selectionId: z.number().int().positive(), status: selectionStatusSchema })).mutation(({ input }) => setTableSelectionStatus(input.selectionId, input.status)),
     staffLookup: adminProcedure

@@ -108,7 +108,7 @@ export default function Home() {
   const [statusNotifications, setStatusNotifications] = useState<StatusNotification[]>(() => { try { return JSON.parse(localStorage.getItem(`patio-zambeze-status-notifications-${tableId || tableNumber}`) || "[]"); } catch { return []; } });
   useEffect(() => { try { setStatusNotifications(JSON.parse(localStorage.getItem(notificationStorageKey) || "[]")); } catch { setStatusNotifications([]); } }, [notificationStorageKey]);
   const historyQuery = trpc.tableHistory.list.useQuery(historyInput, { enabled: Boolean(sessionToken), refetchInterval: sessionToken ? 5000 : false });
-  const sessionInfoQuery = trpc.tableHistory.sessionInfo.useQuery(historyInput, { enabled: Boolean(sessionToken) });
+  const sessionInfoQuery = trpc.tableHistory.sessionInfo.useQuery(historyInput, { enabled: Boolean(sessionToken), refetchInterval: sessionToken ? 5000 : false });
   const historyMutation = trpc.tableHistory.addSelection.useMutation({ onSuccess: (result) => { if (result.sessionToken && result.sessionToken !== sessionToken) {       persistSessionToken(tableId || tableNumber, result.sessionToken); setSessionToken(result.sessionToken); } void historyQuery.refetch(); } });
   useEffect(() => {
     if (historyQuery.error?.message !== "SESSION_CLOSED" || !sessionToken) return;

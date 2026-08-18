@@ -513,3 +513,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Implementar as alterações no projecto preservando o funcionamento existente.
 - [x] Testar alterações, regressões, build e mobile.
 - [x] Publicar checkpoint da implementação.
+
+## Garçom no recibo após “Marcar como visto”
+
+- [x] Auditar a associação actual do garçom à sessão da mesa.
+- [x] Persistir o garçom que executa “Marcar como visto”.
+- [x] Exibir nome e identificador do garçom no recibo do cliente.
+- [x] Testar backend, recibo, PDF e mobile; publicar checkpoint.
