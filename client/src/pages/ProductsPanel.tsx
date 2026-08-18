@@ -23,7 +23,11 @@ export default function ProductsPanel() {
   const products = trpc.menu.adminList.useQuery({ includeRemoved: false }, { retry: false });
   const categories = trpc.menu.categories.useQuery(undefined, { retry: false });
   const utils = trpc.useUtils();
-  const showMutationError = (error: { message?: string }) => setNotice(`Não foi possível guardar: ${error.message || "verifique os campos e tente novamente."}`);
+  const showMutationError = (error: { message?: string }) => {
+    const raw = error.message || "";
+    const detail = raw.includes("PRODUCT_NOT_FOUND") ? "Este prato já não existe ou foi removido." : raw.includes("CATEGORY_NOT_FOUND") ? "Seleccione uma categoria activa." : raw.includes("Database is not available") ? "A base de dados está temporariamente indisponível." : raw.includes("PRODUCT_NAME_REQUIRED") ? "Informe o nome do prato." : "Verifique os dados e tente novamente.";
+    setNotice(`Não foi possível guardar: ${detail}`);
+  };
   const create = trpc.menu.create.useMutation({ onSuccess: () => finish("Prato adicionado com sucesso."), onError: showMutationError });
   const update = trpc.menu.update.useMutation({ onSuccess: () => finish("Prato actualizado com sucesso."), onError: showMutationError });
   const statusMutation = trpc.menu.setStatus.useMutation({ onSuccess: (_, variables) => finish(variables.status === "ACTIVE" ? "Prato activado." : variables.status === "INACTIVE" ? "Prato desactivado." : "Prato removido."), onError: showMutationError });

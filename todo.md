@@ -370,3 +370,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Garantir persistência e feedback de sucesso/erro após recarregar.
 - [x] Adicionar regressões para criação/edição e contraste dos botões.
 - [x] Validar mobile/desktop e publicar checkpoint.
+
+## Correcção do erro ao guardar alterações
+
+- [x] Identificar a mensagem real por trás do aviso “1 error”.
+- [x] Corrigir o payload/validação do actualizar prato.
+- [x] Mostrar mensagem específica e legível ao utilizador.
+- [x] Testar actualizar, recarregar e confirmar persistência no mobile.
+- [x] Publicar checkpoint da correcção.
