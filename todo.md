@@ -309,3 +309,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adaptar filtros, alternância grelha/lista e secção de adicionar prato.
 - [x] Manter funções persistentes de edição, estados, remoção, preparação e imagens.
 - [x] Validar desktop/mobile, testes e salvar checkpoint visual.
+
+## Correções prioritárias de identidade, imagens, contraste e idioma
+
+- [x] Substituir “Sabores de Moçambique” por “Pátio Zambeze” em todo o painel e cabeçalhos internos.
+- [x] Separar claramente galeria do dispositivo e câmara no carregamento de fotos do painel.
+- [x] Corrigir textos transparentes e garantir contraste legível no menu e painel.
+- [x] Tornar PT/EN claramente disponíveis no menu público e no painel.
+- [x] Validar desktop/mobile, testes e salvar checkpoint prioritário.

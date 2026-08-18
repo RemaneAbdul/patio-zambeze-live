@@ -542,3 +542,24 @@
   .product-form-card { border-radius:18px; }
   @media (max-width:700px) { .internal-topbar { min-height:58px; padding:10px 14px; } .internal-brand strong { font-size:12px; } .internal-brand span { font-size:10px; } .internal-brand-mark { height:32px; width:32px; } .internal-topbar-actions { gap:5px; } .internal-language { padding:7px 8px; } .internal-user { display:none; } .products-toolbar { grid-template-columns:1fr; } .products-view-toggle { justify-content:center; } }
 }
+
+@layer components {
+  .internal-language-switch { display:flex; align-items:center; gap:5px; border:1px solid #dfe6df; border-radius:10px; background:#fff; padding:5px 9px; color:#17251f; font:700 12px var(--font-sans); }
+  .internal-language-switch button { border-radius:6px; padding:4px 6px; color:#5e6a63; }
+  .internal-language-switch button.active { background:#e5f2e9; color:#17633e; }
+  .photo-source-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .photo-source-actions button { min-height:40px; border-radius:9px; }
+  .menu-app-shell { color:#183A32; }
+  .menu-app-shell [class*="text-[#183A32]/"] { color:#183A32 !important; opacity:1 !important; }
+  .menu-app-shell [class*="placeholder:text-[#183A32]/"]::placeholder { color:#52625a !important; opacity:1 !important; }
+  .menu-app-shell .language-switch button, .menu-app-shell .language-switch span { color:#183A32 !important; opacity:1 !important; }
+  .menu-app-shell .language-switch .language-active { color:#C85A3F !important; font-weight:800; }
+  .menu-app-shell .search-shell input { color:#183A32 !important; opacity:1 !important; }
+  .menu-app-shell .category-pill, .menu-app-shell .favorites-toggle, .menu-app-shell .sort-control, .menu-app-shell .field-control { color:#183A32 !important; opacity:1 !important; }
+  .menu-app-shell .product-card, .menu-app-shell .recommended-item { color:#183A32; }
+  @media (max-width:640px) { .photo-source-actions { flex-direction:column; } .photo-source-actions button { width:100%; justify-content:center; } }
+}
+
+@layer components {
+  .menu-app-shell .category-pill-active { color:#F7F2E9 !important; background:#183A32 !important; border-color:#183A32 !important; }
+}
