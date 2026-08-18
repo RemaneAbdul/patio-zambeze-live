@@ -38,7 +38,7 @@ function createIsolatedReceiptPortal(source: ReceiptElement) {
 
 export function receiptPrintPortalHasSingleReceipt(documentLike: PrintDocumentLike) {
   const portals = documentLike.querySelectorAll(".receipt-preview-backdrop");
-  const receipts = documentLike.querySelectorAll(".receipt-preview-paper .receipt-print");
+  const receipts = documentLike.querySelectorAll(".receipt-preview-backdrop .receipt-preview-paper .receipt-print");
   const receipt = receipts.length === 1 ? receipts[0] : null;
   return portals.length === 1 && receipts.length === 1 && receiptHasContent(receipt);
 }

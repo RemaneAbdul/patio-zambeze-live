@@ -432,3 +432,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Garantir que a impressão térmica gera apenas uma página.
 - [x] Validar 58 mm, 80 mm, mobile e regressões.
 - [x] Publicar checkpoint da melhoria.
+
+## Cabeçalho do recibo e acções PDF/impressão
+
+- [x] Diagnosticar por que os botões Imprimir Recibo e Guardar como PDF não executam a acção.
+- [x] Incluir logotipo, nome e contactos do restaurante no cabeçalho impresso.
+- [x] Incluir o nome do garçom que atendeu a mesa no cabeçalho.
+- [x] Testar impressão, PDF, mobile e regressões.
+- [x] Publicar checkpoint da correcção.

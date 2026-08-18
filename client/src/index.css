@@ -633,3 +633,7 @@
   body[data-receipt-printing="true"] .receipt-preview-paper .receipt-print { break-after: avoid-page !important; page-break-after: avoid !important; break-inside: avoid-page !important; page-break-inside: avoid !important; }
   body[data-receipt-printing="true"] .receipt-preview-paper .receipt-print { max-height: none !important; overflow: visible !important; }
 }
+
+.receipt-print .receipt-logo { display: block; width: 18mm; height: 18mm; margin: 0 auto 5px; object-fit: contain; }
+.receipt-preview .receipt-logo { width: 22mm; height: 22mm; }
+.receipt-print header span { overflow-wrap: anywhere; }
