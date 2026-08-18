@@ -150,6 +150,8 @@ integration("tableHistory persistence", () => {
       expect(first.id).toBe(second.id);
       expect(second.qrToken).not.toBe(first.qrToken);
       expect((await listTableQrCodes()).some((code) => code.tableNumber === tableNumber)).toBe(true);
+      const staffTable = (await getStaffTables()).find((table) => table.tableNumber === tableNumber);
+      expect(staffTable).toEqual(expect.objectContaining({ tableNumber, statusLabel: "empty", selectionCount: 0 }));
     } finally {
       const created = await db.select({ id: tableQrCodes.id }).from(tableQrCodes).where(eq(tableQrCodes.tableNumber, tableNumber)).limit(1);
       if (created[0]) await db.delete(tableQrCodes).where(eq(tableQrCodes.id, created[0].id));

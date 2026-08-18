@@ -506,3 +506,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Implementar os requisitos aplicáveis sem quebrar as funcionalidades existentes.
 - [x] Testar as alterações, responsividade e regressões.
 - [x] Publicar checkpoint da implementação.
+
+## Alterações descritas no pasted_content_8.txt
+
+- [x] Ler e decompor os requisitos do novo ficheiro.
+- [x] Implementar as alterações no projecto preservando o funcionamento existente.
+- [x] Testar alterações, regressões, build e mobile.
+- [x] Publicar checkpoint da implementação.

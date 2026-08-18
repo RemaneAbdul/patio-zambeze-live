@@ -12,7 +12,8 @@ export default function QrCodesPanel() {
   const [pngUrl, setPngUrl] = useState("");
   const [svgUrl, setSvgUrl] = useState("");
   const codes = trpc.tableHistory.qrCodes.useQuery(undefined, { retry: false });
-  const generate = trpc.tableHistory.generateQrCode.useMutation({ onSuccess: (created) => { setSelectedId(created.id); setTableNumber(created.tableNumber); void codes.refetch(); } });
+  const utils = trpc.useUtils();
+  const generate = trpc.tableHistory.generateQrCode.useMutation({ onSuccess: (created) => { setSelectedId(created.id); setTableNumber(created.tableNumber); void codes.refetch(); void utils.tableHistory.staffTables.invalidate(); } });
   const selected = useMemo(() => (codes.data ?? []).find((code) => code.id === selectedId) ?? codes.data?.[0], [codes.data, selectedId]);
   const customerUrl = selected ? `${window.location.origin}/menu?table=${encodeURIComponent(selected.qrToken)}` : "";
 
