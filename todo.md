@@ -527,3 +527,9 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Persistir a hora exacta em campo próprio quando o garçom marcar como visto.
 - [x] Exibir nome, identificador e hora do garçom no recibo do cliente.
 - [x] Testar backend, recibo, PDF e mobile; publicar checkpoint.
+
+## Correcção de chaves duplicadas no painel de mesas
+
+- [x] Diagnosticar por que mesas sem sessão recebem a mesma chave React.
+- [x] Garantir chaves únicas para todas as mesas e QR Codes.
+- [x] Testar `/painel/mesas`, actualizações e regressões; publicar checkpoint.
