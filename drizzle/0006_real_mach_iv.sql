@@ -1,0 +1,1 @@
+ALTER TABLE `table_selection_items` ADD `preparation` text;

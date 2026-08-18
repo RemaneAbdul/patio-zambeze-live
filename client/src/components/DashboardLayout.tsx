@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Printer, QrCode, Settings, Table2 } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Printer, QrCode, Settings, Table2, UtensilsCrossed } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -30,6 +30,7 @@ import { Button } from "./ui/button";
 const menuItems = [
   { icon: LayoutDashboard, label: "Painel", path: "/painel" },
   { icon: Table2, label: "Mesas", path: "/painel/mesas" },
+  { icon: UtensilsCrossed, label: "Pratos", path: "/painel/pratos" },
   { icon: QrCode, label: "QR Codes", path: "/painel/qr-codes" },
   { icon: Printer, label: "Impressões", path: "/painel/impressoes" },
   { icon: Settings, label: "Definições", path: "/painel/definicoes" },

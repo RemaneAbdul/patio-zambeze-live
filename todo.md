@@ -276,13 +276,13 @@
 
 ## Pendências reais da gestão persistente de preparação
 
-- [ ] Criar tabela persistente de produtos/menu com preparação PT e EN, preço, categoria, imagem e estado.
-- [ ] Criar procedures protegidas para listar, criar, editar, ativar/desativar e excluir logicamente itens.
-- [ ] Adicionar secção Menu/Gestão do Menu ao painel interno com formulário de preparação.
-- [ ] Fazer o menu público consumir os produtos persistentes, com fallback seguro durante a migração.
-- [ ] Preservar preparação no snapshot de table_selection_items sem alterar históricos antigos.
-- [ ] Criar testes específicos de schema/API, edição, tradução e renderização.
-- [ ] Validar desktop e mobile e salvar checkpoint final.
+- [x] Criar tabela persistente de produtos/menu com preparação PT e EN, preço, categoria, imagem e estado.
+- [x] Criar procedures protegidas para listar, criar, editar, ativar/desativar e excluir logicamente itens.
+- [x] Adicionar secção Menu/Gestão do Menu ao painel interno com formulário de preparação.
+- [x] Fazer o menu público consumir os produtos persistentes, com fallback seguro durante a migração.
+- [x] Preservar preparação no snapshot de table_selection_items sem alterar históricos antigos.
+- [x] Criar testes específicos de schema/API, edição, tradução e renderização.
+- [x] Validar desktop e mobile e salvar checkpoint final.
 
 ### Nota de escopo desta atualização
 
@@ -294,3 +294,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Isolar o portal único do recibo também no Safari/iOS e impedir a impressão do shell do painel.
 - [x] Adicionar regressão para impressão móvel e confirmar conteúdo real do recibo.
 - [x] Validar 58 mm/80 mm em desktop e smartphone e salvar checkpoint.
+
+## Alterações do ficheiro anexado no painel
+
+- [x] Ler e mapear integralmente as alterações solicitadas para o painel.
+- [x] Implementar as alterações no painel interno sem remover a proteção por autenticação.
+- [x] Validar desktop/mobile, testes e compatibilidade com histórico/recibos.
+- [x] Salvar checkpoint e entregar o link atualizado.

@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { closeTableSessionByStaff, createTableSelection, getStaffTables, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, listTableQrCodes, markTableViewedByStaff, upsertTableQrCode } from "./db";
+import { closeTableSessionByStaff, createMenuCategory, createMenuProduct, createTableSelection, getStaffTables, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, listMenuCategories, listMenuProducts, listTableQrCodes, markTableViewedByStaff, setMenuProductStatus, updateMenuProduct, upsertTableQrCode } from "./db";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -17,6 +17,16 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+  }),
+
+  menu: router({
+    active: publicProcedure.query(() => listMenuProducts(false)),
+    categories: publicProcedure.query(() => listMenuCategories()),
+    adminList: adminProcedure.input(z.object({ includeRemoved: z.boolean().default(false) })).query(({ input }) => listMenuProducts(input.includeRemoved)),
+    createCategory: adminProcedure.input(z.object({ name: z.string().trim().min(1).max(100) })).mutation(({ input }) => createMenuCategory(input.name)),
+    create: adminProcedure.input(z.object({ categoryId: z.number().int().positive(), name: z.string().trim().min(1).max(160), description: z.string().max(4000).optional(), preparation: z.string().max(1000).optional(), preparationEn: z.string().max(1000).optional(), price: z.number().nonnegative(), imageUrl: z.string().url().optional() })).mutation(({ input }) => createMenuProduct(input)),
+    update: adminProcedure.input(z.object({ id: z.number().int().positive(), categoryId: z.number().int().positive(), name: z.string().trim().min(1).max(160), description: z.string().max(4000).optional(), preparation: z.string().max(1000).optional(), preparationEn: z.string().max(1000).optional(), price: z.number().nonnegative(), imageUrl: z.string().url().optional() })).mutation(({ input }) => { const { id, ...data } = input; return updateMenuProduct(id, data); }),
+    setStatus: adminProcedure.input(z.object({ id: z.number().int().positive(), status: z.enum(["ACTIVE", "INACTIVE", "REMOVED"]) })).mutation(({ input }) => setMenuProductStatus(input.id, input.status)),
   }),
 
   tableHistory: router({
@@ -36,11 +46,14 @@ export const appRouter = router({
       tableNumber: z.string().min(1).max(64).default("01"),
       tableId: z.string().min(1).max(128).optional(),
       subtotal: z.number().nonnegative(),
-      items: z.array(z.object({
-        productName: z.string().min(1).max(160),
-        quantity: z.number().int().positive(),
-        unitPrice: z.number().nonnegative(),
-      })).min(1).max(100),
+      items: z.array(
+        z.object({
+          productName: z.string().min(1).max(160),
+          preparation: z.string().max(1000).optional(),
+          quantity: z.number().int().positive(),
+          unitPrice: z.number().nonnegative(),
+        }),
+      ).min(1),
     })).mutation(({ input }) => createTableSelection(input)),
   }),
 });

@@ -99,7 +99,7 @@ export async function getUserByOpenId(openId: string) {
 
 
 import { and, desc, eq, inArray, isNull, lt, sql } from "drizzle-orm";
-import { tableQrCodes, tableSelectionItems, tableSelections, tableSessions, InsertTableSelectionItem } from "../drizzle/schema";
+import { menuCategories, menuProducts, tableQrCodes, tableSelectionItems, tableSelections, tableSessions, InsertTableSelectionItem } from "../drizzle/schema";
 
 let lastSessionCleanupAt = 0;
 
@@ -278,7 +278,7 @@ export async function createTableSelection(input: {
   sessionToken: string;
   tableNumber?: string;
   tableId?: string;
-  items: Array<{ productName: string; quantity: number; unitPrice: number }>;
+  items: Array<{ productName: string; preparation?: string; quantity: number; unitPrice: number }>;
   subtotal: number;
 }) {
   if (!input.items.length) throw new Error("Cannot persist an empty selection");
@@ -306,4 +306,54 @@ export async function createTableSelection(input: {
     await tx.update(tableSessions).set({ lastActivityAt: new Date() }).where(eq(tableSessions.id, session.id));
     return { id: selectionId, selectionNumber, sessionToken: effectiveToken };
   });
+}
+
+
+const MENU_RESTAURANT_ID = "default";
+
+export async function listMenuCategories() {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  return db.select().from(menuCategories).where(eq(menuCategories.restaurantId, MENU_RESTAURANT_ID)).orderBy(menuCategories.name);
+}
+
+export async function createMenuCategory(name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const normalized = name.trim();
+  if (!normalized) throw new Error("Category name is required");
+  await db.insert(menuCategories).values({ restaurantId: MENU_RESTAURANT_ID, name: normalized });
+  const rows = await db.select().from(menuCategories).where(and(eq(menuCategories.restaurantId, MENU_RESTAURANT_ID), eq(menuCategories.name, normalized))).orderBy(desc(menuCategories.id)).limit(1);
+  return rows[0];
+}
+
+export async function listMenuProducts(includeRemoved = false) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const statuses = includeRemoved ? ["ACTIVE", "INACTIVE", "REMOVED"] as const : ["ACTIVE", "INACTIVE"] as const;
+  return db.select({ product: menuProducts, category: menuCategories }).from(menuProducts).leftJoin(menuCategories, eq(menuProducts.categoryId, menuCategories.id)).where(and(eq(menuProducts.restaurantId, MENU_RESTAURANT_ID), inArray(menuProducts.status, statuses))).orderBy(desc(menuProducts.updatedAt));
+}
+
+export async function createMenuProduct(input: { categoryId: number; name: string; description?: string; preparation?: string; preparationEn?: string; price: number; imageUrl?: string; }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.insert(menuProducts).values({ ...input, restaurantId: MENU_RESTAURANT_ID, price: input.price.toFixed(2), status: "ACTIVE" });
+  const rows = await db.select().from(menuProducts).where(and(eq(menuProducts.restaurantId, MENU_RESTAURANT_ID), eq(menuProducts.name, input.name.trim()))).orderBy(desc(menuProducts.id)).limit(1);
+  return rows[0];
+}
+
+export async function updateMenuProduct(id: number, input: { categoryId: number; name: string; description?: string; preparation?: string; preparationEn?: string; price: number; imageUrl?: string; }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.update(menuProducts).set({ ...input, price: input.price.toFixed(2), updatedAt: new Date() }).where(and(eq(menuProducts.id, id), eq(menuProducts.restaurantId, MENU_RESTAURANT_ID), inArray(menuProducts.status, ["ACTIVE", "INACTIVE"])));
+  const rows = await db.select().from(menuProducts).where(eq(menuProducts.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function setMenuProductStatus(id: number, status: "ACTIVE" | "INACTIVE" | "REMOVED") {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.update(menuProducts).set({ status, deletedAt: status === "REMOVED" ? new Date() : null, updatedAt: new Date() }).where(and(eq(menuProducts.id, id), eq(menuProducts.restaurantId, MENU_RESTAURANT_ID)));
+  const rows = await db.select().from(menuProducts).where(eq(menuProducts.id, id)).limit(1);
+  return rows[0];
 }

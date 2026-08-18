@@ -55,6 +55,7 @@ export const tableSelectionItems = mysqlTable("table_selection_items", {
   id: int("id").autoincrement().primaryKey(),
   selectionId: int("selectionId").notNull(),
   productName: varchar("productName", { length: 160 }).notNull(),
+  preparation: text("preparation"),
   quantity: int("quantity").notNull(),
   unitPrice: decimal("unitPrice", { precision: 10, scale: 2 }).notNull(),
 }, (table) => ({ selectionIdx: index("table_selection_items_selection_idx").on(table.selectionId) }));
@@ -76,3 +77,33 @@ export const tableQrCodes = mysqlTable("table_qr_codes", {
 
 export type TableQrCode = typeof tableQrCodes.$inferSelect;
 export type InsertTableQrCode = typeof tableQrCodes.$inferInsert;
+
+export const menuCategories = mysqlTable("menu_categories", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: varchar("restaurantId", { length: 64 }).notNull().default("default"),
+  name: varchar("name", { length: 100 }).notNull(),
+  status: mysqlEnum("status", ["ACTIVE", "REMOVED"]).default("ACTIVE").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({ restaurantIdx: index("menu_categories_restaurant_idx").on(table.restaurantId) }));
+
+export const menuProducts = mysqlTable("menu_products", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: varchar("restaurantId", { length: 64 }).notNull().default("default"),
+  categoryId: int("categoryId").notNull(),
+  name: varchar("name", { length: 160 }).notNull(),
+  description: text("description"),
+  preparation: text("preparation"),
+  preparationEn: text("preparationEn"),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  imageUrl: text("imageUrl"),
+  status: mysqlEnum("status", ["ACTIVE", "INACTIVE", "REMOVED"]).default("ACTIVE").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  deletedAt: timestamp("deletedAt"),
+}, (table) => ({ restaurantStatusIdx: index("menu_products_restaurant_status_idx").on(table.restaurantId, table.status), categoryIdx: index("menu_products_category_idx").on(table.categoryId) }));
+
+export type MenuCategory = typeof menuCategories.$inferSelect;
+export type InsertMenuCategory = typeof menuCategories.$inferInsert;
+export type MenuProduct = typeof menuProducts.$inferSelect;
+export type InsertMenuProduct = typeof menuProducts.$inferInsert;
