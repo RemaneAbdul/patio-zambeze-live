@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { appRouter } from "./routers";
-import { assumeTableSession, closeTableSessionByStaff, createTableSelection, ensureTableSession, getDb, getStaffTables, getTableHistory, getTableHistoryForStaff, listTableQrCodes, markTableViewedByStaff, upsertTableQrCode } from "./db";
+import { assumeTableSession, closeTableSessionByStaff, createTableSelection, ensureTableSession, getDb, getStaffTables, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, listTableQrCodes, markTableViewedByStaff, upsertTableQrCode } from "./db";
 import { tableQrCodes, tableSelectionItems, tableSelections, tableSessions } from "../drizzle/schema";
 import type { TrpcContext } from "./_core/context";
 
@@ -148,17 +148,22 @@ integration("tableHistory persistence", () => {
   it("creates and regenerates one QR code per table without limits", async () => {
     const db = await getDb();
     if (!db) return;
-    const tableNumber = `TEST-${crypto.randomUUID()}`;
+    const tableNumber = `TEST-${crypto.randomUUID().slice(0, 20)}`;
     try {
       const first = await upsertTableQrCode(tableNumber);
       const second = await upsertTableQrCode(tableNumber);
       expect(first.id).toBe(second.id);
       expect(second.qrToken).not.toBe(first.qrToken);
       expect((await listTableQrCodes()).some((code) => code.tableNumber === tableNumber)).toBe(true);
+      const sessionToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
+      const sessionInfo = await getTableSessionInfo(sessionToken, "01", second.qrToken);
+      expect(sessionInfo.session.tableNumber).toBe(tableNumber);
+      await expect(getTableSessionInfo(`${crypto.randomUUID()}${crypto.randomUUID()}`, "01", "invalid-qr-token")).rejects.toThrow("TABLE_NOT_FOUND");
       const staffTable = (await getStaffTables()).find((table) => table.tableNumber === tableNumber);
       expect(staffTable).toEqual(expect.objectContaining({ tableNumber, statusLabel: "empty", selectionCount: 0 }));
     } finally {
       const created = await db.select({ id: tableQrCodes.id }).from(tableQrCodes).where(eq(tableQrCodes.tableNumber, tableNumber)).limit(1);
+      await db.delete(tableSessions).where(eq(tableSessions.tableNumber, tableNumber));
       if (created[0]) await db.delete(tableQrCodes).where(eq(tableQrCodes.id, created[0].id));
     }
   });

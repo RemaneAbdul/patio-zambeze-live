@@ -48,6 +48,8 @@
   .language-switch { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; color: rgb(24 58 50 / 42%); font: 700 9px var(--font-sans); letter-spacing: .12em; }
   .language-switch button { color: rgb(24 58 50 / 48%); font: inherit; }
   .language-switch .language-active { color: #C85A3F; }
+  .table-identity-pill { display: inline-flex; align-items: center; gap: 4px; border: 1px solid rgb(200 90 63 / 35%); border-radius: 999px; background: rgb(200 90 63 / 8%); padding: 3px 8px; color: #A44832; font: 700 10px var(--font-sans); white-space: nowrap; }
+  .theme-dark .table-identity-pill { border-color: rgb(227 163 142 / 45%); background: rgb(200 90 63 / 18%); color: #F4EEE4; }
   .search-shell { border: 1px solid rgb(24 58 50 / 15%); border-radius: 2px; box-shadow: 0 10px 28px rgb(24 58 50 / 5%); transition: border-color 180ms ease, box-shadow 180ms ease; }
   .search-shell:focus-within { border-color: #C85A3F; box-shadow: 0 10px 28px rgb(200 90 63 / 12%); }
   .category-scroll { scrollbar-width: none; }

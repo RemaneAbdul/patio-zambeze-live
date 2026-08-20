@@ -127,16 +127,18 @@ export async function ensureTableSession(sessionToken: string, tableNumber = "01
   return rows[0];
 }
 
-async function resolveTableReference(db: Awaited<ReturnType<typeof getDb>>, tableReference: string) {
+async function resolveTableReference(db: Awaited<ReturnType<typeof getDb>>, tableReference: string, requireQr = false) {
   if (!db) throw new Error("Database is not available");
   const qr = await db.select().from(tableQrCodes).where(eq(tableQrCodes.qrToken, tableReference)).limit(1);
-  return qr[0] ? { tableNumber: qr[0].tableNumber, tableId: qr[0].qrToken } : { tableNumber: tableReference, tableId: tableReference };
+  if (qr[0]) return { tableNumber: qr[0].tableNumber, tableId: qr[0].qrToken };
+  if (requireQr) throw new Error("TABLE_NOT_FOUND");
+  return { tableNumber: tableReference, tableId: tableReference };
 }
 
 export async function getTableHistory(sessionToken: string, tableNumber = "01", tableId?: string) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const table = await resolveTableReference(db, tableId || tableNumber);
+  const table = await resolveTableReference(db, tableId || tableNumber, Boolean(tableId));
   const session = await ensureTableSession(sessionToken, table.tableNumber);
   const selections = await db.select().from(tableSelections).where(eq(tableSelections.sessionId, session.id)).orderBy(desc(tableSelections.createdAt));
   const items = selections.length
@@ -152,7 +154,7 @@ export async function getTableHistory(sessionToken: string, tableNumber = "01", 
 export async function getTableSessionInfo(sessionToken: string, tableNumber = "01", tableId?: string) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const table = await resolveTableReference(db, tableId || tableNumber);
+  const table = await resolveTableReference(db, tableId || tableNumber, Boolean(tableId));
   const session = await ensureTableSession(sessionToken, table.tableNumber);
   const waiter = session.waiterId ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode, waiterActive: users.waiterActive }).from(users).where(eq(users.id, session.waiterId)).limit(1) : [];
   return { session, waiter: waiter[0] ?? null };

@@ -583,3 +583,13 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Implementar as alterações preservando as funcionalidades existentes.
 - [x] Testar alterações, regressões, build e mobile.
 - [x] Publicar checkpoint da implementação.
+
+## Identificação automática da mesa por QR Code — pasted_content_12.txt
+
+- [x] Validar o identificador único do QR Code e rejeitar mesas inexistentes.
+- [x] Mostrar a mesa identificada no topo do menu sem permitir alteração manual.
+- [x] Manter a associação da sessão, histórico, pedido e recibo ao QR Code validado.
+- [x] Preservar design, categorias, pesquisa, seleção, painel, impressão e PDF.
+- [x] Criar testes de QR Code válido, inválido e associação da sessão.
+- [x] Validar testes, build e experiência responsiva.
+- [x] Publicar checkpoint da implementação.
