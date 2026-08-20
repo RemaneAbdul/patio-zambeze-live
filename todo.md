@@ -562,3 +562,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Corrigir a preparação e abertura da impressão sem criar dados novos.
 - [x] Validar primeira via, segunda via e reimpressões consecutivas.
 - [x] Publicar checkpoint da correcção.
+
+## Correcção do PDF no menu do cliente
+
+- [x] Diagnosticar por que o PDF do recibo não é gerado.
+- [x] Corrigir a renderização exclusiva do recibo e o download/partilha.
+- [x] Validar PDF em desktop e mobile sem alterar dados.
+- [x] Publicar checkpoint da correcção.
