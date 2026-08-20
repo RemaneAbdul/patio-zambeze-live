@@ -555,3 +555,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Implementar as alterações preservando as funcionalidades existentes.
 - [x] Testar alterações, regressões, build e mobile.
 - [x] Publicar checkpoint da implementação.
+
+## Correcção da segunda via do recibo
+
+- [x] Diagnosticar o erro ao clicar em Segunda via.
+- [x] Corrigir a preparação e abertura da impressão sem criar dados novos.
+- [x] Validar primeira via, segunda via e reimpressões consecutivas.
+- [x] Publicar checkpoint da correcção.
