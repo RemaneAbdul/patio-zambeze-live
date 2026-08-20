@@ -615,3 +615,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Criar testes de autorização, remoção, recálculo e bloqueio após visto.
 - [x] Validar testes, build e experiência responsiva.
 - [x] Publicar checkpoint da implementação.
+
+## Correcção: sessionToken inválido no painel de mesas
+
+- [x] Impedir que o painel execute staffLookup com token vazio ou menor que 32 caracteres.
+- [x] Mostrar estado neutro enquanto nenhuma mesa válida estiver seleccionada.
+- [x] Adicionar teste/regressão para o estado sem mesa seleccionada.
+- [x] Validar testes, TypeScript, build e painel mobile.
+- [x] Publicar checkpoint da correcção.

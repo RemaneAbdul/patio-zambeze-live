@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { printRenderedReceipt, receiptPaperClass, type ReceiptPrintState } from "@/lib/receiptPrint";
+import { isValidStaffSessionToken, shouldQueryStaffLookup } from "@/lib/staffLookupGuard";
 import { ArrowLeft, CheckCircle2, Circle, Eye, LockKeyhole, Printer, Search, Trash2, X } from "lucide-react";
+import { skipToken } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -24,8 +26,9 @@ export default function WaiterPanel() {
   const [viewedConfirmation, setViewedConfirmation] = useState(false);
   const isAuthorized = user?.role === "admin";
   const tables = trpc.tableHistory.staffTables.useQuery(undefined, { enabled: isAuthorized, refetchInterval: 5000, retry: false });
-  const lookupInput = useMemo(() => ({ sessionToken: selectedToken }), [selectedToken]);
-  const lookup = trpc.tableHistory.staffLookup.useQuery(lookupInput, { enabled: isAuthorized && selectedToken.length >= 32, retry: false });
+  const validSelectedToken = isValidStaffSessionToken(selectedToken);
+  const lookupInput = useMemo(() => validSelectedToken ? { sessionToken: selectedToken } : skipToken, [selectedToken, validSelectedToken]);
+  const lookup = trpc.tableHistory.staffLookup.useQuery(lookupInput, { enabled: shouldQueryStaffLookup(Boolean(isAuthorized), selectedToken), retry: false });
   const utils = trpc.useUtils();
   const assumeTable = trpc.tableHistory.assumeTable.useMutation({ onSuccess: () => { void utils.tableHistory.staffTables.invalidate(); void lookup.refetch(); }, onError: () => { void tables.refetch(); } });
   const markViewed = trpc.tableHistory.markViewed.useMutation({ onSuccess: () => { void utils.tableHistory.staffTables.invalidate(); void lookup.refetch(); setViewedConfirmation(true); window.setTimeout(() => setViewedConfirmation(false), 3200); } });
