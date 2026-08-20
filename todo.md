@@ -593,3 +593,14 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Criar testes de QR Code válido, inválido e associação da sessão.
 - [x] Validar testes, build e experiência responsiva.
 - [x] Publicar checkpoint da implementação.
+
+## Separação de pedidos e recibos após “Marcar como visto” — pasted_content_13.txt
+
+- [x] Fechar e tornar imutável cada pedido quando for marcado como visto.
+- [x] Criar automaticamente um novo pedido/recibo para novas selecções após o fecho.
+- [x] Garantir a regra no backend com timestamps e protecção contra alteração de pedidos vistos.
+- [x] Apresentar, imprimir, baixar PDF e reimprimir cada pedido separadamente.
+- [x] Preservar QR Code, mesa, menu, atribuição exclusiva, histórico e painel.
+- [x] Criar testes de separação, imutabilidade e auditoria.
+- [x] Validar testes, build e experiência responsiva.
+- [x] Publicar checkpoint da implementação.

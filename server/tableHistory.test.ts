@@ -113,12 +113,18 @@ integration("tableHistory persistence", () => {
       await markTableViewedByStaff(tokenA, 1);
       const afterViewed = await getStaffTables();
       expect(afterViewed.find((table) => table.sessionToken === tokenA)?.statusLabel).toBe("viewed");
+      const nextOrder = await createTableSelection({ sessionToken: tokenA, tableNumber: "01", subtotal: 80, items: [{ productName: "Coca-Cola", quantity: 1, unitPrice: 80 }] });
+      expect(nextOrder.selectionNumber).toBe(2);
+      const separatedHistory = await getTableHistoryForStaff(tokenA);
+      expect(separatedHistory?.selections).toHaveLength(2);
+      expect(separatedHistory?.selections.find((selection) => selection.selectionNumber === 1)?.subtotal).toBe(600);
+      expect(separatedHistory?.selections.find((selection) => selection.selectionNumber === 2)?.subtotal).toBe(80);
       const viewedHistory = await getTableHistoryForStaff(tokenA);
       expect(viewedHistory?.session.waiterId).toBe(1);
       expect((await closeTableSessionByStaff(tokenA)).success).toBe(true);
       const closedHistory = await getTableHistoryForStaff(tokenA);
       expect(closedHistory?.session.status).toBe("closed");
-      expect(closedHistory?.selections).toHaveLength(1);
+      expect(closedHistory?.selections).toHaveLength(2);
       const replacement = await createTableSelection({ sessionToken: tokenA, tableNumber: "04", subtotal: 80, items: [{ productName: "Coca-Cola", quantity: 1, unitPrice: 80 }] });
       replacementToken = replacement.sessionToken;
       expect(replacementToken).not.toBe(tokenA);
@@ -127,7 +133,7 @@ integration("tableHistory persistence", () => {
       expect(newHistory?.session.tableNumber).toBe("04");
       expect(newHistory?.selections).toHaveLength(1);
       expect(newHistory?.selections[0]?.items[0]?.productName).toBe("Coca-Cola");
-      expect((await getTableHistoryForStaff(tokenA))?.selections).toHaveLength(1);
+      expect((await getTableHistoryForStaff(tokenA))?.selections).toHaveLength(2);
     } finally {
       const sessionA = await db.select().from(tableSessions).where(eq(tableSessions.sessionToken, tokenA)).limit(1);
       const sessionB = await db.select().from(tableSessions).where(eq(tableSessions.sessionToken, tokenB)).limit(1);

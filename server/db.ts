@@ -243,7 +243,7 @@ export async function markTableViewedByStaff(sessionToken: string, waiterId: num
   const session = await assertTableAccess(db, sessionToken, waiterId, isAdmin);
   const viewedAt = new Date();
   await db.update(tableSessions).set({ waiterId, viewedAt, lastActivityAt: viewedAt }).where(eq(tableSessions.id, session.id));
-  await db.update(tableSelections).set({ viewedAt })
+  await db.update(tableSelections).set({ viewedAt, receivedAt: viewedAt })
     .where(and(eq(tableSelections.sessionId, session.id), isNull(tableSelections.viewedAt)));
   return { success: true, waiterId, viewedAt } as const;
 }
@@ -349,7 +349,7 @@ export async function setTableSelectionStatus(selectionId: number, status: "PEND
   const rows = await db.select({ sessionToken: tableSessions.sessionToken }).from(tableSelections).innerJoin(tableSessions, eq(tableSelections.sessionId, tableSessions.id)).where(eq(tableSelections.id, selectionId)).limit(1);
   if (!rows[0]) throw new Error("SELECTION_NOT_FOUND");
   await assertTableAccess(db, rows[0].sessionToken, waiterId, isAdmin);
-  const updated = await db.update(tableSelections).set({ status }).where(eq(tableSelections.id, selectionId));
+  const updated = await db.update(tableSelections).set({ status, finalizedAt: status === "COMPLETED" ? new Date() : undefined }).where(eq(tableSelections.id, selectionId));
   return { success: Number(updated[0]?.affectedRows ?? 0) > 0, selectionId, status } as const;
 }
 
@@ -363,7 +363,7 @@ export async function createTableSelection(input: {
   if (!input.items.length) throw new Error("Cannot persist an empty selection");
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const table = await resolveTableReference(db, input.tableId || input.tableNumber || "01");
+  const table = await resolveTableReference(db, input.tableId || input.tableNumber || "01", Boolean(input.tableId));
   let effectiveToken = input.sessionToken;
   let session;
   try {
@@ -377,13 +377,27 @@ export async function createTableSelection(input: {
     }
   }
   return db.transaction(async (tx) => {
+    const openOrders = await tx.select({ id: tableSelections.id, selectionNumber: tableSelections.selectionNumber, subtotal: tableSelections.subtotal })
+      .from(tableSelections)
+      .where(and(eq(tableSelections.sessionId, session.id), isNull(tableSelections.viewedAt)))
+      .orderBy(desc(tableSelections.createdAt))
+      .limit(1);
+    const openOrder = openOrders[0];
+    if (openOrder) {
+      const nextSubtotal = Number(openOrder.subtotal) + input.subtotal;
+      await tx.update(tableSelections).set({ subtotal: nextSubtotal.toFixed(2) }).where(eq(tableSelections.id, openOrder.id));
+      await tx.insert(tableSelectionItems).values(input.items.map((item) => ({ ...item, selectionId: openOrder.id, unitPrice: item.unitPrice.toFixed(2) })));
+      await tx.update(tableSessions).set({ lastActivityAt: new Date() }).where(eq(tableSessions.id, session.id));
+      return { id: openOrder.id, selectionNumber: openOrder.selectionNumber, sessionToken: effectiveToken, mergedIntoOpenOrder: true };
+    }
     const existing = await tx.select({ id: tableSelections.id }).from(tableSelections).where(eq(tableSelections.sessionId, session.id));
     const selectionNumber = existing.length + 1;
-    const inserted = await tx.insert(tableSelections).values({ sessionId: session.id, selectionNumber, subtotal: input.subtotal.toFixed(2) });
+    const now = new Date();
+    const inserted = await tx.insert(tableSelections).values({ sessionId: session.id, selectionNumber, subtotal: input.subtotal.toFixed(2), sentAt: now });
     const selectionId = Number(inserted[0].insertId);
     await tx.insert(tableSelectionItems).values(input.items.map((item) => ({ ...item, selectionId, unitPrice: item.unitPrice.toFixed(2) })));
-    await tx.update(tableSessions).set({ lastActivityAt: new Date() }).where(eq(tableSessions.id, session.id));
-    return { id: selectionId, selectionNumber, sessionToken: effectiveToken };
+    await tx.update(tableSessions).set({ lastActivityAt: now }).where(eq(tableSessions.id, session.id));
+    return { id: selectionId, selectionNumber, sessionToken: effectiveToken, mergedIntoOpenOrder: false };
   });
 }
 

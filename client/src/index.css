@@ -85,6 +85,16 @@
   .history-bar { position: fixed; bottom: max(12px, env(safe-area-inset-bottom)); left: 50%; z-index: 59; display: flex; width: min(calc(100% - 32px), 520px); transform: translateX(-50%); align-items: center; justify-content: space-between; gap: 16px; border: 2px solid #E3A38E; background: #C85A3F; padding: 14px 17px; color: #fffaf2; box-shadow: 0 14px 35px rgb(24 58 50 / 24%); font: 700 13px var(--font-sans); }
   .history-bar strong { color: #fffaf2; }
   .history-entry { border-top: 1px solid rgb(24 58 50 / 14%); padding-top: 15px; }
+  .order-receipt-list { display: grid; gap: 14px; margin-top: 20px; }
+  .order-receipt-card { border: 1px solid rgb(24 58 50 / 14%); background: rgb(255 255 255 / 42%); padding: 10px; }
+  .order-receipt-card-active { border-color: #C85A3F; box-shadow: 0 8px 20px rgb(200 90 63 / 10%); }
+  .order-receipt-heading { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; text-align: left; }
+  .order-receipt-heading span { display: grid; gap: 3px; }
+  .order-receipt-heading strong { color: #183A32; font: 700 12px var(--font-sans); }
+  .order-receipt-heading small { color: rgb(24 58 50 / 58%); font: 11px var(--font-sans); }
+  .order-receipt-heading b { color: #C85A3F; font: 700 9px var(--font-sans); letter-spacing: .08em; }
+  .theme-dark .order-receipt-card { background: rgb(27 33 30 / 80%); border-color: rgb(244 238 228 / 15%); }
+  .theme-dark .order-receipt-heading strong, .theme-dark .order-receipt-heading small { color: #F4EEE4; }
   .history-entry-title, .history-line, .history-subtotal { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font: 12px/1.5 var(--font-sans); }
   .history-entry-title { color: #C85A3F; font-weight: 700; }
   .history-entry-title span { color: rgb(24 58 50 / 55%); font-weight: 500; }

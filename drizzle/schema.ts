@@ -50,6 +50,9 @@ export const tableSelections = mysqlTable("table_selections", {
   status: mysqlEnum("status", ["PENDING", "PREPARING", "READY", "DELIVERED", "COMPLETED"]).default("PENDING").notNull(),
   notes: text("notes"),
   viewedAt: timestamp("viewedAt"),
+  sentAt: timestamp("sentAt"),
+  receivedAt: timestamp("receivedAt"),
+  finalizedAt: timestamp("finalizedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   sessionNumberUnique: uniqueIndex("table_selections_session_number_idx").on(table.sessionId, table.selectionNumber),

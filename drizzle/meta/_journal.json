@@ -71,6 +71,13 @@
       "when": 1787208394521,
       "tag": "0009_even_cloak",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1787230922422,
+      "tag": "0010_giant_excalibur",
+      "breakpoints": true
     }
   ]
 }
