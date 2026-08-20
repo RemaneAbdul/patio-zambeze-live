@@ -1,4 +1,3 @@
-import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 
 export type ReceiptPdfState = "idle" | "preparing" | "sharing" | "error";
@@ -7,38 +6,41 @@ function getReceiptWidthMm(element: HTMLElement) {
   return element.classList.contains("receipt-80mm") ? 80 : 58;
 }
 
+function getReceiptText(element: HTMLElement) {
+  const rawText = (element.innerText || element.textContent || "").replace(/\u00a0/g, " ");
+  return rawText
+    .split(/\r?\n/)
+    .map((line) => line.replace(/[ \t]+/g, " ").trim())
+    .filter(Boolean);
+}
+
 async function renderReceiptPdf(selector: string) {
   const source = document.querySelector(selector) as HTMLElement | null;
-  if (!source || !source.textContent?.replace(/\s+/g, " ").trim()) throw new Error("RECEIPT_EMPTY");
+  if (!source) throw new Error("RECEIPT_NOT_FOUND");
+
+  const lines = getReceiptText(source);
+  if (!lines.length || !lines.join(" ").includes("PÁTIO ZAMBEZE")) throw new Error("RECEIPT_EMPTY");
 
   const widthMm = getReceiptWidthMm(source);
-  const wrapper = document.createElement("div");
-  wrapper.setAttribute("data-receipt-pdf-source", "true");
-  wrapper.style.cssText = `position:absolute;left:-100000px;top:0;width:${widthMm}mm;background:#fff;color:#000;z-index:9999;pointer-events:none;overflow:visible;`;
-  const clone = source.cloneNode(true) as HTMLElement;
-  clone.classList.add("receipt-pdf-render");
-  clone.style.cssText = `display:block!important;visibility:visible!important;opacity:1!important;position:relative!important;width:${widthMm}mm!important;max-width:${widthMm}mm!important;min-height:1px!important;height:auto!important;margin:0!important;padding:3mm!important;background:#fff!important;color:#000!important;overflow:visible!important;font-family:ui-monospace,SFMono-Regular,Menlo,monospace!important;`;
-  wrapper.appendChild(clone);
-  document.body.appendChild(wrapper);
+  const margin = 4;
+  const contentWidth = widthMm - margin * 2;
+  const fontSize = widthMm === 58 ? 8.2 : 9;
+  const lineHeight = widthMm === 58 ? 3.9 : 4.2;
+  const pdfLines: string[] = [];
 
-  try {
-    if (document.fonts?.ready) await document.fonts.ready;
-    await Promise.all(Array.from(clone.querySelectorAll("img")).map((image) => image.complete ? Promise.resolve() : new Promise<void>((resolve) => { image.addEventListener("load", () => resolve(), { once: true }); image.addEventListener("error", () => resolve(), { once: true }); })));
-    await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
-    const bounds = clone.getBoundingClientRect();
-    const renderWidth = Math.ceil(Math.max(clone.scrollWidth, bounds.width));
-    const renderHeight = Math.ceil(Math.max(clone.scrollHeight, bounds.height));
-    if (!renderWidth || !renderHeight) throw new Error("RECEIPT_EMPTY");
-    const canvas = await html2canvas(clone, { backgroundColor: "#ffffff", scale: 2, useCORS: true, allowTaint: false, logging: false, width: renderWidth, height: renderHeight, windowWidth: renderWidth, windowHeight: renderHeight });
-    if (!canvas.width || !canvas.height) throw new Error("RECEIPT_EMPTY");
-    const contentWidth = widthMm - 6;
-    const contentHeight = (canvas.height / canvas.width) * contentWidth;
-    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: [widthMm, contentHeight + 6], compress: true });
-    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 3, 3, contentWidth, contentHeight, undefined, "FAST");
-    return pdf.output("blob");
-  } finally {
-    wrapper.remove();
+  for (const line of lines) {
+    const wrapped = new jsPDF({ unit: "mm" }).splitTextToSize(line, contentWidth);
+    pdfLines.push(...(wrapped.length ? wrapped : [" "]));
   }
+
+  const heightMm = Math.max(42, margin * 2 + pdfLines.length * lineHeight + 2);
+  const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: [widthMm, heightMm], compress: true });
+  pdf.setFont("courier", "normal");
+  pdf.setFontSize(fontSize);
+  pdf.setTextColor(0, 0, 0);
+  pdf.text(pdfLines, margin, margin + lineHeight, { baseline: "top", maxWidth: contentWidth });
+
+  return pdf.output("blob");
 }
 
 export async function downloadReceiptPdf(selector: string, filename = "RECIBO.pdf") {
@@ -47,7 +49,10 @@ export async function downloadReceiptPdf(selector: string, filename = "RECIBO.pd
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = filename;
+  anchor.rel = "noopener";
+  document.body.appendChild(anchor);
   anchor.click();
+  anchor.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
@@ -58,5 +63,18 @@ export async function shareReceiptPdf(selector: string, filename = "RECIBO.pdf")
     await navigator.share({ files: [file], title: filename });
     return;
   }
-  await downloadReceiptPdf(selector, filename);
+
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.rel = "noopener";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export function receiptPdfTextForTesting(element: { innerText?: string; textContent?: string | null }) {
+  return (element.innerText || element.textContent || "").replace(/\u00a0/g, " ").split(/\r?\n/).map((line) => line.replace(/[ \t]+/g, " ").trim()).filter(Boolean);
 }

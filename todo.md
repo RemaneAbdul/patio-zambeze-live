@@ -569,3 +569,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Corrigir a renderização exclusiva do recibo e o download/partilha.
 - [x] Validar PDF em desktop e mobile sem alterar dados.
 - [x] Publicar checkpoint da correcção.
+
+## Correcção exclusiva do recibo do cliente
+
+- [x] Auditar geração PDF, impressão, dados carregados e referências HTML.
+- [x] Corrigir PDF e impressão usando apenas o recibo real, sem alterar o menu ou pedidos.
+- [x] Validar conteúdo, ausência de páginas brancas, desktop, Android, iPhone e térmica.
+- [x] Publicar checkpoint da correcção.
