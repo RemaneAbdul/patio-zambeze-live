@@ -189,15 +189,19 @@ export async function getStaffTables() {
   for (const tableNumber of tableNumbers) {
     const session = sessions.find((candidate) => candidate.tableNumber === tableNumber);
     if (!session) {
-      result.push({ id: -Number(tableNumber), sessionToken: "", tableNumber, status: "open" as const, selectionCount: 0, unviewedCount: 0, statusLabel: "empty" as const, total: 0, latestSelectionAt: null });
+      result.push({ id: -Number(tableNumber), sessionToken: "", tableNumber, status: "open" as const, attendingWaiter: null, attendingWaiterId: null, attendingSince: null, selectionCount: 0, unviewedCount: 0, statusLabel: "empty" as const, total: 0, latestSelectionAt: null });
       continue;
     }
     const selections = await db.select().from(tableSelections)
       .where(eq(tableSelections.sessionId, session.id))
       .orderBy(desc(tableSelections.createdAt));
     const unviewed = selections.filter((selection) => !selection.viewedAt).length;
+    const attendingWaiter = session.attendingWaiterId
+      ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode }).from(users).where(eq(users.id, session.attendingWaiterId)).limit(1)
+      : [];
     result.push({
       ...session,
+      attendingWaiter: attendingWaiter[0] ?? null,
       selectionCount: selections.length,
       unviewedCount: unviewed,
       statusLabel: unviewed > 0 ? "new" as const : selections.length > 0 ? "viewed" as const : "empty" as const,
@@ -208,37 +212,58 @@ export async function getStaffTables() {
   return result;
 }
 
-export async function markTableViewedByStaff(sessionToken: string, waiterId: number) {
+export async function assumeTableSession(sessionToken: string, waiterId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const session = await db.select({ id: tableSessions.id }).from(tableSessions)
-    .where(and(eq(tableSessions.sessionToken, sessionToken), eq(tableSessions.status, "open")))
-    .limit(1);
-  if (!session[0]) return null;
+  const now = new Date();
+  const updated = await db.update(tableSessions).set({ attendingWaiterId: waiterId, attendingSince: now, lastActivityAt: now })
+    .where(and(eq(tableSessions.sessionToken, sessionToken), eq(tableSessions.status, "open"), isNull(tableSessions.attendingWaiterId)));
+  if (Number(updated[0]?.affectedRows ?? 0) === 0) {
+    const current = await db.select({ attendingWaiterId: tableSessions.attendingWaiterId }).from(tableSessions).where(eq(tableSessions.sessionToken, sessionToken)).limit(1);
+    if (current[0]?.attendingWaiterId && current[0].attendingWaiterId !== waiterId) throw new Error("TABLE_ALREADY_ASSIGNED");
+    throw new Error("TABLE_NOT_AVAILABLE");
+  }
+  return getTableHistoryForStaff(sessionToken, waiterId, false);
+}
+
+async function assertTableAccess(db: NonNullable<Awaited<ReturnType<typeof getDb>>>, sessionToken: string, waiterId: number, isAdmin = false) {
+  const rows = await db.select().from(tableSessions).where(and(eq(tableSessions.sessionToken, sessionToken), eq(tableSessions.status, "open"))).limit(1);
+  if (!rows[0]) throw new Error("TABLE_NOT_FOUND");
+  const session = rows[0];
+  const canOperate = isAdmin || session.attendingWaiterId === waiterId;
+  if (!canOperate) throw new Error(session.attendingWaiterId ? "TABLE_ALREADY_ASSIGNED" : "TABLE_NOT_ASSIGNED");
+  return session;
+}
+
+export async function markTableViewedByStaff(sessionToken: string, waiterId: number, isAdmin = true) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const session = await assertTableAccess(db, sessionToken, waiterId, isAdmin);
   const viewedAt = new Date();
-  await db.update(tableSessions).set({ waiterId, viewedAt, lastActivityAt: viewedAt })
-    .where(eq(tableSessions.id, session[0].id));
+  await db.update(tableSessions).set({ waiterId, viewedAt, lastActivityAt: viewedAt }).where(eq(tableSessions.id, session.id));
   await db.update(tableSelections).set({ viewedAt })
-    .where(and(eq(tableSelections.sessionId, session[0].id), isNull(tableSelections.viewedAt)));
+    .where(and(eq(tableSelections.sessionId, session.id), isNull(tableSelections.viewedAt)));
   return { success: true, waiterId, viewedAt } as const;
 }
 
-export async function setTableSelectionStatus(selectionId: number, status: "PENDING" | "PREPARING" | "READY" | "DELIVERED" | "COMPLETED") {
+export async function closeTableSessionByStaff(sessionToken: string, waiterId = 0, isAdmin = true) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const updated = await db.update(tableSelections).set({ status }).where(eq(tableSelections.id, selectionId));
-  return { success: Number(updated[0]?.affectedRows ?? 0) > 0, selectionId, status } as const;
-}
-
-export async function closeTableSessionByStaff(sessionToken: string) {
-  const db = await getDb();
-  if (!db) throw new Error("Database is not available");
-  const updated = await db.update(tableSessions).set({ status: "closed", closedAt: new Date() })
-    .where(and(eq(tableSessions.sessionToken, sessionToken), eq(tableSessions.status, "open")));
+  const session = await assertTableAccess(db, sessionToken, waiterId, isAdmin);
+  const updated = await db.update(tableSessions).set({ status: "closed", closedAt: new Date(), attendingWaiterId: null, attendingSince: null })
+    .where(and(eq(tableSessions.id, session.id), eq(tableSessions.status, "open")));
   return { success: Number(updated[0]?.affectedRows ?? 0) > 0 } as const;
 }
 
-export async function getTableHistoryForStaff(sessionToken: string, assignWaiterId?: number) {
+export async function releaseTableSessionByStaff(sessionToken: string, waiterId: number, isAdmin = false) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const session = await assertTableAccess(db, sessionToken, waiterId, isAdmin);
+  await db.update(tableSessions).set({ attendingWaiterId: null, attendingSince: null, lastActivityAt: new Date() }).where(eq(tableSessions.id, session.id));
+  return { success: true } as const;
+}
+
+export async function getTableHistoryForStaff(sessionToken: string, waiterId?: number, isAdmin = false) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
 
@@ -246,11 +271,13 @@ export async function getTableHistoryForStaff(sessionToken: string, assignWaiter
     .where(eq(tableSessions.sessionToken, sessionToken))
     .limit(1);
   if (!session[0]) return null;
-  if (assignWaiterId && session[0].status === "open" && session[0].waiterId !== assignWaiterId) {
-    await db.update(tableSessions).set({ waiterId: assignWaiterId }).where(eq(tableSessions.id, session[0].id));
-    session[0].waiterId = assignWaiterId;
+  if (isAdmin && waiterId && !session[0].waiterId) {
+    await db.update(tableSessions).set({ waiterId }).where(eq(tableSessions.id, session[0].id));
+    session[0].waiterId = waiterId;
   }
+  const attendingWaiter = session[0].attendingWaiterId ? await db.select({ id: users.id, name: users.name, email: users.email, waiterCode: users.waiterCode, waiterActive: users.waiterActive }).from(users).where(eq(users.id, session[0].attendingWaiterId)).limit(1) : [];
   const waiter = session[0].waiterId ? await db.select({ id: users.id, name: users.name, email: users.email, waiterCode: users.waiterCode, waiterActive: users.waiterActive }).from(users).where(eq(users.id, session[0].waiterId)).limit(1) : [];
+  const canOperate = isAdmin || (waiterId !== undefined && session[0].attendingWaiterId === waiterId);
 
   const selections = await db.select().from(tableSelections)
     .where(eq(tableSelections.sessionId, session[0].id))
@@ -263,6 +290,8 @@ export async function getTableHistoryForStaff(sessionToken: string, assignWaiter
   return {
     session: session[0],
     waiter: waiter[0] ?? null,
+    attendingWaiter: attendingWaiter[0] ?? null,
+    canOperate,
     selections: selections.map((selection) => ({
       ...selection,
       subtotal: Number(selection.subtotal),
@@ -312,12 +341,14 @@ export async function listViewedReceipts() {
   return result;
 }
 
-export async function assignWaiterToSession(sessionToken: string, waiterId: number) {
+export async function setTableSelectionStatus(selectionId: number, status: "PENDING" | "PREPARING" | "READY" | "DELIVERED" | "COMPLETED", waiterId: number, isAdmin = false) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  await db.update(tableSessions).set({ waiterId, lastActivityAt: new Date() })
-    .where(and(eq(tableSessions.sessionToken, sessionToken), eq(tableSessions.status, "open")));
-  return getTableHistoryForStaff(sessionToken, waiterId);
+  const rows = await db.select({ sessionToken: tableSessions.sessionToken }).from(tableSelections).innerJoin(tableSessions, eq(tableSelections.sessionId, tableSessions.id)).where(eq(tableSelections.id, selectionId)).limit(1);
+  if (!rows[0]) throw new Error("SELECTION_NOT_FOUND");
+  await assertTableAccess(db, rows[0].sessionToken, waiterId, isAdmin);
+  const updated = await db.update(tableSelections).set({ status }).where(eq(tableSelections.id, selectionId));
+  return { success: Number(updated[0]?.affectedRows ?? 0) > 0, selectionId, status } as const;
 }
 
 export async function createTableSelection(input: {

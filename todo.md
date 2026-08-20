@@ -576,3 +576,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Corrigir PDF e impressão usando apenas o recibo real, sem alterar o menu ou pedidos.
 - [x] Validar conteúdo, ausência de páginas brancas, desktop, Android, iPhone e térmica.
 - [x] Publicar checkpoint da correcção.
+
+## Alterações descritas no pasted_content_11.txt
+
+- [x] Ler e decompor os requisitos do ficheiro.
+- [x] Implementar as alterações preservando as funcionalidades existentes.
+- [x] Testar alterações, regressões, build e mobile.
+- [x] Publicar checkpoint da implementação.

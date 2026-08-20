@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { appRouter } from "./routers";
-import { closeTableSessionByStaff, createTableSelection, ensureTableSession, getDb, getStaffTables, getTableHistory, getTableHistoryForStaff, listTableQrCodes, markTableViewedByStaff, upsertTableQrCode } from "./db";
+import { assumeTableSession, closeTableSessionByStaff, createTableSelection, ensureTableSession, getDb, getStaffTables, getTableHistory, getTableHistoryForStaff, listTableQrCodes, markTableViewedByStaff, upsertTableQrCode } from "./db";
 import { tableQrCodes, tableSelectionItems, tableSelections, tableSessions } from "../drizzle/schema";
 import type { TrpcContext } from "./_core/context";
 
@@ -103,6 +103,9 @@ integration("tableHistory persistence", () => {
       expect(historyB).toHaveLength(0);
       expect(typeof historyA[0]?.createdAt).toBe("object");
       expect(staffResult?.session.sessionToken).toBe(tokenA);
+      const concurrentClaims = await Promise.allSettled([assumeTableSession(tokenA, 1), assumeTableSession(tokenA, 2)]);
+      expect(concurrentClaims.filter((claim) => claim.status === "fulfilled")).toHaveLength(1);
+      expect(concurrentClaims.filter((claim) => claim.status === "rejected").map((claim) => claim.reason?.message)).toContain("TABLE_ALREADY_ASSIGNED");
       expect(staffResult?.session.waiterId).toBe(1);
       expect(staffResult?.selections[0]?.items[0]).toEqual(expect.objectContaining({ productName: "Frango Grelhado", quantity: 2, unitPrice: 300, subtotal: 600 }));
       const beforeViewed = await getStaffTables();

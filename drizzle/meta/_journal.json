@@ -64,6 +64,13 @@
       "when": 1787064603436,
       "tag": "0008_curious_bloodaxe",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1787208394521,
+      "tag": "0009_even_cloak",
+      "breakpoints": true
     }
   ]
 }

@@ -38,7 +38,9 @@ export const tableSessions = mysqlTable("table_sessions", {
   closedAt: timestamp("closedAt"),
   waiterId: int("waiterId"),
   viewedAt: timestamp("viewedAt"),
-}, (table) => ({ statusIdx: index("table_sessions_status_idx").on(table.status), tableNumberIdx: index("table_sessions_table_number_idx").on(table.tableNumber) }));
+  attendingWaiterId: int("attendingWaiterId"),
+  attendingSince: timestamp("attendingSince"),
+}, (table) => ({ statusIdx: index("table_sessions_status_idx").on(table.status), tableNumberIdx: index("table_sessions_table_number_idx").on(table.tableNumber), attendingWaiterIdx: index("table_sessions_attending_waiter_idx").on(table.attendingWaiterId) }));
 
 export const tableSelections = mysqlTable("table_selections", {
   id: int("id").autoincrement().primaryKey(),
