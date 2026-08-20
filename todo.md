@@ -643,3 +643,14 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Criar testes de permissão e garantir que o QR Code permanece único por mesa.
 - [x] Validar testes, TypeScript, build e painel responsivo.
 - [x] Publicar checkpoint da correcção.
+
+## Visibilidade dos botões no Dashboard de Pratos — pasted_content_15.txt
+
+- [x] Localizar acções de editar, remover, activar/desactivar, adicionar e upload de imagem.
+- [x] Remover dependências de hover, opacity, invisible ou text-transparent que escondam acções.
+- [x] Garantir contraste, foco visível e área de toque mínima nos controlos.
+- [x] Mostrar texto e ícones acessíveis para editar, remover, status, câmara e galeria.
+- [x] Preservar confirmação de remoção e toda a lógica existente de CRUD/upload.
+- [x] Criar ou actualizar testes de visibilidade/acessibilidade sem alterar a lógica funcional.
+- [x] Validar desktop, mobile, TypeScript, build e painel responsivo.
+- [x] Publicar checkpoint da correcção.
