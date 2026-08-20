@@ -5,7 +5,7 @@ import { adminProcedure, publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import { storagePut } from "./storage";
-import { assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, createMenuProduct, createTableSelection, getStaffTables, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, listMenuCategories, listMenuProducts, listTableQrCodes, listViewedReceipts, markTableViewedByStaff, setMenuProductStatus, updateMenuProduct, upsertTableQrCode } from "./db";
+import { assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, createMenuProduct, createTableSelection, getStaffTables, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, listMenuCategories, listMenuProducts, listTableQrCodes, listViewedReceipts, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode } from "./db";
 
 const allowedMenuImageUrl = /^(https?:\/\/|\/|data:image\/(jpeg|jpg|png|webp|avif);base64,)/;
 export const menuImageUrlSchema = z.string().max(8_000_000).refine((value) => allowedMenuImageUrl.test(value), "Formato de imagem inválido").optional();
@@ -59,6 +59,7 @@ export const appRouter = router({
     releaseTable: adminProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => releaseTableSessionByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
     closeSession: adminProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => closeTableSessionByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
     updateSelectionStatus: adminProcedure.input(z.object({ selectionId: z.number().int().positive(), status: selectionStatusSchema })).mutation(({ input, ctx }) => setTableSelectionStatus(input.selectionId, input.status, ctx.user.id, ctx.user.role === "admin")),
+    removeSelectionItem: adminProcedure.input(z.object({ itemId: z.number().int().positive() })).mutation(({ input, ctx }) => removeTableSelectionItem(input.itemId, ctx.user.id, ctx.user.role === "admin")),
     staffLookup: adminProcedure
       .input(z.object({ sessionToken: z.string().min(32).max(128) }))
       .query(({ input, ctx }) => getTableHistoryForStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),

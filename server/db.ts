@@ -353,6 +353,34 @@ export async function setTableSelectionStatus(selectionId: number, status: "PEND
   return { success: Number(updated[0]?.affectedRows ?? 0) > 0, selectionId, status } as const;
 }
 
+export async function removeTableSelectionItem(itemId: number, waiterId: number, isAdmin = false) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  return db.transaction(async (tx) => {
+    const rows = await tx.select({ selection: tableSelections, session: tableSessions, item: tableSelectionItems })
+      .from(tableSelectionItems)
+      .innerJoin(tableSelections, eq(tableSelectionItems.selectionId, tableSelections.id))
+      .innerJoin(tableSessions, eq(tableSelections.sessionId, tableSessions.id))
+      .where(eq(tableSelectionItems.id, itemId))
+      .limit(1);
+    if (!rows[0]) throw new Error("ITEM_NOT_FOUND");
+    const { selection, session } = rows[0];
+    if (selection.viewedAt) throw new Error("SELECTION_ALREADY_VIEWED");
+    const canOperate = isAdmin || session.attendingWaiterId === waiterId;
+    if (!canOperate) throw new Error(session.attendingWaiterId ? "TABLE_ALREADY_ASSIGNED" : "TABLE_NOT_ASSIGNED");
+    const deleted = await tx.delete(tableSelectionItems).where(and(eq(tableSelectionItems.id, itemId), eq(tableSelectionItems.selectionId, selection.id)));
+    if (Number(deleted[0]?.affectedRows ?? 0) === 0) throw new Error("ITEM_NOT_FOUND");
+    const remaining = await tx.select({ quantity: tableSelectionItems.quantity, unitPrice: tableSelectionItems.unitPrice })
+      .from(tableSelectionItems)
+      .where(eq(tableSelectionItems.selectionId, selection.id));
+    if (!remaining.length) throw new Error("SELECTION_CANNOT_BE_EMPTY");
+    const subtotal = remaining.reduce((sum, item) => sum + Number(item.unitPrice) * item.quantity, 0);
+    await tx.update(tableSelections).set({ subtotal: subtotal.toFixed(2) }).where(and(eq(tableSelections.id, selection.id), isNull(tableSelections.viewedAt)));
+    await tx.update(tableSessions).set({ lastActivityAt: new Date() }).where(eq(tableSessions.id, session.id));
+    return { success: true, itemId, selectionId: selection.id, subtotal } as const;
+  });
+}
+
 export async function createTableSelection(input: {
   sessionToken: string;
   tableNumber?: string;

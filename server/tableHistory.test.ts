@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { appRouter } from "./routers";
-import { assumeTableSession, closeTableSessionByStaff, createTableSelection, ensureTableSession, getDb, getStaffTables, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, listTableQrCodes, markTableViewedByStaff, upsertTableQrCode } from "./db";
+import { assumeTableSession, closeTableSessionByStaff, createTableSelection, ensureTableSession, getDb, getStaffTables, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, listTableQrCodes, markTableViewedByStaff, removeTableSelectionItem, upsertTableQrCode } from "./db";
 import { tableQrCodes, tableSelectionItems, tableSelections, tableSessions } from "../drizzle/schema";
 import type { TrpcContext } from "./_core/context";
 
@@ -144,6 +144,33 @@ integration("tableHistory persistence", () => {
         for (const selection of selections) await db.delete(tableSelectionItems).where(eq(tableSelectionItems.selectionId, selection.id));
         await db.delete(tableSelections).where(eq(tableSelections.sessionId, sessionId));
         await db.delete(tableSessions).where(eq(tableSessions.id, sessionId));
+      }
+    }
+  });
+
+  it("removes an open item, recalculates subtotal and blocks removal after viewed", async () => {
+    const token = `vitest-remove-${crypto.randomUUID()}${crypto.randomUUID()}`;
+    const db = await getDb();
+    if (!db) throw new Error("DATABASE_URL is required for this integration test");
+    try {
+      const created = await createTableSelection({ sessionToken: token, tableNumber: "06", subtotal: 450, items: [{ productName: "Frango", quantity: 1, unitPrice: 300 }, { productName: "Batata", quantity: 1, unitPrice: 150 }] });
+      await assumeTableSession(token, 1);
+      const staff = await getTableHistoryForStaff(token, 1, true);
+      const itemToRemove = staff?.selections.find((selection) => selection.id === created.id)?.items.find((item) => item.productName === "Batata");
+      expect(itemToRemove).toBeDefined();
+      await expect(removeTableSelectionItem(itemToRemove!.id, 1, true)).resolves.toMatchObject({ success: true, subtotal: 300 });
+      const afterRemoval = await getTableHistoryForStaff(token, 1, true);
+      expect(afterRemoval?.selections[0]?.subtotal).toBe(300);
+      expect(afterRemoval?.selections[0]?.items).toHaveLength(1);
+      await markTableViewedByStaff(token, 1, true);
+      await expect(removeTableSelectionItem(afterRemoval!.selections[0]!.items[0]!.id, 1, true)).rejects.toThrow("SELECTION_ALREADY_VIEWED");
+    } finally {
+      const session = await db.select({ id: tableSessions.id }).from(tableSessions).where(eq(tableSessions.sessionToken, token)).limit(1);
+      if (session[0]) {
+        const selections = await db.select({ id: tableSelections.id }).from(tableSelections).where(eq(tableSelections.sessionId, session[0].id));
+        for (const selection of selections) await db.delete(tableSelectionItems).where(eq(tableSelectionItems.selectionId, selection.id));
+        await db.delete(tableSelections).where(eq(tableSelections.sessionId, session[0].id));
+        await db.delete(tableSessions).where(eq(tableSessions.id, session[0].id));
       }
     }
   });

@@ -604,3 +604,14 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Criar testes de separação, imutabilidade e auditoria.
 - [x] Validar testes, build e experiência responsiva.
 - [x] Publicar checkpoint da implementação.
+
+## Remoção de itens pelo garçom antes de “Marcar como visto” — pasted_content_14.txt
+
+- [x] Permitir remover itens apenas de pedidos abertos e ainda não vistos.
+- [x] Validar no backend a mesa, o garçom, o pedido e o item antes da remoção.
+- [x] Recalcular quantidade, subtotal e total depois da remoção.
+- [x] Sincronizar automaticamente o recibo do cliente e o painel do garçom.
+- [x] Rejeitar remoções em pedidos vistos/fechados sem alterar recibos antigos.
+- [x] Criar testes de autorização, remoção, recálculo e bloqueio após visto.
+- [x] Validar testes, build e experiência responsiva.
+- [x] Publicar checkpoint da implementação.
