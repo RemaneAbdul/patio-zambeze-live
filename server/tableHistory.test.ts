@@ -41,9 +41,10 @@ describe("tableHistory validation", () => {
     await expect(caller.tableHistory.staffLookup({ sessionToken: "a".repeat(64) })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
-  it("rejects QR code management for a regular authenticated user", async () => {
-    const caller = appRouter.createCaller({ ...ctx, user: { id: 42, openId: "regular-user", email: "regular@example.com", name: "Regular User", loginMethod: "manus", role: "user", createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() } });
+  it("rejects QR code management for a waiter", async () => {
+    const caller = appRouter.createCaller({ ...ctx, user: { id: 42, openId: "waiter-user", email: "waiter@example.com", name: "Waiter User", loginMethod: "manus", role: "user", waiterCode: "GAR-TEST", waiterActive: 1, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() } });
     await expect(caller.tableHistory.qrCodes()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.tableHistory.generateQrCode({ tableNumber: "04" })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
   it("rejects a session token that is too short", async () => {
@@ -178,7 +179,7 @@ integration("tableHistory persistence", () => {
 
 
 (process.env.DATABASE_URL ? describe : describe.skip)("qr code persistence", () => {
-  it("creates and regenerates one QR code per table without limits", async () => {
+  it("creates one permanent QR code per table without replacing its token", async () => {
     const db = await getDb();
     if (!db) return;
     const tableNumber = `TEST-${crypto.randomUUID().slice(0, 20)}`;
@@ -186,7 +187,7 @@ integration("tableHistory persistence", () => {
       const first = await upsertTableQrCode(tableNumber);
       const second = await upsertTableQrCode(tableNumber);
       expect(first.id).toBe(second.id);
-      expect(second.qrToken).not.toBe(first.qrToken);
+      expect(second.qrToken).toBe(first.qrToken);
       expect((await listTableQrCodes()).some((code) => code.tableNumber === tableNumber)).toBe(true);
       const sessionToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
       const sessionInfo = await getTableSessionInfo(sessionToken, "01", second.qrToken);

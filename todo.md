@@ -633,3 +633,13 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Validar que o administrador pode recriar mesas reais e gerar QR Code único por mesa.
 - [x] Validar integridade do menu, histórico, painel e identificação automática por QR Code.
 - [x] Documentar a limpeza e criar checkpoint da operação.
+
+## QR Code permanente — remover regeneração do painel do garçom
+
+- [x] Localizar todos os botões, labels e mutations de gerar/regenerar/alterar QR Code.
+- [x] Remover a ação de regeneração da interface do painel do garçom.
+- [x] Restringir o backend para que somente administradores possam gerir QR Codes, sem alterar a permanência dos QR Codes existentes.
+- [x] Preservar visualização de mesas, atendimento, pedidos, recibos, impressão e PDF.
+- [x] Criar testes de permissão e garantir que o QR Code permanece único por mesa.
+- [x] Validar testes, TypeScript, build e painel responsivo.
+- [x] Publicar checkpoint da correcção.

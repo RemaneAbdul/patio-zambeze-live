@@ -171,8 +171,10 @@ export async function upsertTableQrCode(tableNumber: string) {
   if (!db) throw new Error("Database is not available");
   const normalized = tableNumber.trim();
   if (!normalized) throw new Error("Table number is required");
+  const existing = await db.select().from(tableQrCodes).where(eq(tableQrCodes.tableNumber, normalized)).limit(1);
+  if (existing[0]) return existing[0];
   const qrToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
-  await db.insert(tableQrCodes).values({ tableNumber: normalized, qrToken }).onDuplicateKeyUpdate({ set: { qrToken, updatedAt: new Date() } });
+  await db.insert(tableQrCodes).values({ tableNumber: normalized, qrToken }).onDuplicateKeyUpdate({ set: { updatedAt: new Date() } });
   const rows = await db.select().from(tableQrCodes).where(eq(tableQrCodes.tableNumber, normalized)).limit(1);
   if (!rows[0]) throw new Error("Could not create QR code");
   return rows[0];
