@@ -186,7 +186,7 @@ export async function getStaffTables() {
     .where(eq(tableSessions.status, "open"))
     .orderBy(tableSessions.tableNumber, desc(tableSessions.lastActivityAt));
   const qrTables = await db.select({ tableNumber: tableQrCodes.tableNumber }).from(tableQrCodes).orderBy(tableQrCodes.tableNumber);
-  const tableNumbers = Array.from(new Set([...Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, "0")), ...qrTables.map((table) => table.tableNumber), ...sessions.map((session) => session.tableNumber)])).sort((a, b) => a.localeCompare(b, "pt", { numeric: true }));
+  const tableNumbers = Array.from(new Set([...qrTables.map((table) => table.tableNumber), ...sessions.map((session) => session.tableNumber)])).sort((a, b) => a.localeCompare(b, "pt", { numeric: true }));
   const result = [];
   for (const tableNumber of tableNumbers) {
     const session = sessions.find((candidate) => candidate.tableNumber === tableNumber);

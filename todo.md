@@ -623,3 +623,13 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar teste/regressão para o estado sem mesa seleccionada.
 - [x] Validar testes, TypeScript, build e painel mobile.
 - [x] Publicar checkpoint da correcção.
+
+## Limpeza controlada das Mesas 1–12 e recriação real
+
+- [x] Rever as instruções de persistência e identificar exactamente as tabelas de mesas/QR/sessões.
+- [x] Inspeccionar os registos das Mesas 1–12 e confirmar que são dados de teste antes de apagar.
+- [x] Remover somente QR Codes e registos de mesa de teste, preservando usuários, garçons, pratos, configurações e dados reais.
+- [x] Garantir que não existem dois QR Codes activos para a mesma mesa.
+- [x] Validar que o administrador pode recriar mesas reais e gerar QR Code único por mesa.
+- [x] Validar integridade do menu, histórico, painel e identificação automática por QR Code.
+- [x] Documentar a limpeza e criar checkpoint da operação.
