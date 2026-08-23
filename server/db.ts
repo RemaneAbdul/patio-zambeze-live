@@ -1,9 +1,10 @@
 
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { InsertUser, users, auditLogs } from "../drizzle/schema";
+import { InsertUser, users, auditLogs, garcons } from "../drizzle/schema";
 import * as schema from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { createSupabaseWaiter, deleteSupabaseWaiter, disableSupabaseWaiter, enableSupabaseWaiter, updateSupabaseWaiter } from './supabaseAuth';
 
 let _db: NodePgDatabase<typeof schema> | null = null;
 let _pool: Pool | null = null;
@@ -94,20 +95,177 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
 }
 
-export async function recordAuditLog(input: { userId?: number | null; role: string; action: string; entityType?: string; entityId?: string | number; metadata?: Record<string, unknown> }) {
+export async function recordAuditLog(input: { userId?: number | null; restaurantId?: string | null; role: string; action: string; entityType?: string; entityId?: string | number; metadata?: Record<string, unknown> }) {
   const db = await getDb();
   if (!db) return;
   try {
-    await db.insert(auditLogs).values({ userId: input.userId ?? null, role: input.role, action: input.action, entityType: input.entityType, entityId: input.entityId == null ? undefined : String(input.entityId), metadata: input.metadata ? JSON.stringify(input.metadata) : undefined });
+    await db.insert(auditLogs).values({ userId: input.userId ?? null, restaurantId: input.restaurantId ?? "default", role: input.role, action: input.action, entityType: input.entityType, entityId: input.entityId == null ? undefined : String(input.entityId), metadata: input.metadata ? JSON.stringify(input.metadata) : undefined });
   } catch (error) {
     console.warn("[Audit] Could not persist audit event", error);
   }
+}
+
+export async function getGarconProfileByLegacyUserId(legacyUserId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const [profile] = await db.select({ id: garcons.id, authUserId: garcons.authUserId, legacyUserId: garcons.legacyUserId, restaurantId: garcons.restaurantId, role: garcons.role, status: garcons.status, fullName: garcons.fullName, email: garcons.email }).from(garcons).where(eq(garcons.legacyUserId, legacyUserId)).limit(1);
+  return profile ?? null;
+}
+
+export async function listGarcons() {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  return db.select({ garcon: garcons, user: { id: users.id, openId: users.openId, name: users.name, email: users.email, waiterCode: users.waiterCode, waiterActive: users.waiterActive, role: users.role } })
+    .from(garcons).innerJoin(users, eq(garcons.legacyUserId, users.id)).orderBy(garcons.fullName);
+}
+
+export async function createGarcon(input: { fullName: string; username: string; email: string; phone?: string; password: string; active: boolean; restaurantId?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const fullName = input.fullName.trim();
+  const username = input.username.trim().toLowerCase();
+  const email = input.email.trim().toLowerCase();
+  if (!fullName || !username || !email || !input.password) throw new Error("WAITER_REQUIRED_FIELDS");
+  if (input.password.length < 6) throw new Error("WAITER_PASSWORD_TOO_SHORT");
+  const authUser = await createSupabaseWaiter({ email, password: input.password, fullName, phone: input.phone });
+  let legacyUserId: number | undefined;
+  let createdGarconId: string | undefined;
+  try {
+    const openId = `supabase:${authUser.id}`;
+    const waiterCode = `GAR-${authUser.id.replace(/-/g, "").slice(-6).toUpperCase()}`;
+    const [legacyUser] = await db.insert(users).values({ openId, name: fullName, email, loginMethod: "supabase", role: "garcom", waiterCode, waiterActive: input.active ? 1 : 0 }).onConflictDoNothing({ target: users.openId }).returning();
+    if (!legacyUser) throw new Error("WAITER_EMAIL_OR_USER_ALREADY_EXISTS");
+    legacyUserId = legacyUser.id;
+    const [created] = await db.insert(garcons).values({ authUserId: authUser.id, legacyUserId: legacyUser.id, restaurantId: input.restaurantId ?? "default", fullName, username, email, phone: input.phone ?? null, status: input.active ? "ATIVO" : "INATIVO", disabledAt: input.active ? null : new Date() }).returning();
+    if (!created) throw new Error("WAITER_PROFILE_CREATE_FAILED");
+    createdGarconId = created.id;
+    if (!input.active) await disableSupabaseWaiter(authUser.id);
+    return { ...created, legacyUser };
+  } catch (error) {
+    try { if (createdGarconId) await db.delete(garcons).where(eq(garcons.id, createdGarconId)); } catch (cleanupError) { console.error("[Database] Failed to rollback waiter profile", cleanupError); }
+    try { if (legacyUserId) await db.delete(users).where(eq(users.id, legacyUserId)); } catch (cleanupError) { console.error("[Database] Failed to rollback legacy waiter", cleanupError); }
+    try { await deleteSupabaseWaiter(authUser.id); } catch (cleanupError) { console.error("[Auth] Failed to rollback orphan waiter", cleanupError); }
+    throw error;
+  }
+}
+
+export async function updateGarcon(input: { id: string; fullName: string; username: string; email: string; phone?: string; active: boolean; password?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const [current] = await db.select().from(garcons).where(eq(garcons.id, input.id)).limit(1);
+  if (!current) throw new Error("WAITER_NOT_FOUND");
+  await updateSupabaseWaiter({ authUserId: current.authUserId, email: input.email.trim().toLowerCase(), password: input.password, fullName: input.fullName.trim(), phone: input.phone });
+  if (input.active) await enableSupabaseWaiter(current.authUserId); else await disableSupabaseWaiter(current.authUserId);
+  const [updated] = await db.update(garcons).set({ fullName: input.fullName.trim(), username: input.username.trim().toLowerCase(), email: input.email.trim().toLowerCase(), phone: input.phone ?? null, status: input.active ? "ATIVO" : "INATIVO", disabledAt: input.active ? null : (current.disabledAt ?? new Date()), updatedAt: new Date() }).where(eq(garcons.id, input.id)).returning();
+  await db.update(users).set({ name: input.fullName.trim(), email: input.email.trim().toLowerCase(), waiterActive: input.active ? 1 : 0, updatedAt: new Date() }).where(eq(users.id, current.legacyUserId));
+  return updated;
+}
+
+export async function deleteGarcon(id: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const [current] = await db.select({ id: garcons.id, authUserId: garcons.authUserId, legacyUserId: garcons.legacyUserId, fullName: garcons.fullName, email: garcons.email, restaurantId: garcons.restaurantId }).from(garcons).where(eq(garcons.id, id)).limit(1);
+  if (!current) throw new Error("WAITER_NOT_FOUND");
+
+  // Remove login access first. If this fails, keep the local profile intact.
+  await deleteSupabaseWaiter(current.authUserId);
+  await db.transaction(async (tx) => {
+    // Keep users and historical foreign-key references; remove only waiter identity.
+    await tx.update(users).set({ role: "user", waiterCode: null, waiterActive: 0, updatedAt: new Date() }).where(eq(users.id, current.legacyUserId));
+    await tx.delete(garcons).where(eq(garcons.id, id));
+  });
+  return current;
+}
+
+export async function listWaiterCandidates() {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  return db.select({ id: users.id, name: users.name, email: users.email, role: users.role, openId: users.openId, waiterCode: users.waiterCode, waiterActive: users.waiterActive })
+    .from(users)
+    .where(and(eq(users.role, "user"), isNull(users.waiterCode)))
+    .orderBy(users.name);
+}
+
+export async function promoteUserToWaiter(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const [existing] = await db.select({ id: users.id, openId: users.openId, role: users.role, name: users.name, email: users.email }).from(users).where(eq(users.id, userId)).limit(1);
+  if (!existing) throw new Error("USER_NOT_FOUND");
+  if (existing.role === "admin") throw new Error("ADMIN_CANNOT_BE_WAITER");
+  const waiterCode = `GAR-${existing.openId.slice(-6).toUpperCase()}`;
+  const [updated] = await db.update(users).set({ role: "garcom", waiterCode, waiterActive: 1, updatedAt: new Date() }).where(eq(users.id, userId)).returning({ id: users.id, name: users.name, email: users.email, role: users.role, waiterCode: users.waiterCode, waiterActive: users.waiterActive });
+  if (!updated) throw new Error("WAITER_NOT_CREATED");
+  return updated;
 }
 
 export async function listWaiterUsers() {
   const db = await getDb();
   if (!db) return [];
   return db.select({ id: users.id, openId: users.openId, name: users.name, email: users.email, role: users.role, waiterCode: users.waiterCode, waiterActive: users.waiterActive, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).where(sql`(${users.waiterCode} is not null OR ${users.role} in ('waiter', 'garcom'))`).orderBy(users.name);
+}
+
+export async function listWaiterCurrentAssignments() {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const rows = await db.select({
+    session: tableSessions,
+    waiter: { id: users.id, name: users.name, email: users.email, waiterCode: users.waiterCode },
+  }).from(tableSessions)
+    .innerJoin(users, eq(tableSessions.attendingWaiterId, users.id))
+    .where(and(eq(tableSessions.status, "open"), sql`${tableSessions.attendingWaiterId} IS NOT NULL`))
+    .orderBy(users.name, tableSessions.tableNumber);
+  return rows.map(({ session, waiter }) => ({
+    waiter,
+    table: {
+      sessionToken: session.sessionToken,
+      tableNumber: session.tableNumber,
+      status: session.status,
+      assignedAt: session.attendingSince,
+      lastActivityAt: session.lastActivityAt,
+      viewedAt: session.viewedAt,
+    },
+  }));
+}
+
+export async function getWaiterServiceHistory(waiterId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const [waiter] = await db.select({ id: users.id, name: users.name, email: users.email, role: users.role, waiterCode: users.waiterCode, waiterActive: users.waiterActive })
+    .from(users).where(eq(users.id, waiterId)).limit(1);
+  if (!waiter) throw new Error("WAITER_NOT_FOUND");
+
+  const sessions = await db.select().from(tableSessions)
+    .where(eq(tableSessions.waiterId, waiterId))
+    .orderBy(desc(tableSessions.updatedAt));
+  const selections = sessions.length
+    ? await db.select().from(tableSelections).where(inArray(tableSelections.sessionId, sessions.map((session) => session.id))).orderBy(desc(tableSelections.createdAt))
+    : [];
+  const events = await db.select({ id: auditLogs.id, action: auditLogs.action, entityType: auditLogs.entityType, entityId: auditLogs.entityId, metadata: auditLogs.metadata, createdAt: auditLogs.createdAt })
+    .from(auditLogs).where(eq(auditLogs.userId, waiterId)).orderBy(desc(auditLogs.createdAt)).limit(200);
+
+  const selectionsBySession = new Map<number, typeof selections>();
+  for (const selection of selections) {
+    const current = selectionsBySession.get(selection.sessionId) ?? [];
+    current.push(selection);
+    selectionsBySession.set(selection.sessionId, current);
+  }
+  const sessionHistory = sessions.map((session) => {
+    const orders = selectionsBySession.get(session.id) ?? [];
+    return {
+      sessionToken: session.sessionToken,
+      tableNumber: session.tableNumber,
+      status: session.status,
+      createdAt: session.createdAt,
+      closedAt: session.closedAt,
+      viewedAt: session.viewedAt,
+      attendingSince: session.attendingSince,
+      orderCount: orders.length,
+      viewedOrderCount: orders.filter((order) => order.viewedAt).length,
+      total: orders.reduce((sum, order) => sum + Number(order.subtotal), 0),
+      orders: orders.map((order) => ({ id: order.id, selectionNumber: order.selectionNumber, status: order.status, subtotal: Number(order.subtotal), createdAt: order.createdAt, viewedAt: order.viewedAt, receivedAt: order.receivedAt, finalizedAt: order.finalizedAt })),
+    };
+  });
+  return { waiter, sessions: sessionHistory, events };
 }
 
 export async function setWaiterActive(userId: number, active: boolean) {
@@ -226,14 +384,22 @@ export async function getStaffTables() {
   const tableNumbers = Array.from(new Set([...qrTables.map((table) => table.tableNumber), ...sessions.map((session) => session.tableNumber)])).sort((a, b) => a.localeCompare(b, "pt", { numeric: true }));
   const result = [];
   for (const tableNumber of tableNumbers) {
-    const session = sessions.find((candidate) => candidate.tableNumber === tableNumber);
+    const sessionCandidates = sessions.filter((candidate) => candidate.tableNumber === tableNumber);
+    let session = sessionCandidates[0];
+    let sessionSelections = session ? await db.select().from(tableSelections).where(eq(tableSelections.sessionId, session.id)).orderBy(desc(tableSelections.createdAt)) : [];
+    for (const candidate of sessionCandidates) {
+      const candidateSelections = candidate.id === session?.id ? sessionSelections : await db.select().from(tableSelections).where(eq(tableSelections.sessionId, candidate.id)).orderBy(desc(tableSelections.createdAt));
+      if (candidateSelections.some((selection) => !selection.viewedAt)) {
+        session = candidate;
+        sessionSelections = candidateSelections;
+        break;
+      }
+    }
     if (!session) {
       result.push({ id: -Number(tableNumber), sessionToken: "", tableNumber, status: "open" as const, attendingWaiter: null, attendingWaiterId: null, attendingSince: null, selectionCount: 0, unviewedCount: 0, statusLabel: "empty" as const, total: 0, latestSelectionAt: null });
       continue;
     }
-    const selections = await db.select().from(tableSelections)
-      .where(eq(tableSelections.sessionId, session.id))
-      .orderBy(desc(tableSelections.createdAt));
+    const selections = sessionSelections;
     const unviewed = selections.filter((selection) => !selection.viewedAt).length;
     const attendingWaiter = session.attendingWaiterId
       ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode }).from(users).where(eq(users.id, session.attendingWaiterId)).limit(1)
@@ -274,7 +440,7 @@ async function assertTableAccess(db: NonNullable<Awaited<ReturnType<typeof getDb
   return session;
 }
 
-export async function markTableViewedByStaff(sessionToken: string, waiterId: number, isAdmin = true) {
+export async function markTableViewedByStaff(sessionToken: string, waiterId: number, isAdmin = false) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const session = await assertTableAccess(db, sessionToken, waiterId, isAdmin);
@@ -285,7 +451,7 @@ export async function markTableViewedByStaff(sessionToken: string, waiterId: num
   return { success: true, waiterId, viewedAt } as const;
 }
 
-export async function closeTableSessionByStaff(sessionToken: string, waiterId = 0, isAdmin = true) {
+export async function closeTableSessionByStaff(sessionToken: string, waiterId = 0, isAdmin = false) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const session = await assertTableAccess(db, sessionToken, waiterId, isAdmin);
@@ -468,7 +634,7 @@ export async function createTableSelection(input: {
 }
 
 
-const MENU_RESTAURANT_ID = "default";
+export const MENU_RESTAURANT_ID = "default";
 
 export async function listMenuCategories() {
   const db = await getDb();

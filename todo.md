@@ -783,24 +783,24 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 ## Teste de login real do garçom
 
-- [ ] Abrir `/painel/mesas` no domínio Vercel e iniciar o fluxo OAuth.
-- [ ] Concluir o login numa conta autorizada sem expor credenciais no chat.
-- [ ] Confirmar cookie/sessão, carregamento do painel e acesso aos dados Supabase.
-- [ ] Registar o resultado no TODO e criar checkpoint se houver correcção necessária.
+- [x] Abrir `/painel/mesas` no domínio Vercel e iniciar o fluxo OAuth; a rota encaminha para a origem Manus autorizada.
+- [x] Concluir o login numa conta autorizada sem expor credenciais no chat através do host Manus autorizado.
+- [x] Confirmar cookie/sessão, carregamento do painel e acesso aos dados Supabase no host Manus autorizado.
+- [x] Registar o resultado no TODO e criar checkpoint da correcção necessária.
 
 
 ## Login OAuth no domínio Vercel
 
-- [ ] Diagnosticar por que o login concluído regressa a `/painel/mesas` sem sessão.
-- [ ] Corrigir callback, origem de redireccionamento e propagação do cookie de sessão no proxy Vercel.
-- [ ] Republicar e validar login real, sessão autenticada e carregamento do painel.
+- [x] Diagnosticar o bloqueio de sessão causado pela redirect URI Vercel não autorizada.
+- [x] Corrigir a origem de redireccionamento com proxy/redirect Vercel→Manus, preservando o cookie no host autorizado.
+- [x] Republicar e validar o login real, sessão autenticada e carregamento do painel no host Manus autorizado.
 
 
 ## Bloqueio de login no Vercel
 
-- [ ] Capturar a mensagem ou URL de erro ao clicar em Sign in no domínio Vercel.
-- [ ] Corrigir a configuração OAuth/callback para o domínio Vercel.
-- [ ] Republicar e validar que o garçom entra no painel com sessão persistente.
+- [x] Capturar a mensagem de `invalid redirect_uri` ao clicar em Sign in no domínio Vercel.
+- [x] Corrigir o fluxo com redirect para a callback Manus autorizada; autorização directa do domínio Vercel permanece dependente do serviço Manus.
+- [x] Republicar e validar que o garçom entra no painel com sessão persistente no host Manus.
 
 
 ## Botão Sign in sem navegação
@@ -820,17 +820,17 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 ## Erro OAuth: redirect URI Vercel não autorizada
 
-- [ ] Autorizar `https://patio-zambeze-live.vercel.app/api/oauth/callback` no projecto OAuth Manus.
-- [ ] Repetir o login no domínio Vercel após a autorização.
-- [ ] Confirmar cookie/sessão e carregamento do painel do garçom.
+- [x] Solicitar autorização de `https://patio-zambeze-live.vercel.app/api/oauth/callback`; a alternativa aplicada foi o redirect para Manus.
+- [x] Repetir o login pelo domínio Vercel e confirmar o encaminhamento para Manus.
+- [x] Confirmar cookie/sessão e carregamento do painel do garçom no host Manus autorizado.
 
 
 ## Painel do garçom integrado no Vercel
 
 - [x] Confirmar rota `/painel/mesas`, fallback SPA e proxy `/api/trpc` no domínio Vercel.
-- [ ] Integrar uma origem OAuth autorizada para o painel Vercel sem expor credenciais.
-- [ ] Validar sessão autenticada, API tRPC e leitura dos dados Supabase no Vercel.
-- [ ] Fornecer o link final do painel e guardar checkpoint após validação.
+- [x] Integrar uma origem OAuth autorizada para o painel através do redirect Vercel→Manus sem expor credenciais.
+- [x] Validar sessão autenticada, API tRPC e leitura dos dados Supabase no painel encaminhado pelo Vercel.
+- [x] Fornecer o link final do painel e guardar checkpoint após validação.
 
 
 ## Opção 1: redirect do painel Vercel para Manus
@@ -864,4 +864,141 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Completar o núcleo de RBAC, acesso de staff activo e controlo backend sem alterar a autenticação Manus existente.
 - [x] Validar pedidos, mesas, QR Codes, recibos, impressão, PDF e responsividade sem regressões.
 - [x] Adicionar/actualizar testes de segurança e fluxos críticos.
-- [ ] Rever todo o TODO, criar checkpoint e fornecer o resultado.
+- [x] Rever todo o TODO, criar checkpoint e fornecer o resultado desta implementação incremental.
+
+
+## Correcções da secção Garçons — pasted_content_3
+
+- [x] Auditar a secção Garçons actual contra gestão, permissões, atendimento e histórico exigidos.
+- [x] Garantir que apenas o administrador pode listar, adicionar, activar/desactivar e gerir garçons; edição de perfil e credenciais continuam no Manus OAuth.
+- [x] Preservar histórico de pedidos, mesas, operações e auditoria ao desactivar um garçom.
+- [x] Expor no backend as mesas actualmente atribuídas a cada garçom.
+- [x] Expor no backend o histórico de atendimento por garçom com datas e horas.
+- [x] Impedir definitivamente ao garçom gerir garçons, permissões, QR Codes, mesas e configurações administrativas.
+- [x] Manter as permissões operacionais do garçom para mesas, pedidos, estados, recibos, PDF e finalização.
+- [x] Actualizar a interface Garçons sem fotografia, com estado, mesa actual e acções administrativas claras.
+- [x] Não implementar redefinição de palavra-passe local enquanto a autenticação oficial for Manus OAuth; documentar a limitação de forma segura.
+- [x] Adicionar testes de autorização, preservação de histórico, atendimento actual e histórico por garçom.
+- [x] Validar TypeScript, suite Vitest, build e fluxos desktop/mobile.
+- [x] Rever TODO, criar checkpoint e fornecer a implementação.
+
+
+## Migração completa da secção Garçons — pasted_content_4
+
+- [x] Auditar tabelas Supabase existentes, modelo de restaurante, utilizadores e relações de atendimento.
+- [x] Remover da interface o bloco de credenciais e a dependência explícita de contas Manus OAuth para adicionar garçons.
+- [x] Definir arquitectura segura para autenticação Supabase Auth sem guardar palavras-passe no PostgreSQL aplicacional.
+- [x] Criar ou adaptar a entidade `garcons` sem duplicar restaurante, utilizador ou histórico existente.
+- [x] Associar garçom, utilizador Auth e restaurante com isolamento administrativo por restaurante.
+- [x] Implementar criação, listagem, edição, activação e desactivação de garçons com validações e contador real.
+- [x] Implementar login operacional Supabase Auth para garçons e bloquear contas inactivas.
+- [x] Implementar RLS/segurança de base de dados compatível com o backend actual e validar o escopo por restaurante.
+- [x] Preservar e ligar o histórico de mesas, pedidos, recibos e auditoria ao garçom sem apagar dados ao desactivar.
+- [x] Manter garçons impedidos de gerir outros garçons, QR Codes, mesas administrativas e configurações.
+- [x] Adicionar testes de schema, validação, autorização, isolamento e regressão das funcionalidades existentes.
+- [x] Validar TypeScript, suite Vitest, migração, build e fluxos desktop/mobile.
+- [x] Rever TODO, guardar checkpoint e entregar o resultado.
+
+## Migração do Waiter Panel para Supabase Auth
+
+- [x] Criar helper server-side para criar contas email/palavra-passe no Supabase Auth.
+- [x] Criar perfil `garcons` e ligação ao utilizador legado `users` com `openId=supabase:<uuid>`.
+- [x] Persistir activação/desactivação no Auth e nas tabelas locais sem apagar histórico.
+- [x] Ligar listagem, criação, edição e activação/desactivação aos procedimentos tRPC administrativos.
+- [x] Actualizar a interface administrativa para gerir garçons reais sem mostrar palavras-passe existentes.
+- [x] Criar login dedicado `/painel/login` com email/palavra-passe via Supabase Auth.
+- [x] Validar Bearer token Supabase no contexto tRPC e reutilizar o RBAC existente.
+- [x] Validar TypeScript, suite Vitest completa e build de produção.
+- [x] Validar visualmente a página de login em desktop.
+- [x] Validar credencial Supabase Auth Admin contra endpoint real; recomenda-se ainda um teste manual de login operacional com uma conta de garçom em produção.
+
+## Correcção: Bearer token exigido indevidamente no painel administrativo
+
+- [x] Permitir que mutações administrativas de garçons usem a sessão OAuth Manus válida do administrador.
+- [x] Manter a exigência de Bearer Supabase apenas para sessões operacionais de garçons.
+- [x] Validar a criação de garçom e o tratamento de erro sem regressões de RBAC.
+- [x] Executar TypeScript, Vitest, build e guardar checkpoint da correcção.
+
+## Correcção: falha ao criar perfil legado de garçom
+
+- [x] Diagnosticar a causa exacta da inserção `users` e verificar o estado do registo Auth criado.
+- [x] Tornar a criação do perfil `users` compatível com o schema PostgreSQL/Supabase actual.
+- [x] Evitar duplicação e remover automaticamente uma conta Auth órfã quando a persistência local falhar.
+- [x] Adicionar teste de regressão e validar novamente o fluxo administrativo.
+- [x] Executar TypeScript, Vitest, build e guardar checkpoint.
+
+## Correcção completa: login, roles, permissões e Supabase Audit Logs
+
+- [x] Auditar o fluxo actual Manus OAuth/Supabase Auth e identificar a origem do redireccionamento errado.
+- [x] Garantir que o role e o restaurante vêm do perfil persistido, nunca de estado manipulável no frontend.
+- [x] Criar consulta segura de perfil Supabase com role, restaurantId e status.
+- [x] Bloquear no backend contas inactivas ou sem perfil correspondente.
+- [x] Redireccionar administradores e garçons para os painéis correctos sem alterar desnecessariamente as rotas existentes.
+- [x] Proteger páginas e procedimentos administrativos contra acesso de garçons.
+- [x] Restringir operações operacionais do garçom ao restaurante associado.
+- [x] Configurar funções e políticas RLS de perfil/restaurante no Supabase sem expor dados entre restaurantes.
+- [x] Verificar a integração de auditoria para login, logout, criação e alterações de contas.
+- [x] Adicionar testes de role, redireccionamento, status, isolamento, RLS e regressão.
+- [x] Validar TypeScript, Vitest, build e fluxos desktop/mobile; guardar checkpoint.
+
+## Correcção definitiva: garçom redireccionado para painel admin
+
+- [x] Auditar todas as atribuições e fallbacks de `admin`, `garcom`, `role`, `redirect` e `navigate`.
+- [x] Confirmar que o role do utilizador vem do perfil persistido ligado ao Supabase Auth.
+- [x] Confirmar as contas de garçom de teste e reparar apenas os dois registos comprovadamente órfãos.
+- [x] Impedir redireccionamento para admin enquanto o perfil ou role estiver a carregar.
+- [x] Garantir que role inválido ou perfil ausente não usa fallback `admin`.
+- [x] Proteger `/painel/admin` e APIs administrativas contra garçons no frontend e backend.
+- [x] Validar `restaurantId`, RLS e ausência de acesso entre restaurantes.
+- [x] Confirmar auditoria de login/logout e acções administrativas sem passwords ou tokens.
+- [x] Executar testes obrigatórios de admin, garçom, sessão, desactivação e isolamento; guardar checkpoint.
+
+## Correcção: acesso de garçom a rota administrativa
+
+- [x] Evitar que `/painel/pratos` execute a query administrativa para uma conta `garcom`.
+- [x] Mostrar uma mensagem visual de acesso bloqueado em vez de erro tRPC não tratado.
+- [x] Manter `adminProcedure` e a autorização backend sem enfraquecimento.
+- [x] Adicionar regressão para rotas admin-only e validar TypeScript, Vitest, build e checkpoint.
+
+## Alterações: logout, administrador e remoção de garçons
+
+- [x] Redireccionar directamente o logout Supabase do garçom para `/painel/login`.
+- [x] Confirmar que o administrador continua a usar OAuth; a palavra-passe fornecida não é guardada porque não pertence ao fluxo de autenticação do admin.
+- [x] Adicionar botão de apagar garçom visível apenas para admin, com confirmação e estado de carregamento.
+- [x] Remover a conta Auth e o perfil operacional sem apagar histórico de mesas, pedidos, recibos ou auditoria.
+- [x] Registar a remoção no audit log e adicionar testes de regressão.
+- [x] Validar TypeScript, Vitest, build, logout e remoção; guardar checkpoint.
+
+## Migração do administrador para Supabase Auth
+
+- [x] Auditar a identificação actual do administrador via `OWNER_OPEN_ID` e OAuth Manus.
+- [x] Criar ou associar a conta admin no Supabase Auth sem guardar palavra-passe na base aplicacional.
+- [x] Garantir que o perfil legado e o role `admin` ficam ligados ao `auth.users.id` correcto.
+- [x] Actualizar login admin por email/palavra-passe e redireccionamento para `/painel/admin`.
+- [x] Preservar login/logout dos garçons e bloquear mistura de identidades.
+- [x] Implementar recuperação e alteração de palavra-passe para admin.
+- [x] Validar RBAC, RLS, auditoria, TypeScript, Vitest, build e fluxos responsivos.
+- [x] Guardar checkpoint da migração.
+
+## Nova conta administrativa Supabase Auth
+
+- [x] Recolher email, nome e palavra-passe da nova conta admin através de campos seguros.
+- [x] Criar a nova conta em Supabase Auth com email confirmado e metadados de role admin.
+- [x] Associar a nova identidade ao perfil `users` existente ou criar o perfil admin correspondente.
+- [x] Validar login, sessão Bearer, RBAC, logout e auditoria do novo administrador.
+
+## Bug: login admin rejeita credenciais
+
+- [x] Reproduzir o login da conta admin e identificar se a falha ocorre no email, palavra-passe, configuração Supabase ou perfil `users`.
+- [x] Corrigir o fluxo/credencial sem misturar a sessão admin com Manus OAuth ou contas de garçons.
+- [x] Validar login Bearer, role `admin`, redireccionamento, logout, auditoria e regressões.
+- [x] Guardar checkpoint da correcção.
+
+## Implementação do pasted_content_7.txt
+
+- [ ] Ler e decompor todos os requisitos do ficheiro anexado.
+- [ ] Mapear os requisitos para o projecto sem quebrar Supabase Auth, RBAC, menu, pedidos ou recibos.
+- [ ] Implementar as alterações aplicáveis no frontend e backend.
+- [ ] Criar ou actualizar testes de regressão e validar responsividade.
+- [ ] Executar TypeScript, suite Vitest e build de produção.
+- [ ] Guardar checkpoint da implementação.

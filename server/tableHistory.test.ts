@@ -118,7 +118,7 @@ integration("tableHistory persistence", () => {
       expect(staffResult?.selections[0]?.items[0]).toEqual(expect.objectContaining({ productName: "Frango Grelhado", quantity: 2, unitPrice: 300, subtotal: 600 }));
       const beforeViewed = await getStaffTables();
       expect(beforeViewed.find((table) => table.sessionToken === tokenA)?.statusLabel).toBe("new");
-      await markTableViewedByStaff(tokenA, 1);
+      await markTableViewedByStaff(tokenA, 1, true);
       const afterViewed = await getStaffTables();
       expect(afterViewed.find((table) => table.sessionToken === tokenA)?.statusLabel).toBe("viewed");
       const nextOrder = await createTableSelection({ sessionToken: tokenA, tableNumber: "01", subtotal: 80, items: [{ productName: "Coca-Cola", quantity: 1, unitPrice: 80 }] });
@@ -129,7 +129,7 @@ integration("tableHistory persistence", () => {
       expect(separatedHistory?.selections.find((selection) => selection.selectionNumber === 2)?.subtotal).toBe(80);
       const viewedHistory = await getTableHistoryForStaff(tokenA);
       expect(viewedHistory?.session.waiterId).toBe(1);
-      expect((await closeTableSessionByStaff(tokenA)).success).toBe(true);
+      expect((await closeTableSessionByStaff(tokenA, 0, true)).success).toBe(true);
       const closedHistory = await getTableHistoryForStaff(tokenA);
       expect(closedHistory?.session.status).toBe("closed");
       expect(closedHistory?.selections).toHaveLength(2);

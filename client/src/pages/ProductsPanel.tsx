@@ -2,6 +2,8 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { isAdminRole } from "@shared/roles";
 import { prepareMenuImage } from "@/lib/menuImage";
 import { useMemo, useRef, useState } from "react";
 import { Camera, Check, Grid2X2, ImagePlus, List, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
@@ -23,8 +25,10 @@ export default function ProductsPanel() {
   const [photoProcessing, setPhotoProcessing] = useState(false);
   const galleryRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
-  const products = trpc.menu.adminList.useQuery({ includeRemoved: false }, { retry: false });
-  const categories = trpc.menu.categories.useQuery(undefined, { retry: false });
+  const { user } = useAuth();
+  const isAdmin = isAdminRole(user?.role);
+  const products = trpc.menu.adminList.useQuery({ includeRemoved: false }, { enabled: isAdmin, retry: false });
+  const categories = trpc.menu.categories.useQuery(undefined, { enabled: isAdmin, retry: false });
   const utils = trpc.useUtils();
   const showMutationError = (error: { message?: string }) => {
     const raw = error.message || "";
