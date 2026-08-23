@@ -807,7 +807,7 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 - [x] Identificar a variável pública OAuth ausente ou inválida no build Vercel.
 - [x] Corrigir a configuração do botão Sign in sem expor credenciais.
-- [ ] Republicar e validar que o clique abre o portal OAuth e regressa ao painel.
+- [x] Republicar e validar que o clique abre o portal OAuth e regressa ao painel.
 
 
 ## Incidente crítico de segurança no bundle Vercel
@@ -815,4 +815,4 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Remover `SUPABASE_DATABASE_URL` e qualquer segredo server-side do bundle frontend.
 - [x] Confirmar que apenas variáveis `VITE_*` públicas chegam ao cliente.
 - [x] Invalidar e substituir a connection string Supabase que foi usada no build público.
-- [ ] Republicar e validar o botão Sign in sem expor credenciais.
+- [x] Republicar e validar o botão Sign in sem expor credenciais.
