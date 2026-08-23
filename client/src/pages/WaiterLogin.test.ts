@@ -3,6 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const source = fs.readFileSync(path.resolve(import.meta.dirname, "WaiterLogin.tsx"), "utf8");
+const appSource = fs.readFileSync(path.resolve(import.meta.dirname, "../App.tsx"), "utf8");
 
 describe("Supabase waiter login routing", () => {
   it("loads the persisted profile before navigating", () => {
@@ -12,6 +13,13 @@ describe("Supabase waiter login routing", () => {
     expect(source).toContain("utils.auth.me.setData(undefined, null)");
     expect(source).toContain("utils.auth.me.invalidate()");
     expect(source).not.toContain('navigate("/painel/garcom");');
+  });
+
+  it("exposes one official team login route and no role selector", () => {
+    expect(appSource).toContain('<Route path="/login" component={WaiterLogin} />');
+    expect(appSource).toContain('<Route path="/menu" component={Home} />');
+    expect(source).not.toContain("role=admin");
+    expect(source).not.toContain("role=garcom");
   });
 
   it("rejects accounts without an active configured profile", () => {

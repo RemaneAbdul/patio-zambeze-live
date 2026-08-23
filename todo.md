@@ -993,3 +993,25 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Corrigir o fluxo/credencial sem misturar a sessão admin com Manus OAuth ou contas de garçons.
 - [x] Validar login Bearer, role `admin`, redireccionamento, logout, auditoria e regressões.
 - [x] Guardar checkpoint da correcção.
+
+## Implementação do pasted_content_7.txt
+
+- [x] Ler e decompor todos os requisitos do ficheiro anexado.
+- [x] Mapear os requisitos para o projecto sem quebrar Supabase Auth, RBAC, menu, pedidos ou recibos.
+- [x] Implementar as alterações aplicáveis no frontend e backend.
+- [x] Criar ou actualizar testes de regressão e validar responsividade.
+- [x] Executar TypeScript, suite Vitest e build de produção.
+- [x] Guardar checkpoint da implementação.
+
+## Ligação ao Vercel correcto
+
+- [x] Confirmar a conta/equipa Vercel que possui `patio-zambeze-live`.
+- [x] Ligar o repositório actualizado ao projecto Vercel correcto sem criar duplicados.
+- [x] Publicar a versão com `/login` e preservar `/menu` e `/painel/*`.
+- [x] Validar as rotas no domínio Vercel e guardar checkpoint.
+
+## Bug: routing Vercel envia painel para Manus
+
+- [x] Remover o redirect legado `/painel/:path*` para o domínio Manus.
+- [x] Manter `/painel/*`, `/login` e `/menu` no domínio Vercel com fallback SPA e API funcional.
+- [x] Publicar novamente e validar login, menu e painel no domínio Vercel.

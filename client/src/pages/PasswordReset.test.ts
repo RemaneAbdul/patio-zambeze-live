@@ -9,7 +9,7 @@ const routerSource = fs.readFileSync(path.resolve(import.meta.dirname, "../../..
 describe("Supabase password recovery", () => {
   it("sends recovery links to the dedicated reset page", () => {
     expect(loginSource).toContain("resetPasswordForEmail");
-    expect(loginSource).toContain("/painel/redefinir-senha");
+    expect(loginSource).toContain("/redefinir-senha");
   });
 
   it("updates the password, records the sensitive action, and clears the session", () => {
