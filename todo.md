@@ -996,22 +996,31 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 ## Implementação do pasted_content_7.txt
 
-- [ ] Ler e decompor todos os requisitos do ficheiro anexado.
-- [ ] Mapear os requisitos para o projecto sem quebrar Supabase Auth, RBAC, menu, pedidos ou recibos.
-- [ ] Implementar as alterações aplicáveis no frontend e backend.
-- [ ] Criar ou actualizar testes de regressão e validar responsividade.
-- [ ] Executar TypeScript, suite Vitest e build de produção.
-- [ ] Guardar checkpoint da implementação.
+- [x] Ler e decompor todos os requisitos do ficheiro anexado.
+- [x] Mapear os requisitos para o projecto sem quebrar Supabase Auth, RBAC, menu, pedidos ou recibos.
+- [x] Implementar as alterações aplicáveis no frontend e backend.
+- [x] Criar ou actualizar testes de regressão e validar responsividade.
+- [x] Executar TypeScript, suite Vitest e build de produção.
+- [x] Guardar checkpoint da implementação.
 
 ## Ligação ao Vercel correcto
 
-- [ ] Confirmar a conta/equipa Vercel que possui `patio-zambeze-live`.
-- [ ] Ligar o repositório actualizado ao projecto Vercel correcto sem criar duplicados.
-- [ ] Publicar a versão com `/login` e preservar `/menu` e `/painel/*`.
-- [ ] Validar as rotas no domínio Vercel e guardar checkpoint.
+- [x] Confirmar a conta/equipa Vercel que possui `patio-zambeze-live`.
+- [x] Ligar o repositório actualizado ao projecto Vercel correcto sem criar duplicados.
+- [x] Publicar a versão com `/login` e preservar `/menu` e `/painel/*`.
+- [x] Validar as rotas no domínio Vercel e guardar checkpoint.
 
 ## Bug: routing Vercel envia painel para Manus
 
-- [ ] Remover o redirect legado `/painel/:path*` para o domínio Manus.
-- [ ] Manter `/painel/*`, `/login` e `/menu` no domínio Vercel com fallback SPA e API funcional.
-- [ ] Publicar novamente e validar login, menu e painel no domínio Vercel.
+- [x] Remover o redirect legado `/painel/:path*` para o domínio Manus.
+- [x] Manter `/painel/*`, `/login` e `/menu` no domínio Vercel com fallback SPA e API funcional.
+- [x] Publicar novamente e validar login, menu e painel no domínio Vercel.
+
+## Implementação do pasted_content_8.txt
+
+- [x] Ler e decompor os requisitos do ficheiro anexado.
+- [x] Mapear impactos em frontend, backend, Supabase, Vercel e rotas existentes.
+- [x] Implementar as alterações descritas sem quebrar menu, RBAC, pedidos ou recibos.
+- [x] Actualizar testes de regressão e documentação técnica necessária.
+- [ ] Validar Supabase, Vercel, Vitest, TypeScript, build e rotas públicas/internas.
+- [ ] Sincronizar a publicação e guardar checkpoint.

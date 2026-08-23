@@ -23,10 +23,10 @@ async function persistMenuImage(imageUrl?: string) {
   return stored.url;
 }
 
-async function auditMutation<T>(ctx: { user?: { id: number; role: string } | null }, action: string, entityType: string, entityId: string | number | undefined, operation: () => Promise<T> | T) {
+async function auditMutation<T>(ctx: { user?: { id: number; role: string } | null }, action: string, entityType: string, entityId: string | number | undefined, operation: () => Promise<T> | T, metadataFromResult?: (result: T) => Record<string, unknown> | undefined) {
   const result = await operation();
   const waiterProfile = ctx.user?.role === "garcom" ? await getGarconProfileByLegacyUserId(ctx.user.id) : null;
-  await recordAuditLog({ userId: ctx.user?.id ?? null, restaurantId: waiterProfile?.restaurantId ?? "default", role: ctx.user?.role ?? "customer", action, entityType, entityId });
+  await recordAuditLog({ userId: ctx.user?.id ?? null, restaurantId: waiterProfile?.restaurantId ?? "default", role: ctx.user?.role ?? "customer", action, entityType, entityId, metadata: metadataFromResult?.(result) });
   return result;
 }
 
@@ -82,9 +82,9 @@ export const appRouter = router({
     qrCodes: adminProcedure.query(() => listTableQrCodes()),
     viewedReceipts: staffProcedure.query(() => listViewedReceipts()),
     generateQrCode: adminProcedure.input(z.object({ tableNumber: z.string().min(1).max(64) })).mutation(({ input, ctx }) => auditMutation(ctx, "QR_CODE_CREATED", "table_qr_code", input.tableNumber, () => upsertTableQrCode(input.tableNumber))),
-    assumeTable: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "TABLE_ASSIGNED", "table_session", input.sessionToken, () => assumeTableSession(input.sessionToken, ctx.user.id))),
+    assumeTable: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "TABLE_ASSIGNED", "table_session", input.sessionToken, () => assumeTableSession(input.sessionToken, ctx.user.id), result => ({ table_id: input.sessionToken, previous_waiter_id: result?.previousAttendingWaiterId ?? null, new_waiter_id: result?.newAttendingWaiterId ?? ctx.user.id }))),
     markViewed: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "SELECTION_VIEWED", "table_session", input.sessionToken, () => markTableViewedByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin"))),
-    releaseTable: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "TABLE_RELEASED", "table_session", input.sessionToken, () => releaseTableSessionByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin"))),
+    releaseTable: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "TABLE_RELEASED", "table_session", input.sessionToken, () => releaseTableSessionByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin"), result => ({ table_id: input.sessionToken, previous_waiter_id: result.previousWaiterId, new_waiter_id: result.newWaiterId }))),
     closeSession: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "TABLE_CLOSED", "table_session", input.sessionToken, () => closeTableSessionByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin"))),
     updateSelectionStatus: staffProcedure.input(z.object({ selectionId: z.number().int().positive(), status: selectionStatusSchema })).mutation(({ input, ctx }) => auditMutation(ctx, "ORDER_STATUS_CHANGED", "table_selection", input.selectionId, () => setTableSelectionStatus(input.selectionId, input.status, ctx.user.id, ctx.user.role === "admin"))),
     removeSelectionItem: staffProcedure.input(z.object({ itemId: z.number().int().positive() })).mutation(({ input, ctx }) => auditMutation(ctx, "SELECTION_ITEM_REMOVED", "table_selection_item", input.itemId, () => removeTableSelectionItem(input.itemId, ctx.user.id, ctx.user.role === "admin"))),

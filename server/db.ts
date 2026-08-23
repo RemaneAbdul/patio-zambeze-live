@@ -349,8 +349,10 @@ export async function getTableSessionInfo(sessionToken: string, tableNumber = "0
   if (!db) throw new Error("Database is not available");
   const table = await resolveTableReference(db, tableId || tableNumber, Boolean(tableId));
   const session = await ensureTableSession(sessionToken, table.tableNumber);
-  const waiter = session.waiterId ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode, waiterActive: users.waiterActive }).from(users).where(eq(users.id, session.waiterId)).limit(1) : [];
-  return { session, waiter: waiter[0] ?? null };
+  const historicalWaiter = session.waiterId ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode, waiterActive: users.waiterActive }).from(users).where(eq(users.id, session.waiterId)).limit(1) : [];
+  const currentWaiter = session.attendingWaiterId ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode, waiterActive: users.waiterActive }).from(users).where(eq(users.id, session.attendingWaiterId)).limit(1) : [];
+  const waiter = session.status === "open" ? currentWaiter[0] ?? null : historicalWaiter[0] ?? null;
+  return { session, waiter, currentWaiter: currentWaiter[0] ?? null, historicalWaiter: historicalWaiter[0] ?? null };
 }
 
 export async function listTableQrCodes() {
@@ -421,14 +423,15 @@ export async function assumeTableSession(sessionToken: string, waiterId: number)
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const now = new Date();
-  const updated = await db.update(tableSessions).set({ attendingWaiterId: waiterId, attendingSince: now, lastActivityAt: now })
+  const updated = await db.update(tableSessions).set({ attendingWaiterId: waiterId, attendingSince: now, lastActivityAt: now, updatedAt: now })
     .where(and(eq(tableSessions.sessionToken, sessionToken), eq(tableSessions.status, "open"), isNull(tableSessions.attendingWaiterId)));
   if ((updated.rowCount ?? 0) === 0) {
     const current = await db.select({ attendingWaiterId: tableSessions.attendingWaiterId }).from(tableSessions).where(eq(tableSessions.sessionToken, sessionToken)).limit(1);
     if (current[0]?.attendingWaiterId && current[0].attendingWaiterId !== waiterId) throw new Error("TABLE_ALREADY_ASSIGNED");
     throw new Error("TABLE_NOT_AVAILABLE");
   }
-  return getTableHistoryForStaff(sessionToken, waiterId, false);
+  const history = await getTableHistoryForStaff(sessionToken, waiterId, false);
+  return { ...history, previousAttendingWaiterId: null, newAttendingWaiterId: waiterId };
 }
 
 async function assertTableAccess(db: NonNullable<Awaited<ReturnType<typeof getDb>>>, sessionToken: string, waiterId: number, isAdmin = false) {
@@ -445,27 +448,33 @@ export async function markTableViewedByStaff(sessionToken: string, waiterId: num
   if (!db) throw new Error("Database is not available");
   const session = await assertTableAccess(db, sessionToken, waiterId, isAdmin);
   const viewedAt = new Date();
-  await db.update(tableSessions).set({ waiterId, viewedAt, lastActivityAt: viewedAt }).where(eq(tableSessions.id, session.id));
+  const historicalWaiterId = session.waiterId ?? session.attendingWaiterId ?? (isAdmin ? null : waiterId);
+  await db.update(tableSessions).set({ waiterId: historicalWaiterId, viewedAt, lastActivityAt: viewedAt, updatedAt: viewedAt }).where(eq(tableSessions.id, session.id));
   await db.update(tableSelections).set({ viewedAt, receivedAt: viewedAt })
     .where(and(eq(tableSelections.sessionId, session.id), isNull(tableSelections.viewedAt)));
-  return { success: true, waiterId, viewedAt } as const;
+  return { success: true, waiterId: historicalWaiterId, viewedAt } as const;
 }
 
 export async function closeTableSessionByStaff(sessionToken: string, waiterId = 0, isAdmin = false) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const session = await assertTableAccess(db, sessionToken, waiterId, isAdmin);
-  const updated = await db.update(tableSessions).set({ status: "closed", closedAt: new Date(), attendingWaiterId: null, attendingSince: null })
+  const closedAt = new Date();
+  const historicalWaiterId = session.waiterId ?? session.attendingWaiterId ?? (isAdmin ? null : waiterId);
+  const updated = await db.update(tableSessions).set({ status: "closed", closedAt, waiterId: historicalWaiterId, attendingWaiterId: null, attendingSince: null, updatedAt: closedAt })
     .where(and(eq(tableSessions.id, session.id), eq(tableSessions.status, "open")));
-  return { success: (updated.rowCount ?? 0) > 0 } as const;
+  return { success: (updated.rowCount ?? 0) > 0, waiterId: historicalWaiterId, closedAt } as const;
 }
 
 export async function releaseTableSessionByStaff(sessionToken: string, waiterId: number, isAdmin = false) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const session = await assertTableAccess(db, sessionToken, waiterId, isAdmin);
-  await db.update(tableSessions).set({ attendingWaiterId: null, attendingSince: null, lastActivityAt: new Date() }).where(eq(tableSessions.id, session.id));
-  return { success: true } as const;
+  const releasedAt = new Date();
+  const updated = await db.update(tableSessions).set({ attendingWaiterId: null, attendingSince: null, lastActivityAt: releasedAt, updatedAt: releasedAt })
+    .where(and(eq(tableSessions.id, session.id), eq(tableSessions.status, "open"), isAdmin ? sql`TRUE` : eq(tableSessions.attendingWaiterId, waiterId)));
+  if ((updated.rowCount ?? 0) === 0) throw new Error("TABLE_NOT_ASSIGNED");
+  return { success: true, previousWaiterId: session.attendingWaiterId, newWaiterId: null, releasedAt } as const;
 }
 
 export async function getTableHistoryForStaff(sessionToken: string, waiterId?: number, isAdmin = false) {

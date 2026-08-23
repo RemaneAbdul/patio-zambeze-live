@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { appRouter } from "./routers";
-import { assumeTableSession, closeTableSessionByStaff, createTableSelection, ensureTableSession, getDb, getStaffTables, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, listTableQrCodes, markTableViewedByStaff, removeTableSelectionItem, upsertTableQrCode } from "./db";
-import { tableQrCodes, tableSelectionItems, tableSelections, tableSessions } from "../drizzle/schema";
+import { assumeTableSession, closeTableSessionByStaff, createTableSelection, ensureTableSession, getDb, getStaffTables, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, listTableQrCodes, markTableViewedByStaff, releaseTableSessionByStaff, removeTableSelectionItem, upsertTableQrCode } from "./db";
+import { tableQrCodes, tableSelectionItems, tableSelections, tableSessions, users } from "../drizzle/schema";
 import type { TrpcContext } from "./_core/context";
 
 const ctx: TrpcContext = {
@@ -152,6 +152,46 @@ integration("tableHistory persistence", () => {
         for (const selection of selections) await db.delete(tableSelectionItems).where(eq(tableSelectionItems.selectionId, selection.id));
         await db.delete(tableSelections).where(eq(tableSelections.sessionId, sessionId));
         await db.delete(tableSessions).where(eq(tableSessions.id, sessionId));
+      }
+    }
+  }, 30_000);
+
+  it("updates the open receipt to the new waiter after release and preserves the closed waiter", async () => {
+    const token = `vitest-reassign-${crypto.randomUUID()}${crypto.randomUUID()}`;
+    const db = await getDb();
+    if (!db) throw new Error("SUPABASE_DATABASE_URL is required for this integration test");
+    try {
+      const staffIds = await db.select({ id: users.id }).from(users).where(sql`${users.role} IN ('admin', 'garcom')`).limit(2);
+      if (staffIds.length < 2) throw new Error("At least two staff profiles are required for reassignment integration test");
+      const firstWaiterId = staffIds[0]!.id;
+      const secondWaiterId = staffIds[1]!.id;
+      await createTableSelection({ sessionToken: token, tableNumber: "07", subtotal: 300, items: [{ productName: "Frango", quantity: 1, unitPrice: 300 }] });
+      await assumeTableSession(token, firstWaiterId);
+      const beforeRelease = await getTableSessionInfo(token, "07");
+      expect(beforeRelease.session.attendingWaiterId).toBe(firstWaiterId);
+      expect(beforeRelease.currentWaiter?.id).toBe(firstWaiterId);
+      await expect(releaseTableSessionByStaff(token, firstWaiterId)).resolves.toMatchObject({ success: true, previousWaiterId: firstWaiterId, newWaiterId: null });
+      const afterRelease = await getTableSessionInfo(token, "07");
+      expect(afterRelease.session.attendingWaiterId).toBeNull();
+      expect(afterRelease.currentWaiter).toBeNull();
+      expect(afterRelease.waiter).toBeNull();
+      await assumeTableSession(token, secondWaiterId);
+      const afterReassignment = await getTableSessionInfo(token, "07");
+      expect(afterReassignment.session.attendingWaiterId).toBe(secondWaiterId);
+      expect(afterReassignment.currentWaiter?.id).toBe(secondWaiterId);
+      expect(afterReassignment.waiter?.id).toBe(secondWaiterId);
+      await closeTableSessionByStaff(token, secondWaiterId);
+      const closed = await getTableHistoryForStaff(token, secondWaiterId, true);
+      expect(closed?.session.status).toBe("closed");
+      expect(closed?.session.attendingWaiterId).toBeNull();
+      expect(closed?.session.waiterId).toBe(secondWaiterId);
+    } finally {
+      const session = await db.select({ id: tableSessions.id }).from(tableSessions).where(eq(tableSessions.sessionToken, token)).limit(1);
+      if (session[0]) {
+        const selections = await db.select({ id: tableSelections.id }).from(tableSelections).where(eq(tableSelections.sessionId, session[0].id));
+        for (const selection of selections) await db.delete(tableSelectionItems).where(eq(tableSelectionItems.selectionId, selection.id));
+        await db.delete(tableSelections).where(eq(tableSelections.sessionId, session[0].id));
+        await db.delete(tableSessions).where(eq(tableSessions.id, session[0].id));
       }
     }
   }, 30_000);

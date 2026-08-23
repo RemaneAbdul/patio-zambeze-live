@@ -27,3 +27,6 @@ Depois do redeploy `dpl_9K2LRWeAWEHohZRetzMdWJYsdhNC` ficar `READY`, a navegaç�
 
 
 A validação no domínio Vercel confirmou que `https://patio-zambeze-live.vercel.app/menu?table=1` abre o menu público com produtos e imagens. Contudo, ao abrir `https://patio-zambeze-live.vercel.app/painel/login`, o browser foi redireccionado para `https://menudigital-8xuhohcp.manus.space/painel/login`. Isto indica que o routing Vercel ainda contém uma regra externa ou fallback antigo para `/painel/*`; a rota interna precisa de permanecer no domínio Vercel.
+
+
+Após o deployment `dpl_EvwvCCXQwiALQN123vZsFReA6pYJ` ficar `READY`, as rotas `https://patio-zambeze-live.vercel.app/login` e `https://patio-zambeze-live.vercel.app/painel/login` carregam no próprio domínio Vercel com os campos de email, palavra-passe e recuperação. O redirect legado para Manus deixou de ocorrer. O menu público `/menu?table=1` também foi validado anteriormente com produtos e imagens.
