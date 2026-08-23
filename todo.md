@@ -885,19 +885,19 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 ## Migração completa da secção Garçons — pasted_content_4
 
-- [ ] Auditar tabelas Supabase existentes, modelo de restaurante, utilizadores e relações de atendimento.
-- [ ] Remover da interface o bloco de credenciais e a dependência explícita de contas Manus OAuth para adicionar garçons.
-- [ ] Definir arquitectura segura para autenticação Supabase Auth sem guardar palavras-passe no PostgreSQL aplicacional.
-- [ ] Criar ou adaptar a entidade `garcons` sem duplicar restaurante, utilizador ou histórico existente.
-- [ ] Associar garçom, utilizador Auth e restaurante com isolamento administrativo por restaurante.
-- [ ] Implementar criação, listagem, edição, activação e desactivação de garçons com validações e contador real.
-- [ ] Implementar login operacional Supabase Auth para garçons e bloquear contas inactivas.
-- [ ] Implementar RLS/segurança de base de dados compatível com o backend actual e validar o escopo por restaurante.
-- [ ] Preservar e ligar o histórico de mesas, pedidos, recibos e auditoria ao garçom sem apagar dados ao desactivar.
-- [ ] Manter garçons impedidos de gerir outros garçons, QR Codes, mesas administrativas e configurações.
-- [ ] Adicionar testes de schema, validação, autorização, isolamento e regressão das funcionalidades existentes.
-- [ ] Validar TypeScript, suite Vitest, migração, build e fluxos desktop/mobile.
-- [ ] Rever TODO, guardar checkpoint e entregar o resultado.
+- [x] Auditar tabelas Supabase existentes, modelo de restaurante, utilizadores e relações de atendimento.
+- [x] Remover da interface o bloco de credenciais e a dependência explícita de contas Manus OAuth para adicionar garçons.
+- [x] Definir arquitectura segura para autenticação Supabase Auth sem guardar palavras-passe no PostgreSQL aplicacional.
+- [x] Criar ou adaptar a entidade `garcons` sem duplicar restaurante, utilizador ou histórico existente.
+- [x] Associar garçom, utilizador Auth e restaurante com isolamento administrativo por restaurante.
+- [x] Implementar criação, listagem, edição, activação e desactivação de garçons com validações e contador real.
+- [x] Implementar login operacional Supabase Auth para garçons e bloquear contas inactivas.
+- [x] Implementar RLS/segurança de base de dados compatível com o backend actual e validar o escopo por restaurante.
+- [x] Preservar e ligar o histórico de mesas, pedidos, recibos e auditoria ao garçom sem apagar dados ao desactivar.
+- [x] Manter garçons impedidos de gerir outros garçons, QR Codes, mesas administrativas e configurações.
+- [x] Adicionar testes de schema, validação, autorização, isolamento e regressão das funcionalidades existentes.
+- [x] Validar TypeScript, suite Vitest, migração, build e fluxos desktop/mobile.
+- [x] Rever TODO, guardar checkpoint e entregar o resultado.
 
 ## Migração do Waiter Panel para Supabase Auth
 
