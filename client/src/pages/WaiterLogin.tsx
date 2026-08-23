@@ -67,7 +67,7 @@ export default function WaiterLogin() {
       return;
     }
     const { error: recoveryError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/painel/login`,
+      redirectTo: `${window.location.origin}/painel/redefinir-senha`,
     });
     if (recoveryError) {
       setError("Não foi possível enviar o email de recuperação. Tente novamente.");

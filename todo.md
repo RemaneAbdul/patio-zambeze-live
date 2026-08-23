@@ -976,7 +976,7 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Garantir que o perfil legado e o role `admin` ficam ligados ao `auth.users.id` correcto.
 - [x] Actualizar login admin por email/palavra-passe e redireccionamento para `/painel/admin`.
 - [x] Preservar login/logout dos garçons e bloquear mistura de identidades.
-- [ ] Implementar recuperação e alteração de palavra-passe para admin.
+- [x] Implementar recuperação e alteração de palavra-passe para admin.
 - [x] Validar RBAC, RLS, auditoria, TypeScript, Vitest, build e fluxos responsivos.
 - [x] Guardar checkpoint da migração.
 

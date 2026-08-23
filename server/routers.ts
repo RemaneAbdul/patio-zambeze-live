@@ -36,6 +36,7 @@ export const appRouter = router({
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     recordLogin: protectedProcedure.mutation(({ ctx }) => recordAuditLog({ userId: ctx.user.id, role: ctx.user.role, action: "AUTH_LOGIN_SUCCESS", entityType: "auth_session", entityId: ctx.user.openId }).then(() => ({ success: true as const }))),
+    recordPasswordChange: protectedProcedure.mutation(({ ctx }) => recordAuditLog({ userId: ctx.user.id, role: ctx.user.role, action: "AUTH_PASSWORD_CHANGED", entityType: "auth_user", entityId: ctx.user.openId }).then(() => ({ success: true as const }))),
     logout: publicProcedure.mutation(async ({ ctx }) => {
       if (ctx.user) await recordAuditLog({ userId: ctx.user.id, role: ctx.user.role, action: "AUTH_LOGOUT", entityType: "auth_session", entityId: ctx.user.openId });
       const cookieOptions = getSessionCookieOptions(ctx.req);
