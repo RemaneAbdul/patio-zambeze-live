@@ -843,7 +843,7 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 ## QR Codes devem abrir o menu Vercel
 
-- [ ] Identificar onde a URL dos QR Codes é construída e por que usa o host Manus.
-- [ ] Fazer QR Codes apontarem para `https://patio-zambeze-live.vercel.app/menu?...` ou a rota pública equivalente.
-- [ ] Garantir que o redirect para Manus afecta apenas `/painel/*`.
-- [ ] Validar scan/URL, identificação da mesa e preservação do painel do garçom.
+- [x] Identificar onde a URL dos QR Codes é construída e por que usa o host Manus.
+- [x] Fazer QR Codes apontarem para `https://patio-zambeze-live.vercel.app/menu?...` ou a rota pública equivalente.
+- [x] Garantir que o redirect para Manus afecta apenas `/painel/*`.
+- [x] Validar scan/URL, identificação da mesa e preservação do painel do garçom.
