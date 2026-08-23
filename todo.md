@@ -1024,3 +1024,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Actualizar testes de regressão e documentação técnica necessária.
 - [x] Validar Supabase, Vercel, Vitest, TypeScript, build e rotas públicas/internas.
 - [x] Sincronizar a publicação e guardar checkpoint.
+
+## Implementação do pasted_content_9.txt
+
+- [x] Ler e decompor todos os requisitos do ficheiro anexado.
+- [x] Mapear impactos em frontend, backend, Supabase, Vercel e funcionalidades existentes.
+- [x] Implementar as alterações aplicáveis e testes de regressão.
+- [x] Validar Supabase, Vercel, Vitest, TypeScript, build e rotas.
+- [x] Sincronizar a publicação e guardar checkpoint.

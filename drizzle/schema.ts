@@ -100,12 +100,14 @@ export const tableSelections = pgTable("table_selections", {
 export const tableSelectionItems = pgTable("table_selection_items", {
   id: serial("id").primaryKey(),
   selectionId: integer("selectionId").notNull(),
+  productId: integer("productId"),
   productName: varchar("productName", { length: 160 }).notNull(),
   preparation: text("preparation"),
   quantity: integer("quantity").notNull(),
   unitPrice: numeric("unitPrice", { precision: 10, scale: 2 }).notNull(),
 }, (table) => ({
   selectionIdx: index("table_selection_items_selection_idx").on(table.selectionId),
+  productIdx: index("table_selection_items_product_idx").on(table.productId),
 }));
 
 export type TableSession = typeof tableSessions.$inferSelect;
@@ -130,6 +132,9 @@ export const menuCategories = pgTable("menu_categories", {
   id: serial("id").primaryKey(),
   restaurantId: varchar("restaurantId", { length: 64 }).notNull().default("default"),
   name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  imageUrl: text("imageUrl"),
+  displayOrder: integer("displayOrder").default(0).notNull(),
   status: varchar("status", { length: 16 }).default("ACTIVE").notNull(),
   createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
@@ -142,11 +147,14 @@ export const menuProducts = pgTable("menu_products", {
   restaurantId: varchar("restaurantId", { length: 64 }).notNull().default("default"),
   categoryId: integer("categoryId").notNull(),
   name: varchar("name", { length: 160 }).notNull(),
+  nameEn: varchar("nameEn", { length: 160 }),
   description: text("description"),
+  descriptionEn: text("descriptionEn"),
   preparation: text("preparation"),
   preparationEn: text("preparationEn"),
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   imageUrl: text("imageUrl"),
+  displayOrder: integer("displayOrder").default(0).notNull(),
   status: varchar("status", { length: 16 }).default("ACTIVE").notNull(),
   createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),

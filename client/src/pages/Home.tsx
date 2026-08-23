@@ -4,17 +4,16 @@ import { trpc } from "@/lib/trpc";
 import { ThermalReceipt } from "@/components/ThermalReceipt";
 import { persistSessionToken, sessionCookieKey, sessionStorageKey } from "@/lib/sessionToken";
 import { getFloatingBarVisibility } from "@/lib/menuState";
-import { getMenuPreparation } from "@/lib/menuPreparation";
 import { downloadReceiptPdf, shareReceiptPdf, type ReceiptPdfState } from "@/lib/receiptPdf";
 import { printRenderedReceipt, type ReceiptPrintState } from "@/lib/receiptPrint";
 import { parseTableRoute } from "@/lib/tableRoute";
 import { formatHistoryTime } from "@/lib/historyTime";
 import { Accessibility, ArrowUp, Bell, BellOff, ChevronDown, ChevronLeft, Heart, Info, Languages, MapPin, Moon, Search, SlidersHorizontal, Sparkles, Sun, X } from "lucide-react";
 
-type Category = "Todos" | "Entradas" | "Pratos" | "Hambúrgueres" | "Bebidas" | "Sobremesas";
+type Category = string;
 type Tag = "Especial da Casa" | "Mais Pedido" | "Novo" | "Recomendado";
 type Product = {
-  name: string; category: Exclude<Category, "Todos">; description: string; price: number; image?: string;
+  id?: number; name: string; nameEn?: string; category: Exclude<Category, "Todos">; description: string; descriptionEn?: string; preparationEn?: string; price: number; image?: string;
   tag?: Tag; available: boolean; ingredients?: string; allergens?: string; spicy?: string; variations?: string;
   portion?: string; preparation?: string; features?: string; combines?: string; popular?: boolean; recommended?: boolean; vegetarian?: boolean;
 };
@@ -23,30 +22,11 @@ type HistoryEntry = { id: number; createdAt: string; items: { name: string; quan
 type StatusNotification = { id: string; selectionId: number; status: string; createdAt: string };
 type Lang = "pt" | "en";
 const englishNames: Record<string, string> = { "Frango à Zambeziana": "Zambezi Chicken", "Frango Grelhado": "Grilled Chicken", "Peixe Grelhado": "Grilled Fish", Matapa: "Matapa", Chamuça: "Samosa", "Rissóis": "Croquettes", "Batata frita": "French Fries", "Hambúrguer Clássico": "Classic Burger", "Hambúrguer Especial": "Special Burger", "Coca-Cola": "Coca-Cola", Fanta: "Fanta", Água: "Water", Sumol: "Sumol", Gelado: "Ice Cream", "Salada de Frutas": "Fruit Salad" };
-const categoryEnglish: Record<Category, string> = { Todos: "All", Entradas: "Starters", Pratos: "Mains", Hambúrgueres: "Burgers", Bebidas: "Drinks", Sobremesas: "Desserts" };
-const productImages: Record<string, string> = { "Frango à Zambeziana": "/manus-storage/prato-frango-zambeziana_7f9dffc0.png", "Frango Grelhado": "/manus-storage/menu-frango-grelhado_e409793d.png", "Peixe Grelhado": "/manus-storage/prato-peixe-grelhado_aa2e3916.png", Matapa: "/manus-storage/menu-matapa_5e2e5d42.png", Chamuça: "/manus-storage/menu-chamuca_b333d647.png", "Rissóis": "/manus-storage/menu-rissois_e55b0325.png", "Batata frita": "/manus-storage/menu-batata-frita_63767ebf.png", "Hambúrguer Clássico": "/manus-storage/menu-hamburguer-classico_4a57e113.png", "Hambúrguer Especial": "/manus-storage/menu-hamburguer-especial_b795b477.png", "Coca-Cola": "/manus-storage/menu-coca-cola_1be49d92.png", Fanta: "/manus-storage/menu-fanta_1ede03e8.png", Água: "/manus-storage/menu-agua_62d05d41.png", Sumol: "/manus-storage/menu-sumol_bda03f8e.png", Gelado: "/manus-storage/menu-gelado_5442595a.png", "Salada de Frutas": "/manus-storage/sobremesa-salada-frutas_04efab3f.png" };
+const categoryEnglish: Record<string, string> = { Todos: "All", Entradas: "Starters", Pratos: "Mains", Hambúrgueres: "Burgers", Bebidas: "Drinks", Sobremesas: "Desserts" };
+
 const englishDescriptions: Record<string, string> = { "Frango à Zambeziana": "Tender chicken, fragrant rice, fresh salad and coconut lemon sauce.", "Frango Grelhado": "Grilled chicken breast with rice, salad and house sauce.", "Peixe Grelhado": "Grilled fish of the day, toasted lemon, coconut rice and greens.", Matapa: "Ground cassava leaves with peanuts, coconut and white rice.", Chamuça: "Crispy pastry filled with spices and vegetables.", "Rissóis": "Golden croquettes with a creamy filling and gentle seasoning.", "Batata frita": "Hand-cut potatoes, crisp outside and soft inside.", "Hambúrguer Clássico": "Grilled beef, cheese, tomato, onion and house sauce.", "Hambúrguer Especial": "Grilled beef, cheese, caramelized onion and spicy sauce.", "Coca-Cola": "Soft drink served chilled.", Fanta: "Orange soft drink served chilled.", Água: "Still mineral water.", Sumol: "Fruit soft drink served chilled.", Gelado: "A creamy and refreshing scoop of the day.", "Salada de Frutas": "Seasonal tropical fruits with mint and coconut cream." };
 
 
-const products: Product[] = [
-  { name: "Frango à Zambeziana", category: "Pratos", description: "Frango macio, arroz perfumado, salada fresca e molho de coco com limão.", price: 350, image: "/manus-storage/prato-frango-zambeziana_7f9dffc0.png", tag: "Especial da Casa", available: true, recommended: true, popular: true, ingredients: "Frango, arroz, tomate, cebola, coco e especiarias.", allergens: "Pode conter leite.", spicy: "Médio", portion: "1 porção individual", preparation: "Aproximadamente 20–30 min", features: "Especial da Casa", combines: "Salada ou Coca-Cola", variations: "Acompanhamento: arroz, batata frita ou salada." },
-  { name: "Frango Grelhado", category: "Pratos", description: "Peito de frango grelhado com arroz, salada e molho da casa.", price: 300, tag: "Mais Pedido", available: true, recommended: true, popular: true, ingredients: "Frango, arroz, folhas verdes e ervas.", allergens: "Não especificados.", spicy: "Não picante", portion: "1 porção individual", preparation: "Aproximadamente 20 min", features: "Mais Pedido", combines: "Batata frita ou salada", variations: "Acompanhamento: arroz ou salada." },
-  { name: "Peixe Grelhado", category: "Pratos", description: "Peixe do dia na brasa, limão tostado, arroz de coco e folhas.", price: 450, image: "/manus-storage/prato-peixe-grelhado_aa2e3916.png", tag: "Recomendado", available: true, recommended: true, ingredients: "Peixe do dia, arroz, coco, limão e folhas verdes.", allergens: "Contém peixe.", spicy: "Não picante", portion: "1 porção individual", preparation: "Aproximadamente 25–35 min", features: "Recomendado", combines: "Água ou salada" },
-  { name: "Matapa", category: "Pratos", description: "Folhas de mandioca moídas com amendoim, coco e arroz branco.", price: 300, tag: "Recomendado", available: true, vegetarian: true, ingredients: "Folhas de mandioca, amendoim, coco e arroz.", allergens: "Contém amendoim.", spicy: "Médio", portion: "1 porção individual", preparation: "Aproximadamente 25 min", features: "Vegetariano" },
-  { name: "Chamuça", category: "Entradas", description: "Pastel crocante recheado com especiarias e legumes.", price: 50, tag: "Mais Pedido", available: true, ingredients: "Massa, legumes e especiarias.", allergens: "Contém glúten.", spicy: "Médio", preparation: "Aproximadamente 10–15 min" },
-  { name: "Rissóis", category: "Entradas", description: "Rissóis dourados com recheio cremoso e temperos suaves.", price: 60, available: true, ingredients: "Massa, recheio cremoso e ervas.", allergens: "Contém glúten e leite.", spicy: "Não picante", preparation: "Aproximadamente 10–15 min" },
-  { name: "Batata frita", category: "Entradas", description: "Batata cortada à mão, crocante por fora e macia por dentro.", price: 100, available: true, ingredients: "Batata, óleo e sal.", allergens: "Não especificados.", spicy: "Não picante", preparation: "Aproximadamente 10 min" },
-  { name: "Hambúrguer Clássico", category: "Hambúrgueres", description: "Carne grelhada, queijo, tomate, cebola e molho da casa.", price: 280, available: true, ingredients: "Pão, carne, queijo, tomate, cebola e molho.", allergens: "Contém glúten e leite.", spicy: "Não picante", preparation: "Aproximadamente 15–20 min" },
-  { name: "Hambúrguer Especial", category: "Hambúrgueres", description: "Carne grelhada, queijo, cebola caramelizada e molho picante.", price: 350, tag: "Novo", available: true, ingredients: "Pão, carne, queijo, cebola e molho picante.", allergens: "Contém glúten e leite.", spicy: "Picante", preparation: "Aproximadamente 15–20 min" },
-  { name: "Coca-Cola", category: "Bebidas", description: "Refrigerante servido bem fresco.", price: 80, available: true, preparation: "Servido imediatamente" },
-  { name: "Fanta", category: "Bebidas", description: "Refrigerante de laranja servido bem fresco.", price: 80, available: true, preparation: "Servido imediatamente" },
-  { name: "Água", category: "Bebidas", description: "Água mineral sem gás.", price: 50, available: true, preparation: "Servida fresca imediatamente" },
-  { name: "Sumol", category: "Bebidas", description: "Refrigerante de fruta servido bem fresco.", price: 100, available: true, preparation: "Servido imediatamente" },
-  { name: "Gelado", category: "Sobremesas", description: "Uma bola de gelado do dia, cremosa e refrescante.", price: 120, tag: "Novo", available: true, ingredients: "Leite, açúcar e sabor do dia.", allergens: "Contém leite.", spicy: "Não picante", preparation: "Servido imediatamente" },
-  { name: "Salada de Frutas", category: "Sobremesas", description: "Frutas tropicais da estação com hortelã e creme de coco.", price: 150, image: "/manus-storage/sobremesa-salada-frutas_04efab3f.png", tag: "Recomendado", available: true, ingredients: "Frutas tropicais, hortelã e coco.", allergens: "Pode conter leite.", spicy: "Não picante", preparation: "Preparada na hora em aproximadamente 10 min" },
-];
-
-const categories: Category[] = ["Todos", "Entradas", "Pratos", "Hambúrgueres", "Bebidas", "Sobremesas"];
 const money = (price: number) => `${price.toLocaleString("pt-MZ")} MT`;
 const tagClass: Record<Tag, string> = { "Especial da Casa": "tag-house", "Mais Pedido": "tag-popular", Novo: "tag-new", Recomendado: "tag-chef" };
 
@@ -65,18 +45,21 @@ export default function Home() {
   const [showFavorites, setShowFavorites] = useState(false);
   const [favorites, setFavorites] = useState<string[]>(() => { try { return JSON.parse(localStorage.getItem("patio-zambeze-favorites") || "[]"); } catch { return []; } });
   const activeMenuQuery = trpc.menu.active.useQuery(undefined, { retry: false });
-  const catalogProducts = useMemo<Product[]>(() => {
-    if (!activeMenuQuery.data?.length) return products;
-    return activeMenuQuery.data.map(({ product, category: itemCategory }) => ({
-      name: product.name,
-      category: (["Entradas", "Pratos", "Hambúrgueres", "Bebidas", "Sobremesas"].includes(itemCategory?.name ?? "") ? itemCategory?.name : "Pratos") as Exclude<Category, "Todos">,
-      description: product.description ?? "",
-      price: Number(product.price),
-      image: product.imageUrl ?? undefined,
-      available: product.status === "ACTIVE",
-      preparation: product.preparation ?? undefined,
-    }));
-  }, [activeMenuQuery.data]);
+  const publicCategoriesQuery = trpc.menu.publicCategories.useQuery(undefined, { retry: false });
+  const catalogProducts = useMemo<Product[]>(() => (activeMenuQuery.data ?? []).map(({ product, category: itemCategory }) => ({
+    id: product.id,
+    name: product.name,
+    nameEn: product.nameEn ?? undefined,
+    category: itemCategory?.name ?? "",
+    description: product.description ?? "",
+    descriptionEn: product.descriptionEn ?? undefined,
+    preparationEn: product.preparationEn ?? undefined,
+    price: Number(product.price),
+    image: product.imageUrl ?? undefined,
+    available: product.status === "ACTIVE",
+    preparation: product.preparation ?? undefined,
+  })), [activeMenuQuery.data]);
+  const categories = useMemo<Category[]>(() => ["Todos", ...(publicCategoriesQuery.data ?? []).map((item) => item.name)], [publicCategoriesQuery.data]);
   const [selection, setSelection] = useState<Selection>({});
   const [lang, setLang] = useState<Lang>("pt");
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("patio-zambeze-dark-mode") === "true");
@@ -191,17 +174,17 @@ export default function Home() {
   }).sort((a, b) => sortBy === "lowest" ? a.price - b.price : sortBy === "highest" ? b.price - a.price : sortBy === "popular" ? Number(b.popular) - Number(a.popular) : Number(b.recommended) - Number(a.recommended)), [catalogProducts, category, query, priceFilter, maxPrice, sortBy, showFavorites, favorites]);
 
   const hasFilters = category !== "Todos" || query !== "" || priceFilter !== "todos" || maxPrice !== "" || sortBy !== "recommended" || showFavorites;
-  const recommendedProducts = catalogProducts.filter((product) => product.recommended).slice(0, 3);
+  const recommendedProducts = catalogProducts.slice(0, 3);
   const toggleFavorite = (name: string) => setFavorites((current) => { const next = current.includes(name) ? current.filter((item) => item !== name) : [...current, name]; localStorage.setItem("patio-zambeze-favorites", JSON.stringify(next)); return next; });
   const clearFilters = () => { setCategory("Todos"); setQuery(""); setPriceFilter("todos"); setMaxPrice(""); setSortBy("recommended"); setShowFavorites(false); };
 
   const categoryLabel = (category: Category) => lang === "en" ? categoryEnglish[category] : category;
-  const productName = (product: Product) => lang === "en" ? englishNames[product.name] || product.name : product.name;
-  const productDescription = (product: Product) => lang === "en" ? englishDescriptions[product.name] || product.description : product.description;
-  const productPreparation = (product: Product) => getMenuPreparation(product.name, lang) || product.preparation;
-  const productImage = (product: Product) => productImages[product.name] || product.image;
+  const productName = (product: Product) => lang === "en" ? product.nameEn || englishNames[product.name] || product.name : product.name;
+  const productDescription = (product: Product) => lang === "en" ? product.descriptionEn || englishDescriptions[product.name] || product.description : product.description;
+  const productPreparation = (product: Product) => lang === "en" ? product.preparationEn || product.preparation : product.preparation;
+  const productImage = (product: Product) => product.image;
   const showToWaiter = () => { setPendingConfirmation(true); };
-  const confirmHistory = () => { if (!sessionToken || !selectionItems.length || historyMutation.isPending) return; historyMutation.mutate({ sessionToken, tableNumber, tableId, subtotal: selectionTotal, items: selectionItems.map((product) => ({ productName: product.name, preparation: product.preparation, quantity: selection[product.name], unitPrice: product.price })) }, { onSuccess: () => { updateSelection({}); setPendingConfirmation(false); setShowSelection(false); setSelectionNoticeText(lang === "pt" ? "✓ Seleção adicionada ao histórico da mesa." : "✓ Selection added to table history."); setSelectionNotice(true); window.setTimeout(() => setSelectionNotice(false), 3200); } }); };
+  const confirmHistory = () => { if (!sessionToken || !selectionItems.length || historyMutation.isPending) return; historyMutation.mutate({ sessionToken, tableNumber, tableId, subtotal: selectionTotal, items: selectionItems.map((product) => ({ productId: product.id, productName: product.name, preparation: product.preparation, quantity: selection[product.name], unitPrice: product.price })) }, { onSuccess: () => { updateSelection({}); setPendingConfirmation(false); setShowSelection(false); setSelectionNoticeText(lang === "pt" ? "✓ Seleção adicionada ao histórico da mesa." : "✓ Selection added to table history."); setSelectionNotice(true); window.setTimeout(() => setSelectionNotice(false), 3200); } }); };
   const receiptNow = new Date();
   const receiptDateTime = receiptNow.toLocaleString(lang === "pt" ? "pt-PT" : "en-GB", { dateStyle: "short", timeStyle: "short" });
   const historyText = () => [`PÁTIO ZAMBEZE`, `HISTÓRICO DA MESA`, receiptDateTime, ``, ...history.flatMap((entry) => [`Seleção ${entry.id} — ${formatHistoryTime(entry.createdAt, lang)}`, `Estado: ${entry.status}`, ...entry.items.flatMap((item) => [`${productName(catalogProducts.find((p) => p.name === item.name) || catalogProducts[0])}`, `${item.quantity} × ${money(item.price)} = ${money(item.quantity * item.price)}`]), `Subtotal: ${money(entry.subtotal)}`, `--------------------`]), `TOTAL ESTIMADO DA MESA: ${money(historyTotal)}`, ``, lang === "pt" ? "Este histórico é apenas um resumo temporário. Confirme os produtos e valores com o garçom." : "This history is only a temporary summary. Confirm products and prices with the waiter."].join("\n");
