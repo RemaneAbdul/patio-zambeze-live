@@ -4,6 +4,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { printRenderedReceipt, receiptPaperClass, type ReceiptPrintState } from "@/lib/receiptPrint";
 import { trpc } from "@/lib/trpc";
+import { canUseWaiterPanel } from "@shared/roles";
 import { Printer, Search, Settings2, ShieldCheck, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -14,7 +15,7 @@ type ReceiptWidth = "58mm" | "80mm";
 
 export function PrintsPanel() {
   const { user } = useAuth();
-  const isAuthorized = user?.role === "admin";
+  const isAuthorized = canUseWaiterPanel(user?.role, user?.waiterCode, user?.waiterActive);
   const receipts = trpc.tableHistory.viewedReceipts.useQuery(undefined, { enabled: isAuthorized, refetchInterval: 15000, retry: false });
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -28,6 +29,6 @@ export function PrintsPanel() {
 
 export function SettingsPanel() {
   const { user } = useAuth();
-  const identity = trpc.tableHistory.staffIdentity.useQuery(undefined, { enabled: user?.role === "admin", retry: false });
+  const identity = trpc.tableHistory.staffIdentity.useQuery(undefined, { enabled: canUseWaiterPanel(user?.role, user?.waiterCode, user?.waiterActive), retry: false });
   return <DashboardLayout><div className="internal-info-shell"><p className="eyebrow">Configuração do restaurante</p><h1>Definições</h1><p className="internal-info-lead">Esta instalação está configurada para um único restaurante, com acesso interno controlado por contas autenticadas e role administrativa.</p><div className="internal-info-grid"><article><Settings2 className="h-6 w-6 text-[#C85A3F]" /><h2>Pátio Zambeze</h2><p>As mesas e QR Codes são geridos no mesmo painel. Não existem limites de geração, créditos ou pacotes de QR Codes.</p></article><article><ShieldCheck className="h-6 w-6 text-[#C85A3F]" /><h2>Garçom autenticado</h2><p>{identity.data?.name || user?.name || "Conta autenticada"}</p><p>ID: <strong>{identity.data?.waiterCode || "A configurar"}</strong></p><small>Estado: {identity.data?.active ? "Activo" : "Inactivo"}. A conta só pode consultar, marcar como visto, imprimir e encerrar sessões.</small></article></div></div></DashboardLayout>;
 }

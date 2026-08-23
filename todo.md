@@ -855,3 +855,13 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Impedir qualquer query sem `queryFn` ou com `skipToken` executado como input.
 - [x] Adicionar regressão e validar `/painel/impressoes` sem erros de consola.
 - [x] Criar checkpoint da correcção.
+
+
+## Implementação do documento completo: Admin, Garçom e RBAC
+
+- [x] Auditar requisitos do documento contra schema, routers, rotas e componentes existentes.
+- [x] Identificar lacunas reais sem reconstruir funcionalidades já implementadas.
+- [x] Completar o núcleo de RBAC, acesso de staff activo e controlo backend sem alterar a autenticação Manus existente.
+- [ ] Validar pedidos, mesas, QR Codes, recibos, impressão, PDF e responsividade sem regressões.
+- [ ] Adicionar/actualizar testes de segurança e fluxos críticos.
+- [ ] Rever todo o TODO, criar checkpoint e fornecer o resultado.

@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { adminProcedure, publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, publicProcedure, router, staffProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import { storagePut } from "./storage";
@@ -50,20 +50,20 @@ export const appRouter = router({
   tableHistory: router({
     list: publicProcedure.input(z.object({ sessionToken: z.string().min(32).max(128), tableNumber: z.string().min(1).max(64).default("01"), tableId: z.string().min(1).max(128).optional() })).query(({ input }) => getTableHistory(input.sessionToken, input.tableNumber, input.tableId)),
     sessionInfo: publicProcedure.input(z.object({ sessionToken: z.string().min(32).max(128), tableNumber: z.string().min(1).max(64).default("01"), tableId: z.string().min(1).max(128).optional() })).query(({ input }) => getTableSessionInfo(input.sessionToken, input.tableNumber, input.tableId)),
-    staffTables: adminProcedure.query(() => getStaffTables()),
+    staffTables: staffProcedure.query(() => getStaffTables()),
     qrCodes: adminProcedure.query(() => listTableQrCodes()),
-    viewedReceipts: adminProcedure.query(() => listViewedReceipts()),
+    viewedReceipts: staffProcedure.query(() => listViewedReceipts()),
     generateQrCode: adminProcedure.input(z.object({ tableNumber: z.string().min(1).max(64) })).mutation(({ input }) => upsertTableQrCode(input.tableNumber)),
-    assumeTable: adminProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => assumeTableSession(input.sessionToken, ctx.user.id)),
-    markViewed: adminProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => markTableViewedByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
-    releaseTable: adminProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => releaseTableSessionByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
-    closeSession: adminProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => closeTableSessionByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
-    updateSelectionStatus: adminProcedure.input(z.object({ selectionId: z.number().int().positive(), status: selectionStatusSchema })).mutation(({ input, ctx }) => setTableSelectionStatus(input.selectionId, input.status, ctx.user.id, ctx.user.role === "admin")),
-    removeSelectionItem: adminProcedure.input(z.object({ itemId: z.number().int().positive() })).mutation(({ input, ctx }) => removeTableSelectionItem(input.itemId, ctx.user.id, ctx.user.role === "admin")),
-    staffLookup: adminProcedure
+    assumeTable: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => assumeTableSession(input.sessionToken, ctx.user.id)),
+    markViewed: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => markTableViewedByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
+    releaseTable: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => releaseTableSessionByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
+    closeSession: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => closeTableSessionByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
+    updateSelectionStatus: staffProcedure.input(z.object({ selectionId: z.number().int().positive(), status: selectionStatusSchema })).mutation(({ input, ctx }) => setTableSelectionStatus(input.selectionId, input.status, ctx.user.id, ctx.user.role === "admin")),
+    removeSelectionItem: staffProcedure.input(z.object({ itemId: z.number().int().positive() })).mutation(({ input, ctx }) => removeTableSelectionItem(input.itemId, ctx.user.id, ctx.user.role === "admin")),
+    staffLookup: staffProcedure
       .input(z.object({ sessionToken: z.string().min(32).max(128) }))
       .query(({ input, ctx }) => getTableHistoryForStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
-    staffIdentity: adminProcedure.query(({ ctx }) => ({ id: ctx.user.id, name: ctx.user.name, email: ctx.user.email, waiterCode: ctx.user.waiterCode ?? null, active: Boolean(ctx.user.waiterActive) })),
+    staffIdentity: staffProcedure.query(({ ctx }) => ({ id: ctx.user.id, name: ctx.user.name, email: ctx.user.email, waiterCode: ctx.user.waiterCode ?? null, active: Boolean(ctx.user.waiterActive) })),
     addSelection: publicProcedure.input(z.object({
       sessionToken: z.string().min(32).max(128),
       tableNumber: z.string().min(1).max(64).default("01"),

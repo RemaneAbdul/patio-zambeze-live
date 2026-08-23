@@ -14,7 +14,7 @@ const ctx: TrpcContext = {
 describe("tableHistory validation", () => {
   it("rejects staff lookup for an anonymous customer", async () => {
     const caller = appRouter.createCaller(ctx);
-    await expect(caller.tableHistory.staffLookup({ sessionToken: "a".repeat(64) })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.tableHistory.staffLookup({ sessionToken: "a".repeat(64) })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 
   it("rejects QR code management for an anonymous customer", async () => {
@@ -41,10 +41,17 @@ describe("tableHistory validation", () => {
     await expect(caller.tableHistory.staffLookup({ sessionToken: "a".repeat(64) })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
-  it("rejects QR code management for a waiter", async () => {
+  it("allows an active waiter to use staff identity but not admin QR management", async () => {
     const caller = appRouter.createCaller({ ...ctx, user: { id: 42, openId: "waiter-user", email: "waiter@example.com", name: "Waiter User", loginMethod: "manus", role: "user", waiterCode: "GAR-TEST", waiterActive: 1, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() } });
+    await expect(caller.tableHistory.staffIdentity()).resolves.toMatchObject({ waiterCode: "GAR-TEST", active: true });
     await expect(caller.tableHistory.qrCodes()).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(caller.tableHistory.generateQrCode({ tableNumber: "04" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("blocks a disabled waiter from staff operations", async () => {
+    const caller = appRouter.createCaller({ ...ctx, user: { id: 43, openId: "disabled-waiter", email: "disabled@example.com", name: "Disabled Waiter", loginMethod: "manus", role: "user", waiterCode: "GAR-OFF", waiterActive: 0, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() } });
+    await expect(caller.tableHistory.staffIdentity()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.tableHistory.staffTables()).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
   it("rejects a session token that is too short", async () => {

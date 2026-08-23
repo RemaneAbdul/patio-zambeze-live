@@ -13,7 +13,7 @@ import ProductsPanel from "./pages/ProductsPanel";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
-  return <Switch><Route path="/menu" component={Home} /><Route path="/" component={Home} /><Route path="/painel/pratos" component={ProductsPanel} /><Route path="/painel/qr-codes" component={QrCodesPanel} /><Route path="/painel" component={WaiterPanel} /><Route path="/painel/mesas" component={WaiterPanel} /><Route path="/painel/impressoes" component={PrintsPanel} /><Route path="/painel/definicoes" component={SettingsPanel} /><Route path="/waiter" component={WaiterPanel} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>;
+  return <Switch><Route path="/menu" component={Home} /><Route path="/" component={Home} /><Route path="/painel/pratos" component={ProductsPanel} /><Route path="/painel/qr-codes" component={QrCodesPanel} /><Route path="/painel" component={WaiterPanel} /><Route path="/painel/garcom" component={WaiterPanel} /><Route path="/painel/mesas" component={WaiterPanel} /><Route path="/painel/impressoes" component={PrintsPanel} /><Route path="/painel/definicoes" component={SettingsPanel} /><Route path="/waiter" component={WaiterPanel} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>;
 }
 
 export default function App() {

@@ -25,6 +25,7 @@ import { LayoutDashboard, LogOut, PanelLeft, Printer, QrCode, Settings, Table2, 
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
+import { canUseWaiterPanel, isAdminRole } from "@shared/roles";
 import { Button } from "./ui/button";
 
 const menuItems = [
@@ -84,6 +85,16 @@ export default function DashboardLayout({
     );
   }
 
+  if (!canUseWaiterPanel(user.role, user.waiterCode, user.waiterActive)) {
+    return (
+      <div className="flex items-center justify-center min-h-screen p-6">
+        <div className="waiter-alert max-w-lg text-center" role="alert">
+          Acesso bloqueado. A sua conta está desactivada ou não tem autorização para o painel. Contacte o administrador.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <SidebarProvider
       style={
@@ -115,7 +126,10 @@ function DashboardLayoutContent({
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const activeMenuItem = menuItems.find(item => item.path === location);
+  const isAdmin = isAdminRole(user?.role);
+  const visibleMenuItems = isAdmin ? menuItems : menuItems.filter(item => !["/painel/pratos", "/painel/qr-codes"].includes(item.path));
+  const activeMenuItem = visibleMenuItems.find(item => item.path === location);
+  const isAdminOnlyRoute = ["/painel/pratos", "/painel/qr-codes"].includes(location);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -183,7 +197,7 @@ function DashboardLayoutContent({
 
           <SidebarContent className="gap-0">
             <SidebarMenu className="px-2 py-1">
-              {menuItems.map(item => {
+              {visibleMenuItems.map(item => {
                 const isActive = location === item.path;
                 return (
                   <SidebarMenuItem key={item.path}>
@@ -260,7 +274,7 @@ function DashboardLayoutContent({
             </div>
           </div>
         )}
-        <header className="internal-topbar"><div className="internal-brand"><div className="internal-brand-mark">🍴</div><div><strong>Pátio Zambeze</strong><span>Painel do Restaurante</span></div></div><div className="internal-topbar-actions"><div className="internal-language-switch" role="group" aria-label="Idioma do painel"><button type="button" className={panelLanguage === "PT" ? "active" : ""} onClick={() => setPanelLanguage("PT")}>PT</button><span>|</span><button type="button" className={panelLanguage === "EN" ? "active" : ""} onClick={() => setPanelLanguage("EN")}>EN</button></div><button className="internal-notification" type="button" aria-label="Notificações">♧<b>3</b></button><div className="internal-user"><div className="internal-user-avatar">{user?.name?.charAt(0).toUpperCase()}</div><div><strong>{user?.name || "João"}</strong><span>{user?.waiterCode || "GAR-001"}</span></div><span>⌄</span></div></div></header><main className="flex-1 p-4">{children}</main>
+        <header className="internal-topbar"><div className="internal-brand"><div className="internal-brand-mark">🍴</div><div><strong>Pátio Zambeze</strong><span>Painel do Restaurante</span></div></div><div className="internal-topbar-actions"><div className="internal-language-switch" role="group" aria-label="Idioma do painel"><button type="button" className={panelLanguage === "PT" ? "active" : ""} onClick={() => setPanelLanguage("PT")}>PT</button><span>|</span><button type="button" className={panelLanguage === "EN" ? "active" : ""} onClick={() => setPanelLanguage("EN")}>EN</button></div><button className="internal-notification" type="button" aria-label="Notificações">♧<b>3</b></button><div className="internal-user"><div className="internal-user-avatar">{user?.name?.charAt(0).toUpperCase()}</div><div><strong>{user?.name || "João"}</strong><span>{user?.waiterCode || "GAR-001"}</span></div><span>⌄</span></div></div></header>        <main className="flex-1 p-4">{isAdminOnlyRoute && !isAdmin ? <div className="waiter-shell"><div className="waiter-alert" role="alert">403 — Acesso não autorizado. Esta área é exclusiva do administrador.</div></div> : children}</main>
       </SidebarInset>
     </>
   );
