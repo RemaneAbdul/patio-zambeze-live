@@ -1002,3 +1002,16 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [ ] Criar ou actualizar testes de regressão e validar responsividade.
 - [ ] Executar TypeScript, suite Vitest e build de produção.
 - [ ] Guardar checkpoint da implementação.
+
+## Ligação ao Vercel correcto
+
+- [ ] Confirmar a conta/equipa Vercel que possui `patio-zambeze-live`.
+- [ ] Ligar o repositório actualizado ao projecto Vercel correcto sem criar duplicados.
+- [ ] Publicar a versão com `/login` e preservar `/menu` e `/painel/*`.
+- [ ] Validar as rotas no domínio Vercel e guardar checkpoint.
+
+## Bug: routing Vercel envia painel para Manus
+
+- [ ] Remover o redirect legado `/painel/:path*` para o domínio Manus.
+- [ ] Manter `/painel/*`, `/login` e `/menu` no domínio Vercel com fallback SPA e API funcional.
+- [ ] Publicar novamente e validar login, menu e painel no domínio Vercel.
