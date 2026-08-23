@@ -3,6 +3,7 @@
   "buildCommand": "pnpm build",
   "outputDirectory": "dist/public",
   "rewrites": [
+    { "source": "/manus-storage/:path*", "destination": "https://menudigital-8xuhohcp.manus.space/manus-storage/:path*" },
     { "source": "/api/:path*", "destination": "/api/:path*" }
   ]
 }

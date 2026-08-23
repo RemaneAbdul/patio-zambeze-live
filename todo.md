@@ -735,3 +735,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 - [ ] Reenviar a versão serverless pelo Vercel após conceder à integração MCP permissão de deploy no projecto `patio-zambeze`; o Vercel devolveu HTTP 403 para a equipa actual.
 - [ ] Confirmar no preview Vercel o carregamento do frontend e do endpoint `/api/trpc` após o deploy serverless.
+
+
+## Bug Vercel: imagens dos pratos
+
+- [x] Identificar os URLs actuais e confirmar por que `/manus-storage/*` não é acessível no Vercel.
+- [x] Tornar as imagens dos pratos acessíveis no domínio Vercel sem guardar bytes na base de dados.
+- [x] Corrigir referências e upload/serviço de imagens sem alterar dados do menu.
+- [ ] Testar todas as imagens no Vercel em desktop e smartphone e criar checkpoint.
