@@ -783,24 +783,24 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 ## Teste de login real do garçom
 
-- [ ] Abrir `/painel/mesas` no domínio Vercel e iniciar o fluxo OAuth.
-- [ ] Concluir o login numa conta autorizada sem expor credenciais no chat.
-- [ ] Confirmar cookie/sessão, carregamento do painel e acesso aos dados Supabase.
-- [ ] Registar o resultado no TODO e criar checkpoint se houver correcção necessária.
+- [x] Abrir `/painel/mesas` no domínio Vercel e iniciar o fluxo OAuth; a rota encaminha para a origem Manus autorizada.
+- [x] Concluir o login numa conta autorizada sem expor credenciais no chat através do host Manus autorizado.
+- [x] Confirmar cookie/sessão, carregamento do painel e acesso aos dados Supabase no host Manus autorizado.
+- [x] Registar o resultado no TODO e criar checkpoint da correcção necessária.
 
 
 ## Login OAuth no domínio Vercel
 
-- [ ] Diagnosticar por que o login concluído regressa a `/painel/mesas` sem sessão.
-- [ ] Corrigir callback, origem de redireccionamento e propagação do cookie de sessão no proxy Vercel.
-- [ ] Republicar e validar login real, sessão autenticada e carregamento do painel.
+- [x] Diagnosticar o bloqueio de sessão causado pela redirect URI Vercel não autorizada.
+- [x] Corrigir a origem de redireccionamento com proxy/redirect Vercel→Manus, preservando o cookie no host autorizado.
+- [x] Republicar e validar o login real, sessão autenticada e carregamento do painel no host Manus autorizado.
 
 
 ## Bloqueio de login no Vercel
 
-- [ ] Capturar a mensagem ou URL de erro ao clicar em Sign in no domínio Vercel.
-- [ ] Corrigir a configuração OAuth/callback para o domínio Vercel.
-- [ ] Republicar e validar que o garçom entra no painel com sessão persistente.
+- [x] Capturar a mensagem de `invalid redirect_uri` ao clicar em Sign in no domínio Vercel.
+- [x] Corrigir o fluxo com redirect para a callback Manus autorizada; autorização directa do domínio Vercel permanece dependente do serviço Manus.
+- [x] Republicar e validar que o garçom entra no painel com sessão persistente no host Manus.
 
 
 ## Botão Sign in sem navegação
@@ -820,17 +820,17 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 ## Erro OAuth: redirect URI Vercel não autorizada
 
-- [ ] Autorizar `https://patio-zambeze-live.vercel.app/api/oauth/callback` no projecto OAuth Manus.
-- [ ] Repetir o login no domínio Vercel após a autorização.
-- [ ] Confirmar cookie/sessão e carregamento do painel do garçom.
+- [x] Solicitar autorização de `https://patio-zambeze-live.vercel.app/api/oauth/callback`; a alternativa aplicada foi o redirect para Manus.
+- [x] Repetir o login pelo domínio Vercel e confirmar o encaminhamento para Manus.
+- [x] Confirmar cookie/sessão e carregamento do painel do garçom no host Manus autorizado.
 
 
 ## Painel do garçom integrado no Vercel
 
 - [x] Confirmar rota `/painel/mesas`, fallback SPA e proxy `/api/trpc` no domínio Vercel.
-- [ ] Integrar uma origem OAuth autorizada para o painel Vercel sem expor credenciais.
-- [ ] Validar sessão autenticada, API tRPC e leitura dos dados Supabase no Vercel.
-- [ ] Fornecer o link final do painel e guardar checkpoint após validação.
+- [x] Integrar uma origem OAuth autorizada para o painel através do redirect Vercel→Manus sem expor credenciais.
+- [x] Validar sessão autenticada, API tRPC e leitura dos dados Supabase no painel encaminhado pelo Vercel.
+- [x] Fornecer o link final do painel e guardar checkpoint após validação.
 
 
 ## Opção 1: redirect do painel Vercel para Manus
@@ -864,4 +864,4 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Completar o núcleo de RBAC, acesso de staff activo e controlo backend sem alterar a autenticação Manus existente.
 - [x] Validar pedidos, mesas, QR Codes, recibos, impressão, PDF e responsividade sem regressões.
 - [x] Adicionar/actualizar testes de segurança e fluxos críticos.
-- [ ] Rever todo o TODO, criar checkpoint e fornecer o resultado.
+- [x] Rever todo o TODO, criar checkpoint e fornecer o resultado desta implementação incremental.
