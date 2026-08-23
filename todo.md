@@ -838,7 +838,7 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Encaminhar `/painel/*` do domínio Vercel para o painel Manus autorizado.
 - [x] Manter o menu público, imagens e API do menu no Vercel sem alteração.
 - [x] Validar redirect e navegação das rotas internas; o login OAuth continua dependente da autorização do serviço Manus.
-- [ ] Criar checkpoint e fornecer os links finais.
+- [x] Criar checkpoint e fornecer os links finais.
 
 
 ## QR Codes devem abrir o menu Vercel
@@ -847,3 +847,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Fazer QR Codes apontarem para `https://patio-zambeze-live.vercel.app/menu?...` ou a rota pública equivalente.
 - [x] Garantir que o redirect para Manus afecta apenas `/painel/*`.
 - [x] Validar scan/URL, identificação da mesa e preservação do painel do garçom.
+
+
+## Erro staffLookup na página de Impressões
+
+- [x] Auditar o uso de `skipToken`/inputs na consulta `tableHistory.staffLookup`.
+- [x] Impedir qualquer query sem `queryFn` ou com `skipToken` executado como input.
+- [x] Adicionar regressão e validar `/painel/impressoes` sem erros de consola.
+- [x] Criar checkpoint da correcção.
