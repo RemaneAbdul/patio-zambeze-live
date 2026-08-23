@@ -104,10 +104,95 @@ export async function recordAuditLog(input: { userId?: number | null; role: stri
   }
 }
 
+export async function listWaiterCandidates() {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  return db.select({ id: users.id, name: users.name, email: users.email, role: users.role, openId: users.openId, waiterCode: users.waiterCode, waiterActive: users.waiterActive })
+    .from(users)
+    .where(and(eq(users.role, "user"), isNull(users.waiterCode)))
+    .orderBy(users.name);
+}
+
+export async function promoteUserToWaiter(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const [existing] = await db.select({ id: users.id, openId: users.openId, role: users.role, name: users.name, email: users.email }).from(users).where(eq(users.id, userId)).limit(1);
+  if (!existing) throw new Error("USER_NOT_FOUND");
+  if (existing.role === "admin") throw new Error("ADMIN_CANNOT_BE_WAITER");
+  const waiterCode = `GAR-${existing.openId.slice(-6).toUpperCase()}`;
+  const [updated] = await db.update(users).set({ role: "garcom", waiterCode, waiterActive: 1, updatedAt: new Date() }).where(eq(users.id, userId)).returning({ id: users.id, name: users.name, email: users.email, role: users.role, waiterCode: users.waiterCode, waiterActive: users.waiterActive });
+  if (!updated) throw new Error("WAITER_NOT_CREATED");
+  return updated;
+}
+
 export async function listWaiterUsers() {
   const db = await getDb();
   if (!db) return [];
   return db.select({ id: users.id, openId: users.openId, name: users.name, email: users.email, role: users.role, waiterCode: users.waiterCode, waiterActive: users.waiterActive, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).where(sql`(${users.waiterCode} is not null OR ${users.role} in ('waiter', 'garcom'))`).orderBy(users.name);
+}
+
+export async function listWaiterCurrentAssignments() {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const rows = await db.select({
+    session: tableSessions,
+    waiter: { id: users.id, name: users.name, email: users.email, waiterCode: users.waiterCode },
+  }).from(tableSessions)
+    .innerJoin(users, eq(tableSessions.attendingWaiterId, users.id))
+    .where(and(eq(tableSessions.status, "open"), sql`${tableSessions.attendingWaiterId} IS NOT NULL`))
+    .orderBy(users.name, tableSessions.tableNumber);
+  return rows.map(({ session, waiter }) => ({
+    waiter,
+    table: {
+      sessionToken: session.sessionToken,
+      tableNumber: session.tableNumber,
+      status: session.status,
+      assignedAt: session.attendingSince,
+      lastActivityAt: session.lastActivityAt,
+      viewedAt: session.viewedAt,
+    },
+  }));
+}
+
+export async function getWaiterServiceHistory(waiterId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const [waiter] = await db.select({ id: users.id, name: users.name, email: users.email, role: users.role, waiterCode: users.waiterCode, waiterActive: users.waiterActive })
+    .from(users).where(eq(users.id, waiterId)).limit(1);
+  if (!waiter) throw new Error("WAITER_NOT_FOUND");
+
+  const sessions = await db.select().from(tableSessions)
+    .where(eq(tableSessions.waiterId, waiterId))
+    .orderBy(desc(tableSessions.updatedAt));
+  const selections = sessions.length
+    ? await db.select().from(tableSelections).where(inArray(tableSelections.sessionId, sessions.map((session) => session.id))).orderBy(desc(tableSelections.createdAt))
+    : [];
+  const events = await db.select({ id: auditLogs.id, action: auditLogs.action, entityType: auditLogs.entityType, entityId: auditLogs.entityId, metadata: auditLogs.metadata, createdAt: auditLogs.createdAt })
+    .from(auditLogs).where(eq(auditLogs.userId, waiterId)).orderBy(desc(auditLogs.createdAt)).limit(200);
+
+  const selectionsBySession = new Map<number, typeof selections>();
+  for (const selection of selections) {
+    const current = selectionsBySession.get(selection.sessionId) ?? [];
+    current.push(selection);
+    selectionsBySession.set(selection.sessionId, current);
+  }
+  const sessionHistory = sessions.map((session) => {
+    const orders = selectionsBySession.get(session.id) ?? [];
+    return {
+      sessionToken: session.sessionToken,
+      tableNumber: session.tableNumber,
+      status: session.status,
+      createdAt: session.createdAt,
+      closedAt: session.closedAt,
+      viewedAt: session.viewedAt,
+      attendingSince: session.attendingSince,
+      orderCount: orders.length,
+      viewedOrderCount: orders.filter((order) => order.viewedAt).length,
+      total: orders.reduce((sum, order) => sum + Number(order.subtotal), 0),
+      orders: orders.map((order) => ({ id: order.id, selectionNumber: order.selectionNumber, status: order.status, subtotal: Number(order.subtotal), createdAt: order.createdAt, viewedAt: order.viewedAt, receivedAt: order.receivedAt, finalizedAt: order.finalizedAt })),
+    };
+  });
+  return { waiter, sessions: sessionHistory, events };
 }
 
 export async function setWaiterActive(userId: number, active: boolean) {
@@ -226,14 +311,22 @@ export async function getStaffTables() {
   const tableNumbers = Array.from(new Set([...qrTables.map((table) => table.tableNumber), ...sessions.map((session) => session.tableNumber)])).sort((a, b) => a.localeCompare(b, "pt", { numeric: true }));
   const result = [];
   for (const tableNumber of tableNumbers) {
-    const session = sessions.find((candidate) => candidate.tableNumber === tableNumber);
+    const sessionCandidates = sessions.filter((candidate) => candidate.tableNumber === tableNumber);
+    let session = sessionCandidates[0];
+    let sessionSelections = session ? await db.select().from(tableSelections).where(eq(tableSelections.sessionId, session.id)).orderBy(desc(tableSelections.createdAt)) : [];
+    for (const candidate of sessionCandidates) {
+      const candidateSelections = candidate.id === session?.id ? sessionSelections : await db.select().from(tableSelections).where(eq(tableSelections.sessionId, candidate.id)).orderBy(desc(tableSelections.createdAt));
+      if (candidateSelections.some((selection) => !selection.viewedAt)) {
+        session = candidate;
+        sessionSelections = candidateSelections;
+        break;
+      }
+    }
     if (!session) {
       result.push({ id: -Number(tableNumber), sessionToken: "", tableNumber, status: "open" as const, attendingWaiter: null, attendingWaiterId: null, attendingSince: null, selectionCount: 0, unviewedCount: 0, statusLabel: "empty" as const, total: 0, latestSelectionAt: null });
       continue;
     }
-    const selections = await db.select().from(tableSelections)
-      .where(eq(tableSelections.sessionId, session.id))
-      .orderBy(desc(tableSelections.createdAt));
+    const selections = sessionSelections;
     const unviewed = selections.filter((selection) => !selection.viewedAt).length;
     const attendingWaiter = session.attendingWaiterId
       ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode }).from(users).where(eq(users.id, session.attendingWaiterId)).limit(1)

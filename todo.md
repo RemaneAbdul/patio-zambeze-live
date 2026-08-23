@@ -865,3 +865,19 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Validar pedidos, mesas, QR Codes, recibos, impressão, PDF e responsividade sem regressões.
 - [x] Adicionar/actualizar testes de segurança e fluxos críticos.
 - [x] Rever todo o TODO, criar checkpoint e fornecer o resultado desta implementação incremental.
+
+
+## Correcções da secção Garçons — pasted_content_3
+
+- [x] Auditar a secção Garçons actual contra gestão, permissões, atendimento e histórico exigidos.
+- [x] Garantir que apenas o administrador pode listar, adicionar, activar/desactivar e gerir garçons; edição de perfil e credenciais continuam no Manus OAuth.
+- [x] Preservar histórico de pedidos, mesas, operações e auditoria ao desactivar um garçom.
+- [x] Expor no backend as mesas actualmente atribuídas a cada garçom.
+- [x] Expor no backend o histórico de atendimento por garçom com datas e horas.
+- [x] Impedir definitivamente ao garçom gerir garçons, permissões, QR Codes, mesas e configurações administrativas.
+- [x] Manter as permissões operacionais do garçom para mesas, pedidos, estados, recibos, PDF e finalização.
+- [x] Actualizar a interface Garçons sem fotografia, com estado, mesa actual e acções administrativas claras.
+- [x] Não implementar redefinição de palavra-passe local enquanto a autenticação oficial for Manus OAuth; documentar a limitação de forma segura.
+- [x] Adicionar testes de autorização, preservação de histórico, atendimento actual e histórico por garçom.
+- [x] Validar TypeScript, suite Vitest, build e fluxos desktop/mobile.
+- [x] Rever TODO, criar checkpoint e fornecer a implementação.
