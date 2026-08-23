@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { isAdminRole } from "@shared/roles";
 import DashboardLayout from "@/components/DashboardLayout";
 import { CheckCircle2, ClipboardList, Clock3, Edit3, History, Plus, ShieldCheck, UserRound, UsersRound, XCircle } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -12,9 +14,11 @@ const emptyForm: FormState = { fullName: "", username: "", email: "", phone: "",
 export default function WaitersPanel() {
   const [selectedWaiterId, setSelectedWaiterId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
-  const waiters = trpc.staff.list.useQuery(undefined, { retry: false });
-  const assignments = trpc.staff.currentAssignments.useQuery(undefined, { retry: false });
-  const history = trpc.staff.serviceHistory.useQuery({ userId: selectedWaiterId ?? 0 }, { enabled: selectedWaiterId !== null, retry: false });
+  const { user } = useAuth();
+  const isAdmin = isAdminRole(user?.role);
+  const waiters = trpc.staff.list.useQuery(undefined, { enabled: isAdmin, retry: false });
+  const assignments = trpc.staff.currentAssignments.useQuery(undefined, { enabled: isAdmin, retry: false });
+  const history = trpc.staff.serviceHistory.useQuery({ userId: selectedWaiterId ?? 0 }, { enabled: isAdmin && selectedWaiterId !== null, retry: false });
   const utils = trpc.useUtils();
   const addWaiter = trpc.staff.add.useMutation({ onSuccess: async () => { setForm(null); await utils.staff.list.invalidate(); } });
   const updateWaiter = trpc.staff.update.useMutation({ onSuccess: async () => { setForm(null); await Promise.all([utils.staff.list.invalidate(), utils.staff.currentAssignments.invalidate()]); } });

@@ -952,3 +952,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Validar `restaurantId`, RLS e ausência de acesso entre restaurantes.
 - [x] Confirmar auditoria de login/logout e acções administrativas sem passwords ou tokens.
 - [x] Executar testes obrigatórios de admin, garçom, sessão, desactivação e isolamento; guardar checkpoint.
+
+## Correcção: acesso de garçom a rota administrativa
+
+- [x] Evitar que `/painel/pratos` execute a query administrativa para uma conta `garcom`.
+- [x] Mostrar uma mensagem visual de acesso bloqueado em vez de erro tRPC não tratado.
+- [x] Manter `adminProcedure` e a autorização backend sem enfraquecimento.
+- [x] Adicionar regressão para rotas admin-only e validar TypeScript, Vitest, build e checkpoint.
