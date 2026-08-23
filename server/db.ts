@@ -291,7 +291,7 @@ export async function getUserByOpenId(openId: string) {
 // TODO: add feature queries here as your schema grows.
 
 
-import { and, desc, eq, inArray, isNull, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, lt, sql } from "drizzle-orm";
 import { menuCategories, menuProducts, tableQrCodes, tableSelectionItems, tableSelections, tableSessions, InsertTableSelectionItem } from "../drizzle/schema";
 
 let lastSessionCleanupAt = 0;
@@ -597,7 +597,7 @@ export async function createTableSelection(input: {
   sessionToken: string;
   tableNumber?: string;
   tableId?: string;
-  items: Array<{ productName: string; preparation?: string; quantity: number; unitPrice: number }>;
+  items: Array<{ productId?: number; productName: string; preparation?: string; quantity: number; unitPrice: number }>;
   subtotal: number;
 }) {
   if (!input.items.length) throw new Error("Cannot persist an empty selection");
@@ -617,6 +617,20 @@ export async function createTableSelection(input: {
     }
   }
   return db.transaction(async (tx) => {
+    const productIds = input.items.flatMap((item) => item.productId ? [item.productId] : []);
+    let itemsToPersist = input.items;
+    if (productIds.length) {
+      const validProducts = await tx.select({ id: menuProducts.id, name: menuProducts.name, price: menuProducts.price, preparation: menuProducts.preparation }).from(menuProducts).where(and(eq(menuProducts.restaurantId, MENU_RESTAURANT_ID), inArray(menuProducts.id, productIds), eq(menuProducts.status, "ACTIVE")));
+      if (validProducts.length !== new Set(productIds).size) throw new Error("PRODUCT_NOT_AVAILABLE");
+      const byId = new Map(validProducts.map((product) => [product.id, product]));
+      itemsToPersist = input.items.map((item) => {
+        if (!item.productId) return item;
+        const product = byId.get(item.productId);
+        if (!product) throw new Error("PRODUCT_NOT_AVAILABLE");
+        return { ...item, productName: product.name, unitPrice: Number(product.price), preparation: product.preparation ?? item.preparation };
+      });
+    }
+    const persistedSubtotal = itemsToPersist.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
     const openOrders = await tx.select({ id: tableSelections.id, selectionNumber: tableSelections.selectionNumber, subtotal: tableSelections.subtotal })
       .from(tableSelections)
       .where(and(eq(tableSelections.sessionId, session.id), isNull(tableSelections.viewedAt)))
@@ -624,19 +638,19 @@ export async function createTableSelection(input: {
       .limit(1);
     const openOrder = openOrders[0];
     if (openOrder) {
-      const nextSubtotal = Number(openOrder.subtotal) + input.subtotal;
+      const nextSubtotal = Number(openOrder.subtotal) + persistedSubtotal;
       await tx.update(tableSelections).set({ subtotal: nextSubtotal.toFixed(2) }).where(eq(tableSelections.id, openOrder.id));
-      await tx.insert(tableSelectionItems).values(input.items.map((item) => ({ ...item, selectionId: openOrder.id, unitPrice: item.unitPrice.toFixed(2) })));
+      await tx.insert(tableSelectionItems).values(itemsToPersist.map((item) => ({ ...item, selectionId: openOrder.id, unitPrice: item.unitPrice.toFixed(2) })));
       await tx.update(tableSessions).set({ lastActivityAt: new Date() }).where(eq(tableSessions.id, session.id));
       return { id: openOrder.id, selectionNumber: openOrder.selectionNumber, sessionToken: effectiveToken, mergedIntoOpenOrder: true };
     }
     const existing = await tx.select({ id: tableSelections.id }).from(tableSelections).where(eq(tableSelections.sessionId, session.id));
     const selectionNumber = existing.length + 1;
     const now = new Date();
-    const inserted = await tx.insert(tableSelections).values({ sessionId: session.id, selectionNumber, subtotal: input.subtotal.toFixed(2), sentAt: now }).returning({ id: tableSelections.id });
+    const inserted = await tx.insert(tableSelections).values({ sessionId: session.id, selectionNumber, subtotal: persistedSubtotal.toFixed(2), sentAt: now }).returning({ id: tableSelections.id });
     const selectionId = inserted[0]?.id;
     if (!selectionId) throw new Error("SELECTION_CREATE_FAILED");
-    await tx.insert(tableSelectionItems).values(input.items.map((item) => ({ ...item, selectionId, unitPrice: item.unitPrice.toFixed(2) })));
+    await tx.insert(tableSelectionItems).values(itemsToPersist.map((item) => ({ ...item, selectionId, unitPrice: item.unitPrice.toFixed(2) })));
     await tx.update(tableSessions).set({ lastActivityAt: now }).where(eq(tableSessions.id, session.id));
     return { id: selectionId, selectionNumber, sessionToken: effectiveToken, mergedIntoOpenOrder: false };
   });
@@ -645,27 +659,54 @@ export async function createTableSelection(input: {
 
 export const MENU_RESTAURANT_ID = "default";
 
-export async function listMenuCategories() {
+export async function listMenuCategories(includeInactive = true) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  return db.select().from(menuCategories).where(eq(menuCategories.restaurantId, MENU_RESTAURANT_ID)).orderBy(menuCategories.name);
+  const conditions = includeInactive
+    ? eq(menuCategories.restaurantId, MENU_RESTAURANT_ID)
+    : and(eq(menuCategories.restaurantId, MENU_RESTAURANT_ID), eq(menuCategories.status, "ACTIVE"));
+  return db.select().from(menuCategories).where(conditions).orderBy(asc(menuCategories.displayOrder), asc(menuCategories.name));
 }
 
-export async function createMenuCategory(name: string) {
+export async function createMenuCategory(input: { name: string; description?: string; displayOrder?: number }) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const normalized = name.trim();
+  const normalized = input.name.trim();
   if (!normalized) throw new Error("Category name is required");
-  await db.insert(menuCategories).values({ restaurantId: MENU_RESTAURANT_ID, name: normalized });
-  const rows = await db.select().from(menuCategories).where(and(eq(menuCategories.restaurantId, MENU_RESTAURANT_ID), eq(menuCategories.name, normalized))).orderBy(desc(menuCategories.id)).limit(1);
+  const inserted = await db.insert(menuCategories).values({ restaurantId: MENU_RESTAURANT_ID, name: normalized, description: input.description?.trim() || null, displayOrder: input.displayOrder ?? 0 }).returning({ id: menuCategories.id });
+  const rows = await db.select().from(menuCategories).where(eq(menuCategories.id, inserted[0]!.id)).limit(1);
   return rows[0];
 }
 
-export async function listMenuProducts(includeRemoved = false) {
+export async function updateMenuCategory(id: number, input: { name: string; description?: string; displayOrder?: number; status?: "ACTIVE" | "INACTIVE" | "REMOVED" }) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const statuses = includeRemoved ? ["ACTIVE", "INACTIVE", "REMOVED"] as const : ["ACTIVE", "INACTIVE"] as const;
-  return db.select({ product: menuProducts, category: menuCategories }).from(menuProducts).leftJoin(menuCategories, eq(menuProducts.categoryId, menuCategories.id)).where(and(eq(menuProducts.restaurantId, MENU_RESTAURANT_ID), inArray(menuProducts.status, statuses))).orderBy(desc(menuProducts.updatedAt));
+  const normalized = input.name.trim();
+  if (!normalized) throw new Error("Category name is required");
+  const existing = await db.select({ id: menuCategories.id }).from(menuCategories).where(and(eq(menuCategories.id, id), eq(menuCategories.restaurantId, MENU_RESTAURANT_ID))).limit(1);
+  if (!existing[0]) throw new Error("CATEGORY_NOT_FOUND");
+  await db.update(menuCategories).set({ name: normalized, description: input.description?.trim() || null, displayOrder: input.displayOrder ?? 0, status: input.status ?? "ACTIVE", updatedAt: new Date() }).where(eq(menuCategories.id, id));
+  const rows = await db.select().from(menuCategories).where(eq(menuCategories.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function deleteMenuCategory(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const category = await db.select({ id: menuCategories.id }).from(menuCategories).where(and(eq(menuCategories.id, id), eq(menuCategories.restaurantId, MENU_RESTAURANT_ID))).limit(1);
+  if (!category[0]) throw new Error("CATEGORY_NOT_FOUND");
+  const linked = await db.select({ id: menuProducts.id }).from(menuProducts).where(and(eq(menuProducts.categoryId, id), inArray(menuProducts.status, ["ACTIVE", "INACTIVE"]))).limit(1);
+  if (linked[0]) throw new Error("CATEGORY_HAS_PRODUCTS");
+  await db.update(menuCategories).set({ status: "REMOVED", updatedAt: new Date() }).where(eq(menuCategories.id, id));
+  return { success: true as const };
+}
+
+export async function listMenuProducts(includeRemoved = false, publicOnly = false) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const statuses = includeRemoved ? ["ACTIVE", "INACTIVE", "REMOVED"] as const : publicOnly ? ["ACTIVE"] as const : ["ACTIVE", "INACTIVE"] as const;
+  const categoryStatus = publicOnly ? eq(menuCategories.status, "ACTIVE") : sql`TRUE`;
+  return db.select({ product: menuProducts, category: menuCategories }).from(menuProducts).innerJoin(menuCategories, eq(menuProducts.categoryId, menuCategories.id)).where(and(eq(menuProducts.restaurantId, MENU_RESTAURANT_ID), eq(menuCategories.restaurantId, MENU_RESTAURANT_ID), categoryStatus, inArray(menuProducts.status, statuses))).orderBy(asc(menuCategories.displayOrder), asc(menuProducts.displayOrder), asc(menuProducts.name));
 }
 
 async function assertMenuCategory(db: NonNullable<Awaited<ReturnType<typeof getDb>>>, categoryId: number) {
@@ -673,13 +714,13 @@ async function assertMenuCategory(db: NonNullable<Awaited<ReturnType<typeof getD
   if (!rows[0]) throw new Error("CATEGORY_NOT_FOUND");
 }
 
-export async function createMenuProduct(input: { categoryId: number; name: string; description?: string; preparation?: string; preparationEn?: string; price: number; imageUrl?: string; }) {
+export async function createMenuProduct(input: { categoryId: number; name: string; nameEn?: string; description?: string; descriptionEn?: string; preparation?: string; preparationEn?: string; price: number; imageUrl?: string; }) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const name = input.name.trim();
   if (!name) throw new Error("PRODUCT_NAME_REQUIRED");
   await assertMenuCategory(db, input.categoryId);
-  const inserted = await db.insert(menuProducts).values({ ...input, name, description: input.description?.trim() || null, preparation: input.preparation?.trim() || null, preparationEn: input.preparationEn?.trim() || null, restaurantId: MENU_RESTAURANT_ID, price: input.price.toFixed(2), status: "ACTIVE" }).returning({ id: menuProducts.id });
+  const inserted = await db.insert(menuProducts).values({ ...input, name, nameEn: input.nameEn?.trim() || null, description: input.description?.trim() || null, descriptionEn: input.descriptionEn?.trim() || null, preparation: input.preparation?.trim() || null, preparationEn: input.preparationEn?.trim() || null, restaurantId: MENU_RESTAURANT_ID, price: input.price.toFixed(2), status: "ACTIVE" }).returning({ id: menuProducts.id });
   const productId = inserted[0]?.id;
   if (!productId) throw new Error("PRODUCT_CREATE_FAILED");
   const rows = await db.select().from(menuProducts).where(eq(menuProducts.id, productId)).limit(1);
@@ -687,7 +728,7 @@ export async function createMenuProduct(input: { categoryId: number; name: strin
   return rows[0];
 }
 
-export async function updateMenuProduct(id: number, input: { categoryId: number; name: string; description?: string; preparation?: string; preparationEn?: string; price: number; imageUrl?: string; }) {
+export async function updateMenuProduct(id: number, input: { categoryId: number; name: string; nameEn?: string; description?: string; descriptionEn?: string; preparation?: string; preparationEn?: string; price: number; imageUrl?: string; }) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const name = input.name.trim();
@@ -695,7 +736,7 @@ export async function updateMenuProduct(id: number, input: { categoryId: number;
   await assertMenuCategory(db, input.categoryId);
   const existing = await db.select({ id: menuProducts.id }).from(menuProducts).where(and(eq(menuProducts.id, id), eq(menuProducts.restaurantId, MENU_RESTAURANT_ID), inArray(menuProducts.status, ["ACTIVE", "INACTIVE"]))).limit(1);
   if (!existing[0]) throw new Error("PRODUCT_NOT_FOUND");
-  await db.update(menuProducts).set({ ...input, name, description: input.description?.trim() || null, preparation: input.preparation?.trim() || null, preparationEn: input.preparationEn?.trim() || null, price: input.price.toFixed(2), updatedAt: new Date() }).where(eq(menuProducts.id, id));
+  await db.update(menuProducts).set({ ...input, name, nameEn: input.nameEn?.trim() || null, description: input.description?.trim() || null, descriptionEn: input.descriptionEn?.trim() || null, preparation: input.preparation?.trim() || null, preparationEn: input.preparationEn?.trim() || null, price: input.price.toFixed(2), updatedAt: new Date() }).where(eq(menuProducts.id, id));
   const rows = await db.select().from(menuProducts).where(eq(menuProducts.id, id)).limit(1);
   if (!rows[0]) throw new Error("PRODUCT_UPDATE_FAILED");
   return rows[0];

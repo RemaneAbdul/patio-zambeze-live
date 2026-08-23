@@ -5,7 +5,7 @@ import { adminProcedure, protectedProcedure, publicProcedure, router, staffProce
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import { storagePut } from "./storage";
-import {   assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, createMenuProduct, createTableSelection, getStaffTables, listWaiterUsers, recordAuditLog, setWaiterActive, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, getWaiterServiceHistory, listMenuCategories, listMenuProducts, listWaiterCandidates, listWaiterCurrentAssignments, promoteUserToWaiter, listTableQrCodes, listViewedReceipts, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode, listGarcons, createGarcon, updateGarcon, deleteGarcon, getGarconProfileByLegacyUserId, MENU_RESTAURANT_ID } from "./db";
+import {   assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, updateMenuCategory, deleteMenuCategory, createMenuProduct, createTableSelection, getStaffTables, listWaiterUsers, recordAuditLog, setWaiterActive, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, getWaiterServiceHistory, listMenuCategories, listMenuProducts, listWaiterCandidates, listWaiterCurrentAssignments, promoteUserToWaiter, listTableQrCodes, listViewedReceipts, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode, listGarcons, createGarcon, updateGarcon, deleteGarcon, getGarconProfileByLegacyUserId, MENU_RESTAURANT_ID } from "./db";
 
 const allowedMenuImageUrl = /^(https?:\/\/|\/|data:image\/(jpeg|jpg|png|webp|avif);base64,)/;
 export const menuImageUrlSchema = z.string().max(8_000_000).refine((value) => allowedMenuImageUrl.test(value), "Formato de imagem inválido").optional();
@@ -66,12 +66,15 @@ export const appRouter = router({
   }),
 
   menu: router({
-    active: publicProcedure.query(() => listMenuProducts(false)),
-    categories: publicProcedure.query(() => listMenuCategories()),
+    active: publicProcedure.query(() => listMenuProducts(false, true)),
+    categories: adminProcedure.query(() => listMenuCategories(true)),
+    publicCategories: publicProcedure.query(() => listMenuCategories(false)),
     adminList: adminProcedure.input(z.object({ includeRemoved: z.boolean().default(false) })).query(({ input }) => listMenuProducts(input.includeRemoved)),
-    createCategory: adminProcedure.input(z.object({ name: z.string().trim().min(1).max(100) })).mutation(({ input, ctx }) => auditMutation(ctx, "CATEGORY_CREATED", "menu_category", undefined, () => createMenuCategory(input.name))),
-    create: adminProcedure.input(z.object({ categoryId: z.number().int().positive(), name: z.string().trim().min(1).max(160), description: z.string().max(4000).optional(), preparation: z.string().max(1000).optional(), preparationEn: z.string().max(1000).optional(), price: z.number().nonnegative(), imageUrl: menuImageUrlSchema })).mutation(async ({ input, ctx }) => auditMutation(ctx, "PRODUCT_CREATED", "menu_product", undefined, async () => createMenuProduct({ ...input, imageUrl: await persistMenuImage(input.imageUrl) }))),
-    update: adminProcedure.input(z.object({ id: z.number().int().positive(), categoryId: z.number().int().positive(), name: z.string().trim().min(1).max(160), description: z.string().max(4000).optional(), preparation: z.string().max(1000).optional(), preparationEn: z.string().max(1000).optional(), price: z.number().nonnegative(), imageUrl: menuImageUrlSchema })).mutation(async ({ input, ctx }) => { const { id, ...data } = input; return auditMutation(ctx, "PRODUCT_UPDATED", "menu_product", id, async () => updateMenuProduct(id, { ...data, imageUrl: await persistMenuImage(data.imageUrl) })); }),
+    createCategory: adminProcedure.input(z.object({ name: z.string().trim().min(1).max(100), description: z.string().max(1000).optional(), displayOrder: z.number().int().nonnegative().default(0) })).mutation(({ input, ctx }) => auditMutation(ctx, "CATEGORY_CREATED", "menu_category", undefined, () => createMenuCategory(input))),
+    updateCategory: adminProcedure.input(z.object({ id: z.number().int().positive(), name: z.string().trim().min(1).max(100), description: z.string().max(1000).optional(), displayOrder: z.number().int().nonnegative().default(0), status: z.enum(["ACTIVE", "INACTIVE", "REMOVED"]).default("ACTIVE") })).mutation(({ input, ctx }) => auditMutation(ctx, input.status === "INACTIVE" ? "CATEGORY_DISABLED" : "CATEGORY_UPDATED", "menu_category", input.id, () => updateMenuCategory(input.id, input))),
+    deleteCategory: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input, ctx }) => auditMutation(ctx, "CATEGORY_DELETED", "menu_category", input.id, () => deleteMenuCategory(input.id))),
+    create: adminProcedure.input(z.object({ categoryId: z.number().int().positive(), name: z.string().trim().min(1).max(160), nameEn: z.string().trim().max(160).optional(), description: z.string().max(4000).optional(), descriptionEn: z.string().max(4000).optional(), preparation: z.string().max(1000).optional(), preparationEn: z.string().max(1000).optional(), price: z.number().nonnegative(), imageUrl: menuImageUrlSchema })).mutation(async ({ input, ctx }) => auditMutation(ctx, "PRODUCT_CREATED", "menu_product", undefined, async () => createMenuProduct({ ...input, imageUrl: await persistMenuImage(input.imageUrl) }))),
+    update: adminProcedure.input(z.object({ id: z.number().int().positive(), categoryId: z.number().int().positive(), name: z.string().trim().min(1).max(160), nameEn: z.string().trim().max(160).optional(), description: z.string().max(4000).optional(), descriptionEn: z.string().max(4000).optional(), preparation: z.string().max(1000).optional(), preparationEn: z.string().max(1000).optional(), price: z.number().nonnegative(), imageUrl: menuImageUrlSchema })).mutation(async ({ input, ctx }) => { const { id, ...data } = input; return auditMutation(ctx, "PRODUCT_UPDATED", "menu_product", id, async () => updateMenuProduct(id, { ...data, imageUrl: await persistMenuImage(data.imageUrl) })); }),
     setStatus: adminProcedure.input(z.object({ id: z.number().int().positive(), status: z.enum(["ACTIVE", "INACTIVE", "REMOVED"]) })).mutation(({ input, ctx }) => auditMutation(ctx, "PRODUCT_STATUS_CHANGED", "menu_product", input.id, () => setMenuProductStatus(input.id, input.status))),
   }),
 
@@ -99,6 +102,7 @@ export const appRouter = router({
       subtotal: z.number().nonnegative(),
       items: z.array(
         z.object({
+          productId: z.number().int().positive().optional(),
           productName: z.string().min(1).max(160),
           preparation: z.string().max(1000).optional(),
           quantity: z.number().int().positive(),
