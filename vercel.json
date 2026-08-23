@@ -3,6 +3,13 @@
   "framework": "vite",
   "buildCommand": "pnpm build",
   "outputDirectory": "dist/public",
+  "redirects": [
+    {
+      "source": "/painel/:path*",
+      "destination": "https://menudigital-8xuhohcp.manus.space/painel/:path*",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/manus-storage/:path*",

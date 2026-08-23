@@ -816,3 +816,26 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Confirmar que apenas variáveis `VITE_*` públicas chegam ao cliente.
 - [x] Invalidar e substituir a connection string Supabase que foi usada no build público.
 - [x] Republicar e validar o botão Sign in sem expor credenciais.
+
+
+## Erro OAuth: redirect URI Vercel não autorizada
+
+- [ ] Autorizar `https://patio-zambeze-live.vercel.app/api/oauth/callback` no projecto OAuth Manus.
+- [ ] Repetir o login no domínio Vercel após a autorização.
+- [ ] Confirmar cookie/sessão e carregamento do painel do garçom.
+
+
+## Painel do garçom integrado no Vercel
+
+- [x] Confirmar rota `/painel/mesas`, fallback SPA e proxy `/api/trpc` no domínio Vercel.
+- [ ] Integrar uma origem OAuth autorizada para o painel Vercel sem expor credenciais.
+- [ ] Validar sessão autenticada, API tRPC e leitura dos dados Supabase no Vercel.
+- [ ] Fornecer o link final do painel e guardar checkpoint após validação.
+
+
+## Opção 1: redirect do painel Vercel para Manus
+
+- [ ] Encaminhar `/painel/*` do domínio Vercel para o painel Manus autorizado.
+- [ ] Manter o menu público, imagens e API do menu no Vercel sem alteração.
+- [ ] Validar redirect, login OAuth e navegação das rotas internas.
+- [ ] Criar checkpoint e fornecer os links finais.
