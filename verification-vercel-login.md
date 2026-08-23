@@ -33,3 +33,5 @@ Após o deployment `dpl_EvwvCCXQwiALQN123vZsFReA6pYJ` ficar `READY`, as rotas `h
 
 
 No deployment Vercel `dpl_9ChowSrEtzb4gXfJMZZ2uVae6ze5`, `/painel/login` carregou no domínio oficial com os campos de autenticação e `/menu?table=1` carregou com 15 produtos, imagens, PT/EN e funcionalidades do menu. O routing não redireccionou para Manus.
+
+2026-08-23: No deployment READY associado ao commit 76de291, `/menu?table=1` carregou 5 categorias e 15 pratos persistidos com imagens; `/painel/login` carregou no domínio oficial Vercel sem redirect para Manus.
