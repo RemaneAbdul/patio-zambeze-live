@@ -9,6 +9,10 @@
       "destination": "https://menudigital-8xuhohcp.manus.space/manus-storage/:path*"
     },
     {
+      "source": "/api/:path*",
+      "destination": "https://menudigital-8xuhohcp.manus.space/api/:path*"
+    },
+    {
       "source": "/:path((?!api/).*)",
       "destination": "/index.html"
     }

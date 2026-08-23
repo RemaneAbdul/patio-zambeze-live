@@ -765,3 +765,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [ ] Impedir que o fallback SPA encaminhe `/api/trpc/*` para `index.html`.
 - [ ] Fazer `/api/trpc/*` chegar à função Express/tRPC com o path original.
 - [ ] Republicar pelo GitHub e validar resposta JSON do endpoint público `menu.active`.
+
+
+## Proxy da API Vercel
+
+- [ ] Encaminhar `/api/*` do domínio Vercel para o backend Manus validado, antes do fallback SPA.
+- [ ] Encaminhar o callback OAuth do domínio Vercel sem expor credenciais.
+- [ ] Republicar e validar JSON tRPC, login do painel e menu público com imagens.
