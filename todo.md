@@ -835,7 +835,7 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 ## Opção 1: redirect do painel Vercel para Manus
 
-- [ ] Encaminhar `/painel/*` do domínio Vercel para o painel Manus autorizado.
-- [ ] Manter o menu público, imagens e API do menu no Vercel sem alteração.
-- [ ] Validar redirect, login OAuth e navegação das rotas internas.
+- [x] Encaminhar `/painel/*` do domínio Vercel para o painel Manus autorizado.
+- [x] Manter o menu público, imagens e API do menu no Vercel sem alteração.
+- [x] Validar redirect e navegação das rotas internas; o login OAuth continua dependente da autorização do serviço Manus.
 - [ ] Criar checkpoint e fornecer os links finais.
