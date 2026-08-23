@@ -95,14 +95,21 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
 }
 
-export async function recordAuditLog(input: { userId?: number | null; role: string; action: string; entityType?: string; entityId?: string | number; metadata?: Record<string, unknown> }) {
+export async function recordAuditLog(input: { userId?: number | null; restaurantId?: string | null; role: string; action: string; entityType?: string; entityId?: string | number; metadata?: Record<string, unknown> }) {
   const db = await getDb();
   if (!db) return;
   try {
-    await db.insert(auditLogs).values({ userId: input.userId ?? null, role: input.role, action: input.action, entityType: input.entityType, entityId: input.entityId == null ? undefined : String(input.entityId), metadata: input.metadata ? JSON.stringify(input.metadata) : undefined });
+    await db.insert(auditLogs).values({ userId: input.userId ?? null, restaurantId: input.restaurantId ?? "default", role: input.role, action: input.action, entityType: input.entityType, entityId: input.entityId == null ? undefined : String(input.entityId), metadata: input.metadata ? JSON.stringify(input.metadata) : undefined });
   } catch (error) {
     console.warn("[Audit] Could not persist audit event", error);
   }
+}
+
+export async function getGarconProfileByLegacyUserId(legacyUserId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const [profile] = await db.select({ id: garcons.id, authUserId: garcons.authUserId, legacyUserId: garcons.legacyUserId, restaurantId: garcons.restaurantId, role: garcons.role, status: garcons.status, fullName: garcons.fullName, email: garcons.email }).from(garcons).where(eq(garcons.legacyUserId, legacyUserId)).limit(1);
+  return profile ?? null;
 }
 
 export async function listGarcons() {

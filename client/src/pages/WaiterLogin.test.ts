@@ -1,0 +1,19 @@
+import fs from "node:fs";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+
+const source = fs.readFileSync(path.resolve(import.meta.dirname, "WaiterLogin.tsx"), "utf8");
+
+describe("Supabase waiter login routing", () => {
+  it("loads the persisted profile before navigating", () => {
+    expect(source).toContain("profileQuery.refetch()");
+    expect(source).toContain('profile.role === "admin" ? "/painel" : "/painel/garcom"');
+    expect(source).toContain("recordLogin.mutateAsync()");
+    expect(source).not.toContain('navigate("/painel/garcom");');
+  });
+
+  it("rejects accounts without an active configured profile", () => {
+    expect(source).toContain("O seu perfil não está configurado ou está inactivo");
+    expect(source).toContain("supabase.auth.signOut()");
+  });
+});

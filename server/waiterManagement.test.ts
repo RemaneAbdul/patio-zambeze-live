@@ -6,12 +6,34 @@ const routerSource = fs.readFileSync(path.resolve(import.meta.dirname, "routers.
 const dbSource = fs.readFileSync(path.resolve(import.meta.dirname, "db.ts"), "utf8");
 
 describe("waiter management security contracts", () => {
+  it("resolves the authenticated profile before role-based routing", () => {
+    expect(routerSource).toContain("profile: publicProcedure");
+    expect(routerSource).toContain("getGarconProfileByLegacyUserId(ctx.user.id)");
+    expect(routerSource).toContain('profile.status !== "ATIVO"');
+  });
+
+  it("associates audit events with the persisted waiter restaurant", () => {
+    expect(routerSource).toContain("const waiterProfile = ctx.user?.role === \"garcom\"");
+    expect(routerSource).toContain("restaurantId: waiterProfile?.restaurantId ?? \"default\"");
+  });
+
+  it("keeps authentication events auditable server-side", () => {
+    expect(routerSource).toContain('action: "AUTH_LOGIN_SUCCESS"');
+    expect(routerSource).toContain('action: "AUTH_LOGOUT"');
+    expect(routerSource).toContain("ctx.user.id");
+  });
+
   it("keeps onboarding, activation, assignments and history admin-only", () => {
     expect(routerSource).toContain("candidates: adminProcedure");
     expect(routerSource).toContain("add: adminProcedure");
     expect(routerSource).toContain("setActive: adminProcedure");
     expect(routerSource).toContain("currentAssignments: adminProcedure");
     expect(routerSource).toContain("serviceHistory: adminProcedure");
+  });
+
+  it("requires a matching active Supabase waiter profile", () => {
+    expect(fs.readFileSync(path.resolve(import.meta.dirname, "_core/context.ts"), "utf8")).toContain("garconProfile?.authUserId === supabaseUser.id");
+    expect(fs.readFileSync(path.resolve(import.meta.dirname, "_core/context.ts"), "utf8")).toContain('garconProfile.status === "ATIVO"');
   });
 
   it("keeps operational table actions under staffProcedure", () => {

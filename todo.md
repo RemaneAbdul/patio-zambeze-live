@@ -926,3 +926,17 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Evitar duplicação e remover automaticamente uma conta Auth órfã quando a persistência local falhar.
 - [x] Adicionar teste de regressão e validar novamente o fluxo administrativo.
 - [x] Executar TypeScript, Vitest, build e guardar checkpoint.
+
+## Correcção completa: login, roles, permissões e Supabase Audit Logs
+
+- [x] Auditar o fluxo actual Manus OAuth/Supabase Auth e identificar a origem do redireccionamento errado.
+- [x] Garantir que o role e o restaurante vêm do perfil persistido, nunca de estado manipulável no frontend.
+- [x] Criar consulta segura de perfil Supabase com role, restaurantId e status.
+- [x] Bloquear no backend contas inactivas ou sem perfil correspondente.
+- [x] Redireccionar administradores e garçons para os painéis correctos sem alterar desnecessariamente as rotas existentes.
+- [x] Proteger páginas e procedimentos administrativos contra acesso de garçons.
+- [x] Restringir operações operacionais do garçom ao restaurante associado.
+- [x] Configurar funções e políticas RLS de perfil/restaurante no Supabase sem expor dados entre restaurantes.
+- [x] Verificar a integração de auditoria para login, logout, criação e alterações de contas.
+- [x] Adicionar testes de role, redireccionamento, status, isolamento, RLS e regressão.
+- [x] Validar TypeScript, Vitest, build e fluxos desktop/mobile; guardar checkpoint.

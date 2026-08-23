@@ -1,11 +1,11 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { adminProcedure, publicProcedure, router, staffProcedure } from "./_core/trpc";
+import { adminProcedure, protectedProcedure, publicProcedure, router, staffProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import { storagePut } from "./storage";
-import {   assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, createMenuProduct, createTableSelection, getStaffTables, listWaiterUsers, recordAuditLog, setWaiterActive, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, getWaiterServiceHistory, listMenuCategories, listMenuProducts, listWaiterCandidates, listWaiterCurrentAssignments, promoteUserToWaiter, listTableQrCodes, listViewedReceipts, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode, listGarcons, createGarcon, updateGarcon } from "./db";
+import {   assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, createMenuProduct, createTableSelection, getStaffTables, listWaiterUsers, recordAuditLog, setWaiterActive, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, getWaiterServiceHistory, listMenuCategories, listMenuProducts, listWaiterCandidates, listWaiterCurrentAssignments, promoteUserToWaiter, listTableQrCodes, listViewedReceipts, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode, listGarcons, createGarcon, updateGarcon, getGarconProfileByLegacyUserId } from "./db";
 
 const allowedMenuImageUrl = /^(https?:\/\/|\/|data:image\/(jpeg|jpg|png|webp|avif);base64,)/;
 export const menuImageUrlSchema = z.string().max(8_000_000).refine((value) => allowedMenuImageUrl.test(value), "Formato de imagem inválido").optional();
@@ -25,7 +25,8 @@ async function persistMenuImage(imageUrl?: string) {
 
 async function auditMutation<T>(ctx: { user?: { id: number; role: string } | null }, action: string, entityType: string, entityId: string | number | undefined, operation: () => Promise<T> | T) {
   const result = await operation();
-  await recordAuditLog({ userId: ctx.user?.id ?? null, role: ctx.user?.role ?? "customer", action, entityType, entityId });
+  const waiterProfile = ctx.user?.role === "garcom" ? await getGarconProfileByLegacyUserId(ctx.user.id) : null;
+  await recordAuditLog({ userId: ctx.user?.id ?? null, restaurantId: waiterProfile?.restaurantId ?? "default", role: ctx.user?.role ?? "customer", action, entityType, entityId });
   return result;
 }
 
@@ -34,7 +35,9 @@ export const appRouter = router({
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
-    logout: publicProcedure.mutation(({ ctx }) => {
+    recordLogin: protectedProcedure.mutation(({ ctx }) => recordAuditLog({ userId: ctx.user.id, role: ctx.user.role, action: "AUTH_LOGIN_SUCCESS", entityType: "auth_session", entityId: ctx.user.openId }).then(() => ({ success: true as const }))),
+    logout: publicProcedure.mutation(async ({ ctx }) => {
+      if (ctx.user) await recordAuditLog({ userId: ctx.user.id, role: ctx.user.role, action: "AUTH_LOGOUT", entityType: "auth_session", entityId: ctx.user.openId });
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return {
@@ -44,6 +47,13 @@ export const appRouter = router({
   }),
 
   staff: router({
+    profile: publicProcedure.query(async ({ ctx }) => {
+      if (!ctx.user) return null;
+      if (ctx.user.role === "admin") return { role: "admin" as const, restaurantId: "default", status: "ATIVO" as const, userId: ctx.user.id };
+      const profile = await getGarconProfileByLegacyUserId(ctx.user.id);
+      if (!profile || profile.status !== "ATIVO" || ctx.user.role !== "garcom" || ctx.user.waiterActive === 0) return null;
+      return { role: "garcom" as const, restaurantId: profile.restaurantId, status: profile.status, userId: ctx.user.id };
+    }),
     list: adminProcedure.query(() => listGarcons()),
     candidates: adminProcedure.query(() => []),
     add: adminProcedure.input(z.object({ fullName: z.string().trim().min(1).max(160), username: z.string().trim().min(3).max(64).regex(/^[a-z0-9._-]+$/), email: z.string().email().max(320), phone: z.string().max(32).optional(), password: z.string().min(6).max(128), active: z.boolean().default(true), restaurantId: z.string().trim().min(1).max(64).default("default") })).mutation(({ input, ctx }) => auditMutation(ctx, "WAITER_CREATED", "garcon", undefined, () => createGarcon(input))),

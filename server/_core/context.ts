@@ -2,7 +2,7 @@ import type { CreateExpressContextOptions } from "@trpc/server/adapters/express"
 import type { User } from "../../drizzle/schema";
 import { sdk } from "./sdk";
 import { getSupabaseUserFromAccessToken } from "../supabaseAuth";
-import { getUserByOpenId } from "../db";
+import { getGarconProfileByLegacyUserId, getUserByOpenId } from "../db";
 
 export type TrpcContext = {
   req: CreateExpressContextOptions["req"];
@@ -27,7 +27,17 @@ export async function createContext(
     if (accessToken) {
       try {
         const supabaseUser = await getSupabaseUserFromAccessToken(accessToken);
-        if (supabaseUser) user = await getUserByOpenId(`supabase:${supabaseUser.id}`) ?? null;
+        if (supabaseUser) {
+          const legacyUser = await getUserByOpenId(`supabase:${supabaseUser.id}`);
+          if (legacyUser?.role === "admin") {
+            user = legacyUser;
+          } else if (legacyUser) {
+            const garconProfile = await getGarconProfileByLegacyUserId(legacyUser.id);
+            user = garconProfile?.authUserId === supabaseUser.id && garconProfile.role === "GARCOM" && garconProfile.status === "ATIVO"
+              ? { ...legacyUser, role: "garcom", waiterActive: 1 }
+              : null;
+          }
+        }
       } catch {
         user = null;
       }

@@ -170,6 +170,16 @@ function DashboardLayoutContent({
     };
   }, [isResizing, setSidebarWidth]);
 
+  if (isAdminOnlyRoute && !isAdmin) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-6">
+        <div className="waiter-alert max-w-lg text-center" role="alert">
+          Esta área é exclusiva para administradores. O seu perfil de garçom não tem permissão para aceder a esta página.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="relative" ref={sidebarRef}>

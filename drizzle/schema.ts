@@ -23,6 +23,7 @@ export type InsertUser = typeof users.$inferInsert;
 export const auditLogs = pgTable("audit_logs", {
   id: serial("id").primaryKey(),
   userId: integer("userId"),
+  restaurantId: varchar("restaurantId", { length: 64 }).notNull().default("default"),
   role: varchar("role", { length: 16 }).notNull(),
   action: varchar("action", { length: 64 }).notNull(),
   entityType: varchar("entityType", { length: 64 }),
