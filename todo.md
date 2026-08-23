@@ -720,3 +720,18 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Activar a integração Vercel existente.
 - [x] Criar um deployment de preview solicitado para `patio-zambeze`.
 - [ ] Confirmar o deployment na equipa Vercel e configurar as variáveis de ambiente de produção antes de promover para produção.
+
+
+## Correcção do runtime Vercel
+
+- [ ] Separar a criação da aplicação Express do arranque com `listen` para suportar função Vercel.
+- [ ] Criar entrada `api/index.ts` para expor tRPC/OAuth/storage no Vercel.
+- [ ] Configurar `vercel.json` para servir assets Vite e encaminhar `/api/*` para a função.
+- [ ] Recriar deployment Vercel depois da correcção e testar menu público e endpoint tRPC.
+- [ ] Configurar no Vercel as variáveis Manus necessárias ao painel autenticado.
+
+
+## Bloqueio externo Vercel
+
+- [ ] Reenviar a versão serverless pelo Vercel após conceder à integração MCP permissão de deploy no projecto `patio-zambeze`; o Vercel devolveu HTTP 403 para a equipa actual.
+- [ ] Confirmar no preview Vercel o carregamento do frontend e do endpoint `/api/trpc` após o deploy serverless.
