@@ -881,3 +881,33 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar testes de autorização, preservação de histórico, atendimento actual e histórico por garçom.
 - [x] Validar TypeScript, suite Vitest, build e fluxos desktop/mobile.
 - [x] Rever TODO, criar checkpoint e fornecer a implementação.
+
+
+## Migração completa da secção Garçons — pasted_content_4
+
+- [ ] Auditar tabelas Supabase existentes, modelo de restaurante, utilizadores e relações de atendimento.
+- [ ] Remover da interface o bloco de credenciais e a dependência explícita de contas Manus OAuth para adicionar garçons.
+- [ ] Definir arquitectura segura para autenticação Supabase Auth sem guardar palavras-passe no PostgreSQL aplicacional.
+- [ ] Criar ou adaptar a entidade `garcons` sem duplicar restaurante, utilizador ou histórico existente.
+- [ ] Associar garçom, utilizador Auth e restaurante com isolamento administrativo por restaurante.
+- [ ] Implementar criação, listagem, edição, activação e desactivação de garçons com validações e contador real.
+- [ ] Implementar login operacional Supabase Auth para garçons e bloquear contas inactivas.
+- [ ] Implementar RLS/segurança de base de dados compatível com o backend actual e validar o escopo por restaurante.
+- [ ] Preservar e ligar o histórico de mesas, pedidos, recibos e auditoria ao garçom sem apagar dados ao desactivar.
+- [ ] Manter garçons impedidos de gerir outros garçons, QR Codes, mesas administrativas e configurações.
+- [ ] Adicionar testes de schema, validação, autorização, isolamento e regressão das funcionalidades existentes.
+- [ ] Validar TypeScript, suite Vitest, migração, build e fluxos desktop/mobile.
+- [ ] Rever TODO, guardar checkpoint e entregar o resultado.
+
+## Migração do Waiter Panel para Supabase Auth
+
+- [x] Criar helper server-side para criar contas email/palavra-passe no Supabase Auth.
+- [x] Criar perfil `garcons` e ligação ao utilizador legado `users` com `openId=supabase:<uuid>`.
+- [x] Persistir activação/desactivação no Auth e nas tabelas locais sem apagar histórico.
+- [x] Ligar listagem, criação, edição e activação/desactivação aos procedimentos tRPC administrativos.
+- [x] Actualizar a interface administrativa para gerir garçons reais sem mostrar palavras-passe existentes.
+- [x] Criar login dedicado `/painel/login` com email/palavra-passe via Supabase Auth.
+- [x] Validar Bearer token Supabase no contexto tRPC e reutilizar o RBAC existente.
+- [x] Validar TypeScript, suite Vitest completa e build de produção.
+- [x] Validar visualmente a página de login em desktop.
+- [ ] Validar login com uma conta real de garçom criada no Supabase e confirmar as rotas operacionais em produção.

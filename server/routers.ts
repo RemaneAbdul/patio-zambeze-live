@@ -5,7 +5,7 @@ import { adminProcedure, publicProcedure, router, staffProcedure } from "./_core
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import { storagePut } from "./storage";
-import { assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, createMenuProduct, createTableSelection, getStaffTables, listWaiterUsers, recordAuditLog, setWaiterActive, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, getWaiterServiceHistory, listMenuCategories, listMenuProducts, listWaiterCandidates, listWaiterCurrentAssignments, promoteUserToWaiter, listTableQrCodes, listViewedReceipts, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode } from "./db";
+import {   assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, createMenuProduct, createTableSelection, getStaffTables, listWaiterUsers, recordAuditLog, setWaiterActive, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, getWaiterServiceHistory, listMenuCategories, listMenuProducts, listWaiterCandidates, listWaiterCurrentAssignments, promoteUserToWaiter, listTableQrCodes, listViewedReceipts, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode, listGarcons, createGarcon, updateGarcon } from "./db";
 
 const allowedMenuImageUrl = /^(https?:\/\/|\/|data:image\/(jpeg|jpg|png|webp|avif);base64,)/;
 export const menuImageUrlSchema = z.string().max(8_000_000).refine((value) => allowedMenuImageUrl.test(value), "Formato de imagem inválido").optional();
@@ -44,10 +44,11 @@ export const appRouter = router({
   }),
 
   staff: router({
-    list: adminProcedure.query(() => listWaiterUsers()),
-    candidates: adminProcedure.query(() => listWaiterCandidates()),
-    add: adminProcedure.input(z.object({ userId: z.number().int().positive() })).mutation(({ input, ctx }) => auditMutation(ctx, "WAITER_CREATED", "user", input.userId, () => promoteUserToWaiter(input.userId))),
-    setActive: adminProcedure.input(z.object({ userId: z.number().int().positive(), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, input.active ? "WAITER_ACTIVATED" : "WAITER_DEACTIVATED", "user", input.userId, () => setWaiterActive(input.userId, input.active))),
+    list: adminProcedure.query(() => listGarcons()),
+    candidates: adminProcedure.query(() => []),
+    add: adminProcedure.input(z.object({ fullName: z.string().trim().min(1).max(160), username: z.string().trim().min(3).max(64).regex(/^[a-z0-9._-]+$/), email: z.string().email().max(320), phone: z.string().max(32).optional(), password: z.string().min(6).max(128), active: z.boolean().default(true), restaurantId: z.string().trim().min(1).max(64).default("default") })).mutation(({ input, ctx }) => auditMutation(ctx, "WAITER_CREATED", "garcon", undefined, () => createGarcon(input))),
+    update: adminProcedure.input(z.object({ id: z.string().uuid(), fullName: z.string().trim().min(1).max(160), username: z.string().trim().min(3).max(64).regex(/^[a-z0-9._-]+$/), email: z.string().email().max(320), phone: z.string().max(32).optional(), password: z.string().min(6).max(128).optional(), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, "WAITER_UPDATED", "garcon", input.id, () => updateGarcon(input))),
+    setActive: adminProcedure.input(z.object({ id: z.string().uuid(), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, input.active ? "WAITER_ACTIVATED" : "WAITER_DEACTIVATED", "garcon", input.id, async () => { const current = (await listGarcons()).find(({ garcon }) => garcon.id === input.id); if (!current) throw new Error("WAITER_NOT_FOUND"); return updateGarcon({ id: input.id, fullName: current.garcon.fullName, username: current.garcon.username, email: current.garcon.email, phone: current.garcon.phone ?? undefined, active: input.active }); })),
     currentAssignments: adminProcedure.query(() => listWaiterCurrentAssignments()),
     serviceHistory: adminProcedure.input(z.object({ userId: z.number().int().positive() })).query(({ input }) => getWaiterServiceHistory(input.userId)),
   }),

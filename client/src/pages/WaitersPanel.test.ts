@@ -1,15 +1,15 @@
-import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
+import { describe, expect, it } from "vitest";
 
 const source = fs.readFileSync(path.resolve(import.meta.dirname, "WaitersPanel.tsx"), "utf8");
 
 describe("admin waiter management", () => {
-  it("exposes OAuth-based waiter onboarding without local passwords or photos", () => {
+  it("exposes Supabase Auth waiter onboarding without photos", () => {
     expect(source).toContain("Adicionar Garçom");
-    expect(source).toContain("ROLE = GARÇOM");
-    expect(source).toContain("sem palavras-passe locais nem fotografias");
-    expect(source).not.toContain("password");
+    expect(source).toContain("type=\"password\"");
+    expect(source).toContain("type=\"email\"");
+    expect(source).toContain("Supabase");
     expect(source).not.toContain("photoUrl");
   });
 
@@ -24,7 +24,7 @@ describe("admin waiter management", () => {
   it("keeps activation controls and disabled-state messaging", () => {
     expect(source).toContain("Desactivar");
     expect(source).toContain("Activar");
-    expect(source).toContain("DESACTIVADO");
+    expect(source).toContain("INACTIVO");
     expect(source).toContain("Nenhuma mesa em atendimento.");
   });
 });

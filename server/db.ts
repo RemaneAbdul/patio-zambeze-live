@@ -1,9 +1,10 @@
 
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { InsertUser, users, auditLogs } from "../drizzle/schema";
+import { InsertUser, users, auditLogs, garcons } from "../drizzle/schema";
 import * as schema from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { createSupabaseWaiter, deleteSupabaseWaiter, disableSupabaseWaiter, enableSupabaseWaiter, updateSupabaseWaiter } from './supabaseAuth';
 
 let _db: NodePgDatabase<typeof schema> | null = null;
 let _pool: Pool | null = null;
@@ -102,6 +103,49 @@ export async function recordAuditLog(input: { userId?: number | null; role: stri
   } catch (error) {
     console.warn("[Audit] Could not persist audit event", error);
   }
+}
+
+export async function listGarcons() {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  return db.select({ garcon: garcons, user: { id: users.id, openId: users.openId, name: users.name, email: users.email, waiterCode: users.waiterCode, waiterActive: users.waiterActive, role: users.role } })
+    .from(garcons).innerJoin(users, eq(garcons.legacyUserId, users.id)).orderBy(garcons.fullName);
+}
+
+export async function createGarcon(input: { fullName: string; username: string; email: string; phone?: string; password: string; active: boolean; restaurantId?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const fullName = input.fullName.trim();
+  const username = input.username.trim().toLowerCase();
+  const email = input.email.trim().toLowerCase();
+  if (!fullName || !username || !email || !input.password) throw new Error("WAITER_REQUIRED_FIELDS");
+  if (input.password.length < 6) throw new Error("WAITER_PASSWORD_TOO_SHORT");
+  const authUser = await createSupabaseWaiter({ email, password: input.password, fullName, phone: input.phone });
+  try {
+    const openId = `supabase:${authUser.id}`;
+    const waiterCode = `GAR-${authUser.id.replace(/-/g, "").slice(-6).toUpperCase()}`;
+    const [legacyUser] = await db.insert(users).values({ openId, name: fullName, email, loginMethod: "supabase", role: "garcom", waiterCode, waiterActive: input.active ? 1 : 0 }).onConflictDoNothing({ target: users.openId }).returning();
+    if (!legacyUser) throw new Error("WAITER_EMAIL_OR_USER_ALREADY_EXISTS");
+    const [created] = await db.insert(garcons).values({ authUserId: authUser.id, legacyUserId: legacyUser.id, restaurantId: input.restaurantId ?? "default", fullName, username, email, phone: input.phone ?? null, status: input.active ? "ATIVO" : "INATIVO", disabledAt: input.active ? null : new Date() }).returning();
+    if (!created) throw new Error("WAITER_PROFILE_CREATE_FAILED");
+    if (!input.active) await disableSupabaseWaiter(authUser.id);
+    return { ...created, legacyUser };
+  } catch (error) {
+    try { await deleteSupabaseWaiter(authUser.id); } catch (cleanupError) { console.error("[Auth] Failed to rollback orphan waiter", cleanupError); }
+    throw error;
+  }
+}
+
+export async function updateGarcon(input: { id: string; fullName: string; username: string; email: string; phone?: string; active: boolean; password?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const [current] = await db.select().from(garcons).where(eq(garcons.id, input.id)).limit(1);
+  if (!current) throw new Error("WAITER_NOT_FOUND");
+  await updateSupabaseWaiter({ authUserId: current.authUserId, email: input.email.trim().toLowerCase(), password: input.password, fullName: input.fullName.trim(), phone: input.phone });
+  if (input.active) await enableSupabaseWaiter(current.authUserId); else await disableSupabaseWaiter(current.authUserId);
+  const [updated] = await db.update(garcons).set({ fullName: input.fullName.trim(), username: input.username.trim().toLowerCase(), email: input.email.trim().toLowerCase(), phone: input.phone ?? null, status: input.active ? "ATIVO" : "INATIVO", disabledAt: input.active ? null : (current.disabledAt ?? new Date()), updatedAt: new Date() }).where(eq(garcons.id, input.id)).returning();
+  await db.update(users).set({ name: input.fullName.trim(), email: input.email.trim().toLowerCase(), waiterActive: input.active ? 1 : 0, updatedAt: new Date() }).where(eq(users.id, current.legacyUserId));
+  return updated;
 }
 
 export async function listWaiterCandidates() {

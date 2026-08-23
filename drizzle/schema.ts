@@ -1,4 +1,4 @@
-import { index, integer, numeric, pgTable, serial, smallint, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/pg-core";
+import { index, integer, numeric, pgTable, serial, smallint, text, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -34,6 +34,28 @@ export const auditLogs = pgTable("audit_logs", {
 
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = typeof auditLogs.$inferInsert;
+
+export const garcons = pgTable("garcons", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  authUserId: uuid("authUserId").notNull().unique(),
+  legacyUserId: integer("legacyUserId").notNull().unique(),
+  restaurantId: varchar("restaurantId", { length: 64 }).notNull().default("default"),
+  fullName: text("fullName").notNull(),
+  username: varchar("username", { length: 64 }).notNull().unique(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  phone: varchar("phone", { length: 32 }),
+  role: varchar("role", { length: 16 }).notNull().default("GARCOM"),
+  status: varchar("status", { length: 16 }).notNull().default("ATIVO"),
+  createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
+  disabledAt: timestamp("disabledAt", { withTimezone: true }),
+}, (table) => ({
+  restaurantIdx: index("garcons_restaurant_idx").on(table.restaurantId),
+  statusIdx: index("garcons_status_idx").on(table.status),
+}));
+
+export type Garcon = typeof garcons.$inferSelect;
+export type InsertGarcon = typeof garcons.$inferInsert;
 
 export const tableSessions = pgTable("table_sessions", {
   id: serial("id").primaryKey(),
