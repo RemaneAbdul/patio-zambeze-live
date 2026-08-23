@@ -6,6 +6,8 @@ import QRCode from "qrcode";
 import { Download, Printer, QrCode, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+const PUBLIC_MENU_ORIGIN = "https://patio-zambeze-live.vercel.app";
+
 export default function QrCodesPanel() {
   const [tableNumber, setTableNumber] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -15,7 +17,7 @@ export default function QrCodesPanel() {
   const utils = trpc.useUtils();
   const generate = trpc.tableHistory.generateQrCode.useMutation({ onSuccess: (created) => { setSelectedId(created.id); setTableNumber(created.tableNumber); void codes.refetch(); void utils.tableHistory.staffTables.invalidate(); } });
   const selected = useMemo(() => (codes.data ?? []).find((code) => code.id === selectedId) ?? codes.data?.[0], [codes.data, selectedId]);
-  const customerUrl = selected ? `${window.location.origin}/menu?table=${encodeURIComponent(selected.qrToken)}` : "";
+  const customerUrl = selected ? `${PUBLIC_MENU_ORIGIN}/menu?table=${encodeURIComponent(selected.qrToken)}` : "";
 
   useEffect(() => {
     let active = true;
