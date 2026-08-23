@@ -94,6 +94,20 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
 }
 
+export async function listWaiterUsers() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({ id: users.id, openId: users.openId, name: users.name, email: users.email, role: users.role, waiterCode: users.waiterCode, waiterActive: users.waiterActive, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).where(sql`(${users.waiterCode} is not null OR ${users.role} in ('waiter', 'garcom'))`).orderBy(users.name);
+}
+
+export async function setWaiterActive(userId: number, active: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("DATABASE_UNAVAILABLE");
+  const [updated] = await db.update(users).set({ waiterActive: active ? 1 : 0, updatedAt: new Date() }).where(eq(users.id, userId)).returning({ id: users.id, name: users.name, email: users.email, waiterCode: users.waiterCode, waiterActive: users.waiterActive });
+  if (!updated) throw new Error("WAITER_NOT_FOUND");
+  return updated;
+}
+
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
   if (!db) {

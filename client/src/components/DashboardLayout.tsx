@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Printer, QrCode, Settings, Table2, UtensilsCrossed } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Printer, QrCode, Settings, Table2, UtensilsCrossed, Users } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -33,6 +33,7 @@ const menuItems = [
   { icon: Table2, label: "Mesas", path: "/painel/mesas" },
   { icon: UtensilsCrossed, label: "Pratos", path: "/painel/pratos" },
   { icon: QrCode, label: "QR Codes", path: "/painel/qr-codes" },
+  { icon: Users, label: "Garçons", path: "/painel/garcons" },
   { icon: Printer, label: "Impressões", path: "/painel/impressoes" },
   { icon: Settings, label: "Definições", path: "/painel/definicoes" },
 ];
@@ -127,9 +128,10 @@ function DashboardLayoutContent({
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const isAdmin = isAdminRole(user?.role);
-  const visibleMenuItems = isAdmin ? menuItems : menuItems.filter(item => !["/painel/pratos", "/painel/qr-codes"].includes(item.path));
+  const adminOnlyPaths = ["/painel/pratos", "/painel/qr-codes", "/painel/garcons"];
+  const visibleMenuItems = isAdmin ? menuItems : menuItems.filter(item => !adminOnlyPaths.includes(item.path));
   const activeMenuItem = visibleMenuItems.find(item => item.path === location);
-  const isAdminOnlyRoute = ["/painel/pratos", "/painel/qr-codes"].includes(location);
+  const isAdminOnlyRoute = adminOnlyPaths.includes(location);
   const isMobile = useIsMobile();
 
   useEffect(() => {
