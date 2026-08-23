@@ -7,8 +7,10 @@ const source = fs.readFileSync(path.resolve(import.meta.dirname, "WaiterLogin.ts
 describe("Supabase waiter login routing", () => {
   it("loads the persisted profile before navigating", () => {
     expect(source).toContain("profileQuery.refetch()");
-    expect(source).toContain('profile.role === "admin" ? "/painel" : "/painel/garcom"');
+    expect(source).toContain('profile.role === "admin" ? "/painel/admin" : "/painel/garcom"');
     expect(source).toContain("recordLogin.mutateAsync()");
+    expect(source).toContain("utils.auth.me.setData(undefined, null)");
+    expect(source).toContain("utils.auth.me.invalidate()");
     expect(source).not.toContain('navigate("/painel/garcom");');
   });
 

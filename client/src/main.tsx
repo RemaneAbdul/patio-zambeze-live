@@ -49,7 +49,7 @@ const trpcClient = trpc.createClient({
         // The regular OAuth cookie flow keeps working and takes priority server-side.
           try {
             const supabaseToken = sessionStorage.getItem("supabase-access-token");
-            if (supabaseToken) return { Authorization: `Bearer ${supabaseToken}` };
+            if (supabaseToken) return { Authorization: `Bearer ${supabaseToken}`, "X-Auth-Provider": "supabase" };
             const raw = sessionStorage.getItem("manus-cookie");
           if (raw) {
             const prefix = `${COOKIE_NAME}=`;

@@ -128,16 +128,22 @@ export async function createGarcon(input: { fullName: string; username: string; 
   if (!fullName || !username || !email || !input.password) throw new Error("WAITER_REQUIRED_FIELDS");
   if (input.password.length < 6) throw new Error("WAITER_PASSWORD_TOO_SHORT");
   const authUser = await createSupabaseWaiter({ email, password: input.password, fullName, phone: input.phone });
+  let legacyUserId: number | undefined;
+  let createdGarconId: string | undefined;
   try {
     const openId = `supabase:${authUser.id}`;
     const waiterCode = `GAR-${authUser.id.replace(/-/g, "").slice(-6).toUpperCase()}`;
     const [legacyUser] = await db.insert(users).values({ openId, name: fullName, email, loginMethod: "supabase", role: "garcom", waiterCode, waiterActive: input.active ? 1 : 0 }).onConflictDoNothing({ target: users.openId }).returning();
     if (!legacyUser) throw new Error("WAITER_EMAIL_OR_USER_ALREADY_EXISTS");
+    legacyUserId = legacyUser.id;
     const [created] = await db.insert(garcons).values({ authUserId: authUser.id, legacyUserId: legacyUser.id, restaurantId: input.restaurantId ?? "default", fullName, username, email, phone: input.phone ?? null, status: input.active ? "ATIVO" : "INATIVO", disabledAt: input.active ? null : new Date() }).returning();
     if (!created) throw new Error("WAITER_PROFILE_CREATE_FAILED");
+    createdGarconId = created.id;
     if (!input.active) await disableSupabaseWaiter(authUser.id);
     return { ...created, legacyUser };
   } catch (error) {
+    try { if (createdGarconId) await db.delete(garcons).where(eq(garcons.id, createdGarconId)); } catch (cleanupError) { console.error("[Database] Failed to rollback waiter profile", cleanupError); }
+    try { if (legacyUserId) await db.delete(users).where(eq(users.id, legacyUserId)); } catch (cleanupError) { console.error("[Database] Failed to rollback legacy waiter", cleanupError); }
     try { await deleteSupabaseWaiter(authUser.id); } catch (cleanupError) { console.error("[Auth] Failed to rollback orphan waiter", cleanupError); }
     throw error;
   }
@@ -418,7 +424,7 @@ async function assertTableAccess(db: NonNullable<Awaited<ReturnType<typeof getDb
   return session;
 }
 
-export async function markTableViewedByStaff(sessionToken: string, waiterId: number, isAdmin = true) {
+export async function markTableViewedByStaff(sessionToken: string, waiterId: number, isAdmin = false) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const session = await assertTableAccess(db, sessionToken, waiterId, isAdmin);
@@ -429,7 +435,7 @@ export async function markTableViewedByStaff(sessionToken: string, waiterId: num
   return { success: true, waiterId, viewedAt } as const;
 }
 
-export async function closeTableSessionByStaff(sessionToken: string, waiterId = 0, isAdmin = true) {
+export async function closeTableSessionByStaff(sessionToken: string, waiterId = 0, isAdmin = false) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const session = await assertTableAccess(db, sessionToken, waiterId, isAdmin);
@@ -612,7 +618,7 @@ export async function createTableSelection(input: {
 }
 
 
-const MENU_RESTAURANT_ID = "default";
+export const MENU_RESTAURANT_ID = "default";
 
 export async function listMenuCategories() {
   const db = await getDb();

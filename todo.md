@@ -940,3 +940,15 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Verificar a integração de auditoria para login, logout, criação e alterações de contas.
 - [x] Adicionar testes de role, redireccionamento, status, isolamento, RLS e regressão.
 - [x] Validar TypeScript, Vitest, build e fluxos desktop/mobile; guardar checkpoint.
+
+## Correcção definitiva: garçom redireccionado para painel admin
+
+- [x] Auditar todas as atribuições e fallbacks de `admin`, `garcom`, `role`, `redirect` e `navigate`.
+- [x] Confirmar que o role do utilizador vem do perfil persistido ligado ao Supabase Auth.
+- [x] Confirmar as contas de garçom de teste e reparar apenas os dois registos comprovadamente órfãos.
+- [x] Impedir redireccionamento para admin enquanto o perfil ou role estiver a carregar.
+- [x] Garantir que role inválido ou perfil ausente não usa fallback `admin`.
+- [x] Proteger `/painel/admin` e APIs administrativas contra garçons no frontend e backend.
+- [x] Validar `restaurantId`, RLS e ausência de acesso entre restaurantes.
+- [x] Confirmar auditoria de login/logout e acções administrativas sem passwords ou tokens.
+- [x] Executar testes obrigatórios de admin, garçom, sessão, desactivação e isolamento; guardar checkpoint.

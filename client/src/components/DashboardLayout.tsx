@@ -128,7 +128,7 @@ function DashboardLayoutContent({
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const isAdmin = isAdminRole(user?.role);
-  const adminOnlyPaths = ["/painel/pratos", "/painel/qr-codes", "/painel/garcons"];
+  const adminOnlyPaths = ["/painel/admin", "/painel/pratos", "/painel/qr-codes", "/painel/garcons"];
   const visibleMenuItems = isAdmin ? menuItems : menuItems.filter(item => !adminOnlyPaths.includes(item.path));
   const activeMenuItem = visibleMenuItems.find(item => item.path === location);
   const isAdminOnlyRoute = adminOnlyPaths.includes(location);

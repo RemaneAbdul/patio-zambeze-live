@@ -32,8 +32,25 @@ describe("waiter management security contracts", () => {
   });
 
   it("requires a matching active Supabase waiter profile", () => {
-    expect(fs.readFileSync(path.resolve(import.meta.dirname, "_core/context.ts"), "utf8")).toContain("garconProfile?.authUserId === supabaseUser.id");
-    expect(fs.readFileSync(path.resolve(import.meta.dirname, "_core/context.ts"), "utf8")).toContain('garconProfile.status === "ATIVO"');
+    expect(fs.readFileSync(path.resolve(import.meta.dirname, "_core/context.ts"), "utf8")).toContain("garconProfile?.authUserId !== supabaseUser.id");
+    expect(fs.readFileSync(path.resolve(import.meta.dirname, "_core/context.ts"), "utf8")).toContain('garconProfile.status !== "ATIVO"');
+  });
+
+  it("assigns the waiter restaurant server-side", () => {
+    expect(routerSource).toContain("restaurantId: MENU_RESTAURANT_ID");
+    expect(routerSource).not.toContain("restaurantId: z.string()");
+    expect(fs.readFileSync(path.resolve(import.meta.dirname, "../client/src/pages/WaitersPanel.tsx"), "utf8")).not.toContain('restaurantId: "default"');
+  });
+
+  it("rolls back partial waiter creation across Auth and PostgreSQL", () => {
+    expect(dbSource).toContain("db.delete(garcons)");
+    expect(dbSource).toContain("db.delete(users)");
+    expect(dbSource).toContain("deleteSupabaseWaiter(authUser.id)");
+  });
+
+  it("uses fail-closed defaults for table operations", () => {
+    expect(dbSource).toContain("markTableViewedByStaff(sessionToken: string, waiterId: number, isAdmin = false)");
+    expect(dbSource).toContain("closeTableSessionByStaff(sessionToken: string, waiterId = 0, isAdmin = false)");
   });
 
   it("keeps operational table actions under staffProcedure", () => {
@@ -46,9 +63,9 @@ describe("waiter management security contracts", () => {
   });
 
   it("preserves historical records when changing waiter state", () => {
-    expect(dbSource).toContain("waiterActive: active ? 1 : 0");
+    expect(dbSource).toContain("waiterActive: input.active ? 1 : 0");
     expect(dbSource).toContain("getWaiterServiceHistory");
     expect(dbSource).toContain("auditLogs");
-    expect(dbSource).not.toContain("delete(users)");
+    expect(dbSource).toContain("db.update(users).set");
   });
 });

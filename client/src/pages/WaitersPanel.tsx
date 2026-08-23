@@ -29,7 +29,7 @@ export default function WaitersPanel() {
     event.preventDefault();
     if (!form) return;
     if (form.id) updateWaiter.mutate({ id: form.id, fullName: form.fullName, username: form.username, email: form.email, phone: form.phone || undefined, password: form.password || undefined, active: form.active });
-    else addWaiter.mutate({ fullName: form.fullName, username: form.username, email: form.email, phone: form.phone || undefined, password: form.password, active: form.active, restaurantId: "default" });
+    else addWaiter.mutate({ fullName: form.fullName, username: form.username, email: form.email, phone: form.phone || undefined, password: form.password, active: form.active });
   };
 
   return <DashboardLayout>

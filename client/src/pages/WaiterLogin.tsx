@@ -13,6 +13,7 @@ export default function WaiterLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const utils = trpc.useUtils();
   const profileQuery = trpc.staff.profile.useQuery(undefined, { enabled: false, retry: false });
   const recordLogin = trpc.auth.recordLogin.useMutation();
 
@@ -20,6 +21,18 @@ export default function WaiterLogin() {
     event.preventDefault();
     setLoading(true);
     setError("");
+    utils.auth.me.setData(undefined, null);
+    try {
+      sessionStorage.removeItem("supabase-access-token");
+      localStorage.removeItem("manus-runtime-user-info");
+    } catch {
+      // Storage may be unavailable in private browsing; authentication still proceeds.
+    }
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // A sessão local já foi limpa; prosseguir com a autenticação actual.
+    }
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     if (authError || !data.session) {
       setError("Email ou palavra-passe inválidos, ou conta desactivada.");
@@ -39,7 +52,8 @@ export default function WaiterLogin() {
     }
 
     await recordLogin.mutateAsync();
-    navigate(profile.role === "admin" ? "/painel" : "/painel/garcom");
+    await utils.auth.me.invalidate();
+    navigate(profile.role === "admin" ? "/painel/admin" : "/painel/garcom");
     setLoading(false);
   };
 
