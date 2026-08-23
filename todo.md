@@ -772,3 +772,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [ ] Encaminhar `/api/*` do domínio Vercel para o backend Manus validado, antes do fallback SPA.
 - [ ] Encaminhar o callback OAuth do domínio Vercel sem expor credenciais.
 - [ ] Republicar e validar JSON tRPC, login do painel e menu público com imagens.
+
+
+## Conflito de função e proxy
+
+- [ ] Remover as entradas `api/*` do deployment Vercel, pois interceptam o proxy externo e geram `FUNCTION_INVOCATION_FAILED`.
+- [ ] Manter o backend Manus como origem única de `/api/*` no domínio Vercel.
+- [ ] Republicar e validar resposta JSON tRPC, rota do painel, OAuth e imagens.
