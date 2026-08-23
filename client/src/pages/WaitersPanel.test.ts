@@ -27,4 +27,10 @@ describe("admin waiter management", () => {
     expect(source).toContain("INACTIVO");
     expect(source).toContain("Nenhuma mesa em atendimento.");
   });
+
+  it("exposes a confirmed delete action without deleting history", () => {
+    expect(source).toContain("Apagar garçom");
+    expect(source).toContain("O histórico será preservado");
+    expect(source).toContain("deleteWaiter.mutate({ id: garcon.id })");
+  });
 });

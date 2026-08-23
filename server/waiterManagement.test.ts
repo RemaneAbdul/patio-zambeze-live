@@ -23,10 +23,12 @@ describe("waiter management security contracts", () => {
     expect(routerSource).toContain("ctx.user.id");
   });
 
-  it("keeps onboarding, activation, assignments and history admin-only", () => {
+  it("keeps onboarding, activation, assignments, deletion and history admin-only", () => {
     expect(routerSource).toContain("candidates: adminProcedure");
     expect(routerSource).toContain("add: adminProcedure");
     expect(routerSource).toContain("setActive: adminProcedure");
+    expect(routerSource).toContain("delete: adminProcedure");
+    expect(routerSource).toContain('"WAITER_DELETED"');
     expect(routerSource).toContain("currentAssignments: adminProcedure");
     expect(routerSource).toContain("serviceHistory: adminProcedure");
   });
@@ -46,6 +48,13 @@ describe("waiter management security contracts", () => {
     expect(dbSource).toContain("db.delete(garcons)");
     expect(dbSource).toContain("db.delete(users)");
     expect(dbSource).toContain("deleteSupabaseWaiter(authUser.id)");
+  });
+
+  it("removes waiter identity without deleting historical users", () => {
+    expect(dbSource).toContain("export async function deleteGarcon");
+    expect(dbSource).toContain("await deleteSupabaseWaiter(current.authUserId)");
+    expect(dbSource).toContain('role: "user", waiterCode: null, waiterActive: 0');
+    expect(dbSource).toContain("tx.delete(garcons)");
   });
 
   it("uses fail-closed defaults for table operations", () => {

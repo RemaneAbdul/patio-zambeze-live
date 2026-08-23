@@ -16,4 +16,9 @@ describe("dashboard role routing", () => {
     expect(source).toContain("isAdminOnlyRoute && !isAdmin");
     expect(source).toContain("exclusiva para administradores");
   });
+
+  it("redirects Supabase waiter logout directly to the waiter login", () => {
+    expect(source).toContain('provider === "supabase"');
+    expect(source).toContain('setLocation("/painel/login")');
+  });
 });

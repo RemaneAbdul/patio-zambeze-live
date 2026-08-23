@@ -959,3 +959,12 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Mostrar uma mensagem visual de acesso bloqueado em vez de erro tRPC não tratado.
 - [x] Manter `adminProcedure` e a autorização backend sem enfraquecimento.
 - [x] Adicionar regressão para rotas admin-only e validar TypeScript, Vitest, build e checkpoint.
+
+## Alterações: logout, administrador e remoção de garçons
+
+- [x] Redireccionar directamente o logout Supabase do garçom para `/painel/login`.
+- [x] Confirmar que o administrador continua a usar OAuth; a palavra-passe fornecida não é guardada porque não pertence ao fluxo de autenticação do admin.
+- [x] Adicionar botão de apagar garçom visível apenas para admin, com confirmação e estado de carregamento.
+- [x] Remover a conta Auth e o perfil operacional sem apagar histórico de mesas, pedidos, recibos ou auditoria.
+- [x] Registar a remoção no audit log e adicionar testes de regressão.
+- [x] Validar TypeScript, Vitest, build, logout e remoção; guardar checkpoint.

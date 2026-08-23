@@ -161,6 +161,22 @@ export async function updateGarcon(input: { id: string; fullName: string; userna
   return updated;
 }
 
+export async function deleteGarcon(id: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const [current] = await db.select({ id: garcons.id, authUserId: garcons.authUserId, legacyUserId: garcons.legacyUserId, fullName: garcons.fullName, email: garcons.email, restaurantId: garcons.restaurantId }).from(garcons).where(eq(garcons.id, id)).limit(1);
+  if (!current) throw new Error("WAITER_NOT_FOUND");
+
+  // Remove login access first. If this fails, keep the local profile intact.
+  await deleteSupabaseWaiter(current.authUserId);
+  await db.transaction(async (tx) => {
+    // Keep users and historical foreign-key references; remove only waiter identity.
+    await tx.update(users).set({ role: "user", waiterCode: null, waiterActive: 0, updatedAt: new Date() }).where(eq(users.id, current.legacyUserId));
+    await tx.delete(garcons).where(eq(garcons.id, id));
+  });
+  return current;
+}
+
 export async function listWaiterCandidates() {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
