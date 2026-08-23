@@ -30,3 +30,6 @@ A validação no domínio Vercel confirmou que `https://patio-zambeze-live.verce
 
 
 Após o deployment `dpl_EvwvCCXQwiALQN123vZsFReA6pYJ` ficar `READY`, as rotas `https://patio-zambeze-live.vercel.app/login` e `https://patio-zambeze-live.vercel.app/painel/login` carregam no próprio domínio Vercel com os campos de email, palavra-passe e recuperação. O redirect legado para Manus deixou de ocorrer. O menu público `/menu?table=1` também foi validado anteriormente com produtos e imagens.
+
+
+No deployment Vercel `dpl_9ChowSrEtzb4gXfJMZZ2uVae6ze5`, `/painel/login` carregou no domínio oficial com os campos de autenticação e `/menu?table=1` carregou com 15 produtos, imagens, PT/EN e funcionalidades do menu. O routing não redireccionou para Manus.

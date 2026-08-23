@@ -1015,3 +1015,12 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Remover o redirect legado `/painel/:path*` para o domínio Manus.
 - [x] Manter `/painel/*`, `/login` e `/menu` no domínio Vercel com fallback SPA e API funcional.
 - [x] Publicar novamente e validar login, menu e painel no domínio Vercel.
+
+## Implementação do pasted_content_8.txt
+
+- [x] Ler e decompor os requisitos do ficheiro anexado.
+- [x] Mapear impactos em frontend, backend, Supabase, Vercel e rotas existentes.
+- [x] Implementar as alterações descritas sem quebrar menu, RBAC, pedidos ou recibos.
+- [x] Actualizar testes de regressão e documentação técnica necessária.
+- [x] Validar Supabase, Vercel, Vitest, TypeScript, build e rotas públicas/internas.
+- [x] Sincronizar a publicação e guardar checkpoint.
