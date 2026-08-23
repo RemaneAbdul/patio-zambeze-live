@@ -728,7 +728,7 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Criar entradas serverless (`api/[...path].ts`, `api/trpc.ts` e `api/oauth/callback.ts`) para expor tRPC/OAuth/storage no Vercel.
 - [x] Configurar `vercel.json` para servir assets Vite e encaminhar `/api/*` para a função.
 - [x] Recriar deployment Vercel depois da correcção e testar menu público e endpoint tRPC.
-- [ ] Configurar no Vercel as variáveis Manus necessárias ao painel autenticado.
+- [x] Configurar no Vercel as variáveis Manus necessárias ao painel autenticado.
 
 
 ## Bloqueio externo Vercel
@@ -747,35 +747,35 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 ## Configuração do painel no Vercel
 
-- [ ] Mapear as variáveis de autenticação e OAuth exigidas pelo backend.
-- [ ] Adicionar variáveis Manus ao Vercel em Production e Preview como Sensitive quando aplicável.
-- [ ] Criar novo deployment automático a partir do GitHub após a configuração.
-- [ ] Validar a rota `/painel/mesas` e preservar o menu público e as imagens.
+- [x] Mapear as variáveis de autenticação e OAuth exigidas pelo backend.
+- [x] Adicionar variáveis Manus ao Vercel em Production e Preview como Sensitive quando aplicável.
+- [x] Criar novo deployment automático a partir do GitHub após a configuração.
+- [x] Validar a rota `/painel/mesas` e preservar o menu público e as imagens.
 
 
 ## Rotas Vercel após activar o painel
 
-- [ ] Corrigir o fallback SPA para `/painel/mesas` e outras rotas internas não devolverem 404.
-- [ ] Remover o rewrite `/api/:path*` auto-referente e preservar a descoberta das funções serverless tRPC/OAuth.
-- [ ] Criar novo deployment pelo GitHub e validar homepage, imagens, `/painel/mesas` e `/api/trpc`.
+- [x] Corrigir o fallback SPA para `/painel/mesas` e outras rotas internas não devolverem 404.
+- [x] Remover o rewrite `/api/:path*` auto-referente e preservar a descoberta das funções serverless tRPC/OAuth.
+- [x] Criar novo deployment pelo GitHub e validar homepage, imagens, `/painel/mesas` e `/api/trpc`.
 
 
 ## API tRPC no Vercel
 
-- [ ] Impedir que o fallback SPA encaminhe `/api/trpc/*` para `index.html`.
-- [ ] Fazer `/api/trpc/*` chegar à função Express/tRPC com o path original.
-- [ ] Republicar pelo GitHub e validar resposta JSON do endpoint público `menu.active`.
+- [x] Impedir que o fallback SPA encaminhe `/api/trpc/*` para `index.html`.
+- [x] Fazer `/api/trpc/*` chegar à função Express/tRPC com o path original.
+- [x] Republicar pelo GitHub e validar resposta JSON do endpoint público `menu.active`.
 
 
 ## Proxy da API Vercel
 
-- [ ] Encaminhar `/api/*` do domínio Vercel para o backend Manus validado, antes do fallback SPA.
-- [ ] Encaminhar o callback OAuth do domínio Vercel sem expor credenciais.
-- [ ] Republicar e validar JSON tRPC, login do painel e menu público com imagens.
+- [x] Encaminhar `/api/*` do domínio Vercel para o backend Manus validado, antes do fallback SPA.
+- [x] Encaminhar o callback OAuth do domínio Vercel sem expor credenciais.
+- [x] Republicar e validar JSON tRPC, login do painel e menu público com imagens.
 
 
 ## Conflito de função e proxy
 
-- [ ] Remover as entradas `api/*` do deployment Vercel, pois interceptam o proxy externo e geram `FUNCTION_INVOCATION_FAILED`.
-- [ ] Manter o backend Manus como origem única de `/api/*` no domínio Vercel.
-- [ ] Republicar e validar resposta JSON tRPC, rota do painel, OAuth e imagens.
+- [x] Remover as entradas `api/*` do deployment Vercel, pois interceptam o proxy externo e geram `FUNCTION_INVOCATION_FAILED`.
+- [x] Manter o backend Manus como origem única de `/api/*` no domínio Vercel.
+- [x] Republicar e validar resposta JSON tRPC, rota do painel, OAuth e imagens.
