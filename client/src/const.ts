@@ -15,19 +15,9 @@ function createOAuthNonce() {
 }
 
 function getPublicOAuthConfig() {
-  const configuredPortal = import.meta.env.VITE_OAUTH_PORTAL_URL;
-  const configuredAppId = import.meta.env.VITE_APP_ID;
-  const portal = configuredPortal?.trim() || PUBLIC_OAUTH_PORTAL;
-  const appId = configuredAppId?.trim() || PUBLIC_APP_ID;
-
-  // Never allow a database URL or another server-side value to become an OAuth
-  // parameter if a deployment variable was entered in the wrong Vercel field.
-  const safePortal = /^https:\/\/(?:[a-z0-9-]+\.)*manus\.im(?:\/[^\s]*)?$/i.test(portal)
-    ? portal.replace(/\/+$/, "")
-    : PUBLIC_OAUTH_PORTAL;
-  const safeAppId = /^[A-Za-z0-9_-]{16,128}$/.test(appId) ? appId : PUBLIC_APP_ID;
-
-  return { portal: safePortal, appId: safeAppId };
+  // OAuth portal and app ID are public identifiers. Keep them explicit here so
+  // a misconfigured Vercel VITE_* variable can never inject a server secret.
+  return { portal: PUBLIC_OAUTH_PORTAL, appId: PUBLIC_APP_ID };
 }
 
 // Start the Manus OAuth login. Call this from an event handler or effect at the

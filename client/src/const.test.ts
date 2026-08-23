@@ -14,7 +14,8 @@ describe("client OAuth configuration", () => {
   it("keeps a public OAuth fallback and validates configured values", () => {
     expect(source).toContain('const PUBLIC_OAUTH_PORTAL = "https://manus.im"');
     expect(source).toContain('const PUBLIC_APP_ID = "8XUHoHCp7FLwnEffAV7Tmy"');
-    expect(source).toContain("safeAppId");
+    expect(source).not.toContain("import.meta.env");
+    expect(source).toContain("getPublicOAuthConfig");
     expect(source).toContain("window.location.assign");
   });
 });
