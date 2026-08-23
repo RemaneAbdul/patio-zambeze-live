@@ -986,3 +986,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Criar a nova conta em Supabase Auth com email confirmado e metadados de role admin.
 - [x] Associar a nova identidade ao perfil `users` existente ou criar o perfil admin correspondente.
 - [x] Validar login, sessão Bearer, RBAC, logout e auditoria do novo administrador.
+
+## Bug: login admin rejeita credenciais
+
+- [x] Reproduzir o login da conta admin e identificar se a falha ocorre no email, palavra-passe, configuração Supabase ou perfil `users`.
+- [x] Corrigir o fluxo/credencial sem misturar a sessão admin com Manus OAuth ou contas de garçons.
+- [x] Validar login Bearer, role `admin`, redireccionamento, logout, auditoria e regressões.
+- [x] Guardar checkpoint da correcção.
