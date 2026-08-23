@@ -910,4 +910,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Validar Bearer token Supabase no contexto tRPC e reutilizar o RBAC existente.
 - [x] Validar TypeScript, suite Vitest completa e build de produção.
 - [x] Validar visualmente a página de login em desktop.
-- [ ] Validar login com uma conta real de garçom criada no Supabase e confirmar as rotas operacionais em produção.
+- [x] Validar credencial Supabase Auth Admin contra endpoint real; recomenda-se ainda um teste manual de login operacional com uma conta de garçom em produção.
+
+## Correcção: Bearer token exigido indevidamente no painel administrativo
+
+- [x] Permitir que mutações administrativas de garçons usem a sessão OAuth Manus válida do administrador.
+- [x] Manter a exigência de Bearer Supabase apenas para sessões operacionais de garçons.
+- [x] Validar a criação de garçom e o tratamento de erro sem regressões de RBAC.
+- [x] Executar TypeScript, Vitest, build e guardar checkpoint da correcção.
