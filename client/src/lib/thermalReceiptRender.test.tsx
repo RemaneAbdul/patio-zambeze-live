@@ -27,3 +27,19 @@ describe("ThermalReceipt preview widths", () => {
     expect(html).toContain("Em preparação");
   });
 });
+
+it("does not render a waiter before the selection is viewed", () => {
+  const html = renderToStaticMarkup(<ThermalReceipt selections={[{ ...selection[0], status: "PENDING" }]} total={600} width="58mm" />);
+  expect(html).not.toContain("GARÇOM:");
+  expect(html).not.toContain("João");
+});
+
+it("renders the waiter only on the viewed selection", () => {
+  const html = renderToStaticMarkup(<ThermalReceipt selections={[
+    { ...selection[0], waiterName: "João", waiterCode: "GAR-001", waiterViewedAt: "2026-08-17T12:40:00.000Z" },
+    { ...selection[0], id: 2, selectionNumber: 2, waiterName: null, waiterCode: null, waiterViewedAt: null },
+  ]} total={1200} width="58mm" />);
+  expect(html).toContain("GARÇOM: João");
+  expect(html).toContain("VISTO EM:");
+  expect(html.match(/GARÇOM: João/g)?.length).toBe(1);
+});
