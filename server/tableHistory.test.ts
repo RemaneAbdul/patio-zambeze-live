@@ -58,14 +58,14 @@ describe("tableHistory validation", () => {
   });
 });
 
-const integration = process.env.DATABASE_URL ? describe : describe.skip;
+const integration = process.env.SUPABASE_DATABASE_URL ? describe : describe.skip;
 integration("tableHistory persistence", () => {
   it("persists a selection, isolates sessions and exposes a read-only history view", async () => {
     const tokenA = `vitest-${crypto.randomUUID()}${crypto.randomUUID()}`;
     const tokenB = `vitest-${crypto.randomUUID()}${crypto.randomUUID()}`;
     let replacementToken = "";
     const db = await getDb();
-    if (!db) throw new Error("DATABASE_URL is required for this integration test");
+    if (!db) throw new Error("SUPABASE_DATABASE_URL is required for this integration test");
 
     try {
       const [firstSession, secondSession] = await Promise.all([
@@ -147,12 +147,12 @@ integration("tableHistory persistence", () => {
         await db.delete(tableSessions).where(eq(tableSessions.id, sessionId));
       }
     }
-  });
+  }, 30_000);
 
   it("removes an open item, recalculates subtotal and blocks removal after viewed", async () => {
     const token = `vitest-remove-${crypto.randomUUID()}${crypto.randomUUID()}`;
     const db = await getDb();
-    if (!db) throw new Error("DATABASE_URL is required for this integration test");
+    if (!db) throw new Error("SUPABASE_DATABASE_URL is required for this integration test");
     try {
       const created = await createTableSelection({ sessionToken: token, tableNumber: "06", subtotal: 450, items: [{ productName: "Frango", quantity: 1, unitPrice: 300 }, { productName: "Batata", quantity: 1, unitPrice: 150 }] });
       await assumeTableSession(token, 1);
@@ -174,11 +174,11 @@ integration("tableHistory persistence", () => {
         await db.delete(tableSessions).where(eq(tableSessions.id, session[0].id));
       }
     }
-  });
+  }, 30_000);
 });
 
 
-(process.env.DATABASE_URL ? describe : describe.skip)("qr code persistence", () => {
+(process.env.SUPABASE_DATABASE_URL ? describe : describe.skip)("qr code persistence", () => {
   it("creates one permanent QR code per table without replacing its token", async () => {
     const db = await getDb();
     if (!db) return;

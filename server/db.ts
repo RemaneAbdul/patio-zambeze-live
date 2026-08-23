@@ -1,18 +1,28 @@
 
-import { drizzle } from "drizzle-orm/mysql2";
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import { InsertUser, users } from "../drizzle/schema";
+import * as schema from "../drizzle/schema";
 import { ENV } from './_core/env';
 
-let _db: ReturnType<typeof drizzle> | null = null;
+let _db: NodePgDatabase<typeof schema> | null = null;
+let _pool: Pool | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
+// Lazily create the Drizzle PostgreSQL instance so local tooling can run without a DB.
 export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
+  const connectionString = process.env.SUPABASE_DATABASE_URL?.replace(/[?&]sslmode=require\b/, "").replace(/[?&]$/, "");
+  if (!_db && connectionString) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      _pool = new Pool({
+        connectionString,
+        ssl: { rejectUnauthorized: false },
+        max: 5,
+      });
+      _db = drizzle(_pool, { schema });
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
+      _pool = null;
     }
   }
   return _db;
@@ -74,7 +84,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = new Date();
     }
 
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
+    await db.insert(users).values(values).onConflictDoUpdate({
+      target: users.openId,
       set: updateSet,
     });
   } catch (error) {
@@ -110,7 +121,7 @@ async function cleanupAbandonedTableSessions(db: Awaited<ReturnType<typeof getDb
   await db.delete(tableSessions).where(and(
     eq(tableSessions.status, "open"),
     lt(tableSessions.lastActivityAt, cutoff),
-    sql`NOT EXISTS (SELECT 1 FROM table_selections WHERE table_selections.sessionId = ${tableSessions.id})`,
+    sql`NOT EXISTS (SELECT 1 FROM table_selections WHERE table_selections."sessionId" = ${tableSessions.id})`,
   ));
 }
 
@@ -121,7 +132,7 @@ export async function ensureTableSession(sessionToken: string, tableNumber = "01
   await cleanupAbandonedTableSessions(db);
   const existing = await db.select().from(tableSessions).where(eq(tableSessions.sessionToken, sessionToken)).limit(1);
   if (existing[0]?.status === "closed") throw new Error("SESSION_CLOSED");
-  await db.insert(tableSessions).values({ sessionToken, tableNumber }).onDuplicateKeyUpdate({ set: { lastActivityAt: new Date(), status: "open", tableNumber } });
+  await db.insert(tableSessions).values({ sessionToken, tableNumber }).onConflictDoUpdate({ target: tableSessions.sessionToken, set: { lastActivityAt: new Date(), status: "open", tableNumber } });
   const rows = await db.select().from(tableSessions).where(eq(tableSessions.sessionToken, sessionToken)).limit(1);
   if (!rows[0]) throw new Error("Could not create table session");
   return rows[0];
@@ -174,7 +185,7 @@ export async function upsertTableQrCode(tableNumber: string) {
   const existing = await db.select().from(tableQrCodes).where(eq(tableQrCodes.tableNumber, normalized)).limit(1);
   if (existing[0]) return existing[0];
   const qrToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
-  await db.insert(tableQrCodes).values({ tableNumber: normalized, qrToken }).onDuplicateKeyUpdate({ set: { updatedAt: new Date() } });
+  await db.insert(tableQrCodes).values({ tableNumber: normalized, qrToken }).onConflictDoUpdate({ target: tableQrCodes.tableNumber, set: { updatedAt: new Date() } });
   const rows = await db.select().from(tableQrCodes).where(eq(tableQrCodes.tableNumber, normalized)).limit(1);
   if (!rows[0]) throw new Error("Could not create QR code");
   return rows[0];
@@ -222,7 +233,7 @@ export async function assumeTableSession(sessionToken: string, waiterId: number)
   const now = new Date();
   const updated = await db.update(tableSessions).set({ attendingWaiterId: waiterId, attendingSince: now, lastActivityAt: now })
     .where(and(eq(tableSessions.sessionToken, sessionToken), eq(tableSessions.status, "open"), isNull(tableSessions.attendingWaiterId)));
-  if (Number(updated[0]?.affectedRows ?? 0) === 0) {
+  if ((updated.rowCount ?? 0) === 0) {
     const current = await db.select({ attendingWaiterId: tableSessions.attendingWaiterId }).from(tableSessions).where(eq(tableSessions.sessionToken, sessionToken)).limit(1);
     if (current[0]?.attendingWaiterId && current[0].attendingWaiterId !== waiterId) throw new Error("TABLE_ALREADY_ASSIGNED");
     throw new Error("TABLE_NOT_AVAILABLE");
@@ -256,7 +267,7 @@ export async function closeTableSessionByStaff(sessionToken: string, waiterId = 
   const session = await assertTableAccess(db, sessionToken, waiterId, isAdmin);
   const updated = await db.update(tableSessions).set({ status: "closed", closedAt: new Date(), attendingWaiterId: null, attendingSince: null })
     .where(and(eq(tableSessions.id, session.id), eq(tableSessions.status, "open")));
-  return { success: Number(updated[0]?.affectedRows ?? 0) > 0 } as const;
+  return { success: (updated.rowCount ?? 0) > 0 } as const;
 }
 
 export async function releaseTableSessionByStaff(sessionToken: string, waiterId: number, isAdmin = false) {
@@ -352,7 +363,7 @@ export async function setTableSelectionStatus(selectionId: number, status: "PEND
   if (!rows[0]) throw new Error("SELECTION_NOT_FOUND");
   await assertTableAccess(db, rows[0].sessionToken, waiterId, isAdmin);
   const updated = await db.update(tableSelections).set({ status, finalizedAt: status === "COMPLETED" ? new Date() : undefined }).where(eq(tableSelections.id, selectionId));
-  return { success: Number(updated[0]?.affectedRows ?? 0) > 0, selectionId, status } as const;
+  return { success: (updated.rowCount ?? 0) > 0, selectionId, status } as const;
 }
 
 export async function removeTableSelectionItem(itemId: number, waiterId: number, isAdmin = false) {
@@ -371,7 +382,7 @@ export async function removeTableSelectionItem(itemId: number, waiterId: number,
     const canOperate = isAdmin || session.attendingWaiterId === waiterId;
     if (!canOperate) throw new Error(session.attendingWaiterId ? "TABLE_ALREADY_ASSIGNED" : "TABLE_NOT_ASSIGNED");
     const deleted = await tx.delete(tableSelectionItems).where(and(eq(tableSelectionItems.id, itemId), eq(tableSelectionItems.selectionId, selection.id)));
-    if (Number(deleted[0]?.affectedRows ?? 0) === 0) throw new Error("ITEM_NOT_FOUND");
+    if (deleted.rowCount === 0) throw new Error("ITEM_NOT_FOUND");
     const remaining = await tx.select({ quantity: tableSelectionItems.quantity, unitPrice: tableSelectionItems.unitPrice })
       .from(tableSelectionItems)
       .where(eq(tableSelectionItems.selectionId, selection.id));
@@ -423,8 +434,9 @@ export async function createTableSelection(input: {
     const existing = await tx.select({ id: tableSelections.id }).from(tableSelections).where(eq(tableSelections.sessionId, session.id));
     const selectionNumber = existing.length + 1;
     const now = new Date();
-    const inserted = await tx.insert(tableSelections).values({ sessionId: session.id, selectionNumber, subtotal: input.subtotal.toFixed(2), sentAt: now });
-    const selectionId = Number(inserted[0].insertId);
+    const inserted = await tx.insert(tableSelections).values({ sessionId: session.id, selectionNumber, subtotal: input.subtotal.toFixed(2), sentAt: now }).returning({ id: tableSelections.id });
+    const selectionId = inserted[0]?.id;
+    if (!selectionId) throw new Error("SELECTION_CREATE_FAILED");
     await tx.insert(tableSelectionItems).values(input.items.map((item) => ({ ...item, selectionId, unitPrice: item.unitPrice.toFixed(2) })));
     await tx.update(tableSessions).set({ lastActivityAt: now }).where(eq(tableSessions.id, session.id));
     return { id: selectionId, selectionNumber, sessionToken: effectiveToken, mergedIntoOpenOrder: false };
@@ -468,8 +480,9 @@ export async function createMenuProduct(input: { categoryId: number; name: strin
   const name = input.name.trim();
   if (!name) throw new Error("PRODUCT_NAME_REQUIRED");
   await assertMenuCategory(db, input.categoryId);
-  const inserted = await db.insert(menuProducts).values({ ...input, name, description: input.description?.trim() || null, preparation: input.preparation?.trim() || null, preparationEn: input.preparationEn?.trim() || null, restaurantId: MENU_RESTAURANT_ID, price: input.price.toFixed(2), status: "ACTIVE" });
-  const productId = Number(inserted[0].insertId);
+  const inserted = await db.insert(menuProducts).values({ ...input, name, description: input.description?.trim() || null, preparation: input.preparation?.trim() || null, preparationEn: input.preparationEn?.trim() || null, restaurantId: MENU_RESTAURANT_ID, price: input.price.toFixed(2), status: "ACTIVE" }).returning({ id: menuProducts.id });
+  const productId = inserted[0]?.id;
+  if (!productId) throw new Error("PRODUCT_CREATE_FAILED");
   const rows = await db.select().from(menuProducts).where(eq(menuProducts.id, productId)).limit(1);
   if (!rows[0]) throw new Error("PRODUCT_CREATE_FAILED");
   return rows[0];
@@ -493,7 +506,7 @@ export async function setMenuProductStatus(id: number, status: "ACTIVE" | "INACT
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const updated = await db.update(menuProducts).set({ status, deletedAt: status === "REMOVED" ? new Date() : null, updatedAt: new Date() }).where(and(eq(menuProducts.id, id), eq(menuProducts.restaurantId, MENU_RESTAURANT_ID), inArray(menuProducts.status, ["ACTIVE", "INACTIVE"])));
-  if (Number(updated[0]?.affectedRows ?? 0) === 0) throw new Error("PRODUCT_NOT_FOUND");
+  if (updated.rowCount === 0) throw new Error("PRODUCT_NOT_FOUND");
   const rows = await db.select().from(menuProducts).where(eq(menuProducts.id, id)).limit(1);
   if (!rows[0]) throw new Error("PRODUCT_STATUS_UPDATE_FAILED");
   return rows[0];

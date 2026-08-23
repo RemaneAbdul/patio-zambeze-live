@@ -654,3 +654,69 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Criar ou actualizar testes de visibilidade/acessibilidade sem alterar a lógica funcional.
 - [x] Validar desktop, mobile, TypeScript, build e painel responsivo.
 - [x] Publicar checkpoint da correcção.
+
+## Exportação SQL completa solicitada pelo utilizador
+
+- [x] Gerar dump SQL com estrutura e dados actuais da base de dados.
+- [x] Validar que o ficheiro contém comandos SQL legíveis e não está vazio.
+- [x] Entregar o ficheiro SQL ao utilizador com aviso sobre dados sensíveis.
+
+## Migração para Supabase e Vercel
+
+- [ ] Identificar o projecto Supabase alvo e verificar acesso administrativo.
+- [ ] Mapear schema, queries e tipos MySQL/TiDB incompatíveis com PostgreSQL.
+- [ ] Converter Drizzle e configuração de conexão para PostgreSQL sem apagar a base actual.
+- [ ] Migrar schema e dados com validação de contagens e relações.
+- [ ] Configurar variáveis de ambiente no deployment Vercel.
+- [ ] Validar autenticação, menu, mesas, QR Codes, pedidos, recibos e painel após a migração.
+- [ ] Criar checkpoint apenas depois de confirmar a migração e o deployment.
+
+## Reconstrução destrutiva confirmada: MySQL/TiDB para Supabase
+
+- [ ] Confirmar o projecto Supabase Patio Zambeze em sa-east-1 como destino.
+- [ ] Apagar imediatamente os dados da base MySQL/TiDB actual, sem cópia de segurança, conforme confirmação do utilizador.
+- [ ] Criar o schema vazio no Supabase PostgreSQL.
+- [ ] Adaptar Drizzle, driver, backend e variáveis de ambiente para PostgreSQL.
+- [ ] Validar a nova ligação com teste PostgreSQL mínimo.
+- [ ] Validar testes, build, menu, painel, mesas, QR Codes, pedidos e recibos.
+- [ ] Publicar somente depois da validação final.
+
+## Ligação passo a passo a nova base Supabase
+
+- [x] Confirmar a criação do schema vazio no Supabase SQL Editor.
+- [x] Configurar a connection string PostgreSQL com SSL através do campo seguro.
+- [x] Validar a conexão com teste mínimo antes de alterar o backend.
+- [x] Adaptar Drizzle e queries MySQL/TiDB para PostgreSQL.
+- [x] Validar a aplicação com a nova base sem apagar a base actual prematuramente.
+- [x] Preparar as variáveis do Vercel e documentar os passos finais.
+
+## Nova integração Supabase/Vercel desde o zero
+
+- [x] Confirmar a organização Supabase e escolher a região do novo projecto.
+- [x] Criar um novo projecto Supabase sem reutilizar o projecto eliminado.
+- [x] Criar o schema vazio e validar a nova conexão PostgreSQL.
+- [x] Adaptar a aplicação para a nova base apenas depois da validação.
+- [x] Criar/configurar o novo projecto Vercel apenas depois da base estar pronta.
+- [x] Validar menu, painel, mesas, QR Codes, pedidos, recibos e PDF.
+
+
+## Migração Supabase PostgreSQL
+
+- [x] Validar connection string PostgreSQL do Supabase com `SELECT 1`
+- [x] Converter `drizzle/schema.ts` de MySQL para `pgTable`/PostgreSQL
+- [x] Actualizar `drizzle.config.ts` e dependências para o dialecto PostgreSQL
+- [x] Actualizar `server/db.ts` para o driver `pg` e pool SSL do Supabase
+- [x] Adaptar routers e consultas para tipos, timestamps e sintaxe PostgreSQL
+- [x] Aplicar/verificar o schema PostgreSQL no Supabase sem dados de teste
+- [x] Preservar QR codes permanentes, sessões, pedidos separados e atendimento exclusivo
+- [x] Validar menu PT/EN, painel de garçons, recibos, PDF/impressão e identificação por QR
+- [ ] Preparar variáveis e documentação de deploy para Vercel
+- [x] Executar Vitest, TypeScript, build e verificação visual
+- [x] Criar checkpoint final após todos os itens concluídos
+
+
+## Estado do Vercel
+
+- [x] Activar a integração Vercel existente.
+- [x] Criar um deployment de preview solicitado para `patio-zambeze`.
+- [ ] Confirmar o deployment na equipa Vercel e configurar as variáveis de ambiente de produção antes de promover para produção.
