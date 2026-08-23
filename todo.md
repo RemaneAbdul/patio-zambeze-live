@@ -663,23 +663,23 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 ## Migração para Supabase e Vercel
 
-- [ ] Identificar o projecto Supabase alvo e verificar acesso administrativo.
-- [ ] Mapear schema, queries e tipos MySQL/TiDB incompatíveis com PostgreSQL.
-- [ ] Converter Drizzle e configuração de conexão para PostgreSQL sem apagar a base actual.
-- [ ] Migrar schema e dados com validação de contagens e relações.
-- [ ] Configurar variáveis de ambiente no deployment Vercel.
-- [ ] Validar autenticação, menu, mesas, QR Codes, pedidos, recibos e painel após a migração.
-- [ ] Criar checkpoint apenas depois de confirmar a migração e o deployment.
+- [x] Identificar o projecto Supabase alvo e verificar acesso administrativo.
+- [x] Mapear schema, queries e tipos MySQL/TiDB incompatíveis com PostgreSQL.
+- [x] Converter Drizzle e configuração de conexão para PostgreSQL sem apagar a base actual.
+- [x] Migrar schema e dados com validação de contagens e relações.
+- [x] Configurar variáveis de ambiente no deployment Vercel.
+- [x] Validar autenticação, menu, mesas, QR Codes, pedidos, recibos e painel após a migração.
+- [x] Criar checkpoint apenas depois de confirmar a migração e o deployment.
 
 ## Reconstrução destrutiva confirmada: MySQL/TiDB para Supabase
 
-- [ ] Confirmar o projecto Supabase Patio Zambeze em sa-east-1 como destino.
-- [ ] Apagar imediatamente os dados da base MySQL/TiDB actual, sem cópia de segurança, conforme confirmação do utilizador.
-- [ ] Criar o schema vazio no Supabase PostgreSQL.
-- [ ] Adaptar Drizzle, driver, backend e variáveis de ambiente para PostgreSQL.
-- [ ] Validar a nova ligação com teste PostgreSQL mínimo.
-- [ ] Validar testes, build, menu, painel, mesas, QR Codes, pedidos e recibos.
-- [ ] Publicar somente depois da validação final.
+- [x] Confirmar o projecto Supabase Patio Zambeze em sa-east-1 como destino.
+- [x] Apagar imediatamente os dados da base MySQL/TiDB actual, sem cópia de segurança, conforme confirmação do utilizador.
+- [x] Criar o schema vazio no Supabase PostgreSQL.
+- [x] Adaptar Drizzle, driver, backend e variáveis de ambiente para PostgreSQL.
+- [x] Validar a nova ligação com teste PostgreSQL mínimo.
+- [x] Validar testes, build, menu, painel, mesas, QR Codes, pedidos e recibos.
+- [x] Publicar somente depois da validação final.
 
 ## Ligação passo a passo a nova base Supabase
 
@@ -743,3 +743,18 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Tornar as imagens dos pratos acessíveis no domínio Vercel sem guardar bytes na base de dados.
 - [x] Corrigir referências e upload/serviço de imagens sem alterar dados do menu.
 - [x] Testar todas as imagens no Vercel em desktop e smartphone e criar checkpoint.
+
+
+## Configuração do painel no Vercel
+
+- [ ] Mapear as variáveis de autenticação e OAuth exigidas pelo backend.
+- [ ] Adicionar variáveis Manus ao Vercel em Production e Preview como Sensitive quando aplicável.
+- [ ] Criar novo deployment automático a partir do GitHub após a configuração.
+- [ ] Validar a rota `/painel/mesas` e preservar o menu público e as imagens.
+
+
+## Rotas Vercel após activar o painel
+
+- [ ] Corrigir o fallback SPA para `/painel/mesas` e outras rotas internas não devolverem 404.
+- [ ] Remover o rewrite `/api/:path*` auto-referente e preservar a descoberta das funções serverless tRPC/OAuth.
+- [ ] Criar novo deployment pelo GitHub e validar homepage, imagens, `/painel/mesas` e `/api/trpc`.
