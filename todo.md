@@ -918,3 +918,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Manter a exigência de Bearer Supabase apenas para sessões operacionais de garçons.
 - [x] Validar a criação de garçom e o tratamento de erro sem regressões de RBAC.
 - [x] Executar TypeScript, Vitest, build e guardar checkpoint da correcção.
+
+## Correcção: falha ao criar perfil legado de garçom
+
+- [x] Diagnosticar a causa exacta da inserção `users` e verificar o estado do registo Auth criado.
+- [x] Tornar a criação do perfil `users` compatível com o schema PostgreSQL/Supabase actual.
+- [x] Evitar duplicação e remover automaticamente uma conta Auth órfã quando a persistência local falhar.
+- [x] Adicionar teste de regressão e validar novamente o fluxo administrativo.
+- [x] Executar TypeScript, Vitest, build e guardar checkpoint.
