@@ -968,3 +968,21 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Remover a conta Auth e o perfil operacional sem apagar histórico de mesas, pedidos, recibos ou auditoria.
 - [x] Registar a remoção no audit log e adicionar testes de regressão.
 - [x] Validar TypeScript, Vitest, build, logout e remoção; guardar checkpoint.
+
+## Migração do administrador para Supabase Auth
+
+- [x] Auditar a identificação actual do administrador via `OWNER_OPEN_ID` e OAuth Manus.
+- [x] Criar ou associar a conta admin no Supabase Auth sem guardar palavra-passe na base aplicacional.
+- [x] Garantir que o perfil legado e o role `admin` ficam ligados ao `auth.users.id` correcto.
+- [x] Actualizar login admin por email/palavra-passe e redireccionamento para `/painel/admin`.
+- [x] Preservar login/logout dos garçons e bloquear mistura de identidades.
+- [ ] Implementar recuperação e alteração de palavra-passe para admin.
+- [x] Validar RBAC, RLS, auditoria, TypeScript, Vitest, build e fluxos responsivos.
+- [x] Guardar checkpoint da migração.
+
+## Nova conta administrativa Supabase Auth
+
+- [x] Recolher email, nome e palavra-passe da nova conta admin através de campos seguros.
+- [x] Criar a nova conta em Supabase Auth com email confirmado e metadados de role admin.
+- [x] Associar a nova identidade ao perfil `users` existente ou criar o perfil admin correspondente.
+- [x] Validar login, sessão Bearer, RBAC, logout e auditoria do novo administrador.
