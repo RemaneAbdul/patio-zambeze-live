@@ -758,3 +758,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [ ] Corrigir o fallback SPA para `/painel/mesas` e outras rotas internas não devolverem 404.
 - [ ] Remover o rewrite `/api/:path*` auto-referente e preservar a descoberta das funções serverless tRPC/OAuth.
 - [ ] Criar novo deployment pelo GitHub e validar homepage, imagens, `/painel/mesas` e `/api/trpc`.
+
+
+## API tRPC no Vercel
+
+- [ ] Impedir que o fallback SPA encaminhe `/api/trpc/*` para `index.html`.
+- [ ] Fazer `/api/trpc/*` chegar à função Express/tRPC com o path original.
+- [ ] Republicar pelo GitHub e validar resposta JSON do endpoint público `menu.active`.

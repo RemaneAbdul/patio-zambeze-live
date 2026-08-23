@@ -1,4 +1,5 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "buildCommand": "pnpm build",
   "outputDirectory": "dist/public",
@@ -8,11 +9,7 @@
       "destination": "https://menudigital-8xuhohcp.manus.space/manus-storage/:path*"
     },
     {
-      "source": "/painel/:path*",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/:path*",
+      "source": "/:path((?!api/).*)",
       "destination": "/index.html"
     }
   ]
