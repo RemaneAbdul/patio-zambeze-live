@@ -337,9 +337,14 @@ export async function getTableHistory(sessionToken: string, tableNumber = "01", 
   const items = selections.length
     ? await db.select().from(tableSelectionItems).where(inArray(tableSelectionItems.selectionId, selections.map((selection) => selection.id)))
     : [];
+  const viewedWaiterIds = Array.from(new Set(selections.map((selection) => selection.viewedByWaiterId).filter((id): id is number => Boolean(id))));
+  const viewedWaiters = viewedWaiterIds.length
+    ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode }).from(users).where(inArray(users.id, viewedWaiterIds))
+    : [];
   return selections.map((selection) => ({
     ...selection,
     subtotal: Number(selection.subtotal),
+    viewedByWaiter: viewedWaiters.find((waiter) => waiter.id === selection.viewedByWaiterId) ?? null,
     items: items.filter((item) => item.selectionId === selection.id).map((item) => ({ ...item, unitPrice: Number(item.unitPrice), subtotal: Number(item.unitPrice) * item.quantity })),
   }));
 }
@@ -450,7 +455,7 @@ export async function markTableViewedByStaff(sessionToken: string, waiterId: num
   const viewedAt = new Date();
   const historicalWaiterId = session.waiterId ?? session.attendingWaiterId ?? (isAdmin ? null : waiterId);
   await db.update(tableSessions).set({ waiterId: historicalWaiterId, viewedAt, lastActivityAt: viewedAt, updatedAt: viewedAt }).where(eq(tableSessions.id, session.id));
-  await db.update(tableSelections).set({ viewedAt, receivedAt: viewedAt })
+  await db.update(tableSelections).set({ viewedAt, viewedByWaiterId: waiterId, receivedAt: viewedAt })
     .where(and(eq(tableSelections.sessionId, session.id), isNull(tableSelections.viewedAt)));
   return { success: true, waiterId: historicalWaiterId, viewedAt } as const;
 }
@@ -500,6 +505,10 @@ export async function getTableHistoryForStaff(sessionToken: string, waiterId?: n
     ? await db.select().from(tableSelectionItems)
       .where(inArray(tableSelectionItems.selectionId, selections.map((selection) => selection.id)))
     : [];
+  const viewedWaiterIds = Array.from(new Set(selections.map((selection) => selection.viewedByWaiterId).filter((id): id is number => Boolean(id))));
+  const viewedWaiters = viewedWaiterIds.length
+    ? await db.select({ id: users.id, name: users.name, email: users.email, waiterCode: users.waiterCode, waiterActive: users.waiterActive }).from(users).where(inArray(users.id, viewedWaiterIds))
+    : [];
 
   return {
     session: session[0],
@@ -509,6 +518,7 @@ export async function getTableHistoryForStaff(sessionToken: string, waiterId?: n
     selections: selections.map((selection) => ({
       ...selection,
       subtotal: Number(selection.subtotal),
+      viewedByWaiter: viewedWaiters.find((waiter) => waiter.id === selection.viewedByWaiterId) ?? null,
       items: items
         .filter((item) => item.selectionId === selection.id)
         .map((item) => ({

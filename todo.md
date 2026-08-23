@@ -1032,3 +1032,15 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Implementar as alterações aplicáveis e testes de regressão.
 - [x] Validar Supabase, Vercel, Vitest, TypeScript, build e rotas.
 - [x] Sincronizar a publicação e guardar checkpoint.
+
+## Correção do recibo do menu do cliente — pasted_content_10.txt
+
+- [x] Corrigir impressão do recibo usando os dados reais do Supabase e sem criar um segundo sistema de impressão.
+- [x] Impedir impressão vazia enquanto os dados ou o conteúdo do recibo ainda estiverem a carregar.
+- [x] Rever o CSS de impressão para imprimir apenas o recibo preenchido, sem interface, botões ou páginas brancas.
+- [x] Ocultar o atendente em pedidos ainda não marcados como vistos, mesmo quando a mesa já foi assumida.
+- [x] Mostrar no recibo o garçom real e a hora de marcação apenas depois de o pedido correspondente ser marcado como visto.
+- [x] Garantir que pedidos posteriores não herdam o atendente de pedidos anteriores.
+- [x] Preservar a segurança server-side de seen_by, seen_at e estado visto.
+- [x] Adicionar testes de regressão para recibo não visto, recibo visto, pedidos posteriores e impressão/PDF.
+- [x] Validar Supabase, TypeScript, Vitest, build e deployment Vercel; guardar checkpoint.

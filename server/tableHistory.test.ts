@@ -121,12 +121,17 @@ integration("tableHistory persistence", () => {
       await markTableViewedByStaff(tokenA, 1, true);
       const afterViewed = await getStaffTables();
       expect(afterViewed.find((table) => table.sessionToken === tokenA)?.statusLabel).toBe("viewed");
+      const viewedSelection = await getTableHistoryForStaff(tokenA);
+      expect(viewedSelection?.selections.find((selection) => selection.selectionNumber === 1)?.viewedByWaiterId).toBe(1);
+      expect(viewedSelection?.selections.find((selection) => selection.selectionNumber === 1)?.viewedByWaiter?.id).toBe(1);
       const nextOrder = await createTableSelection({ sessionToken: tokenA, tableNumber: "01", subtotal: 80, items: [{ productName: "Coca-Cola", quantity: 1, unitPrice: 80 }] });
       expect(nextOrder.selectionNumber).toBe(2);
       const separatedHistory = await getTableHistoryForStaff(tokenA);
       expect(separatedHistory?.selections).toHaveLength(2);
       expect(separatedHistory?.selections.find((selection) => selection.selectionNumber === 1)?.subtotal).toBe(600);
       expect(separatedHistory?.selections.find((selection) => selection.selectionNumber === 2)?.subtotal).toBe(80);
+      expect(separatedHistory?.selections.find((selection) => selection.selectionNumber === 2)?.viewedByWaiterId).toBeNull();
+      expect(separatedHistory?.selections.find((selection) => selection.selectionNumber === 2)?.viewedByWaiter).toBeNull();
       const viewedHistory = await getTableHistoryForStaff(tokenA);
       expect(viewedHistory?.session.waiterId).toBe(1);
       expect((await closeTableSessionByStaff(tokenA, 0, true)).success).toBe(true);

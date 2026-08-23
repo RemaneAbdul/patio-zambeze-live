@@ -88,6 +88,7 @@ export const tableSelections = pgTable("table_selections", {
   status: varchar("status", { length: 16 }).default("PENDING").notNull(),
   notes: text("notes"),
   viewedAt: timestamp("viewedAt", { withTimezone: true }),
+  viewedByWaiterId: integer("viewedByWaiterId"),
   sentAt: timestamp("sentAt", { withTimezone: true }),
   receivedAt: timestamp("receivedAt", { withTimezone: true }),
   finalizedAt: timestamp("finalizedAt", { withTimezone: true }),
