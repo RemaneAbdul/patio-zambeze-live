@@ -1,7 +1,7 @@
 
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, auditLogs } from "../drizzle/schema";
 import * as schema from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -91,6 +91,16 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
+  }
+}
+
+export async function recordAuditLog(input: { userId?: number | null; role: string; action: string; entityType?: string; entityId?: string | number; metadata?: Record<string, unknown> }) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.insert(auditLogs).values({ userId: input.userId ?? null, role: input.role, action: input.action, entityType: input.entityType, entityId: input.entityId == null ? undefined : String(input.entityId), metadata: input.metadata ? JSON.stringify(input.metadata) : undefined });
+  } catch (error) {
+    console.warn("[Audit] Could not persist audit event", error);
   }
 }
 

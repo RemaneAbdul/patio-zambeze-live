@@ -17,6 +17,24 @@ export const users = pgTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId"),
+  role: varchar("role", { length: 16 }).notNull(),
+  action: varchar("action", { length: 64 }).notNull(),
+  entityType: varchar("entityType", { length: 64 }),
+  entityId: varchar("entityId", { length: 128 }),
+  metadata: text("metadata"),
+  createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  actionIdx: index("audit_logs_action_idx").on(table.action),
+  createdIdx: index("audit_logs_created_idx").on(table.createdAt),
+  userIdx: index("audit_logs_user_idx").on(table.userId),
+}));
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
+
 export const tableSessions = pgTable("table_sessions", {
   id: serial("id").primaryKey(),
   sessionToken: varchar("sessionToken", { length: 128 }).notNull().unique(),

@@ -5,7 +5,7 @@ import { adminProcedure, publicProcedure, router, staffProcedure } from "./_core
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import { storagePut } from "./storage";
-import { assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, createMenuProduct, createTableSelection, getStaffTables, listWaiterUsers, setWaiterActive, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, listMenuCategories, listMenuProducts, listTableQrCodes, listViewedReceipts, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode } from "./db";
+import { assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, createMenuProduct, createTableSelection, getStaffTables, listWaiterUsers, recordAuditLog, setWaiterActive, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, listMenuCategories, listMenuProducts, listTableQrCodes, listViewedReceipts, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode } from "./db";
 
 const allowedMenuImageUrl = /^(https?:\/\/|\/|data:image\/(jpeg|jpg|png|webp|avif);base64,)/;
 export const menuImageUrlSchema = z.string().max(8_000_000).refine((value) => allowedMenuImageUrl.test(value), "Formato de imagem inválido").optional();
@@ -21,6 +21,12 @@ async function persistMenuImage(imageUrl?: string) {
   const extension = contentType.split("/")[1].replace("jpeg", "jpg");
   const stored = await storagePut(`menu-products/${randomUUID()}.${extension}`, bytes, contentType);
   return stored.url;
+}
+
+async function auditMutation<T>(ctx: { user?: { id: number; role: string } | null }, action: string, entityType: string, entityId: string | number | undefined, operation: () => Promise<T> | T) {
+  const result = await operation();
+  await recordAuditLog({ userId: ctx.user?.id ?? null, role: ctx.user?.role ?? "customer", action, entityType, entityId });
+  return result;
 }
 
 export const appRouter = router({
@@ -39,17 +45,17 @@ export const appRouter = router({
 
   staff: router({
     list: adminProcedure.query(() => listWaiterUsers()),
-    setActive: adminProcedure.input(z.object({ userId: z.number().int().positive(), active: z.boolean() })).mutation(({ input }) => setWaiterActive(input.userId, input.active)),
+    setActive: adminProcedure.input(z.object({ userId: z.number().int().positive(), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, input.active ? "WAITER_ACTIVATED" : "WAITER_DEACTIVATED", "user", input.userId, () => setWaiterActive(input.userId, input.active))),
   }),
 
   menu: router({
     active: publicProcedure.query(() => listMenuProducts(false)),
     categories: publicProcedure.query(() => listMenuCategories()),
     adminList: adminProcedure.input(z.object({ includeRemoved: z.boolean().default(false) })).query(({ input }) => listMenuProducts(input.includeRemoved)),
-    createCategory: adminProcedure.input(z.object({ name: z.string().trim().min(1).max(100) })).mutation(({ input }) => createMenuCategory(input.name)),
-    create: adminProcedure.input(z.object({ categoryId: z.number().int().positive(), name: z.string().trim().min(1).max(160), description: z.string().max(4000).optional(), preparation: z.string().max(1000).optional(), preparationEn: z.string().max(1000).optional(), price: z.number().nonnegative(), imageUrl: menuImageUrlSchema })).mutation(async ({ input }) => createMenuProduct({ ...input, imageUrl: await persistMenuImage(input.imageUrl) })),
-    update: adminProcedure.input(z.object({ id: z.number().int().positive(), categoryId: z.number().int().positive(), name: z.string().trim().min(1).max(160), description: z.string().max(4000).optional(), preparation: z.string().max(1000).optional(), preparationEn: z.string().max(1000).optional(), price: z.number().nonnegative(), imageUrl: menuImageUrlSchema })).mutation(async ({ input }) => { const { id, ...data } = input; return updateMenuProduct(id, { ...data, imageUrl: await persistMenuImage(data.imageUrl) }); }),
-    setStatus: adminProcedure.input(z.object({ id: z.number().int().positive(), status: z.enum(["ACTIVE", "INACTIVE", "REMOVED"]) })).mutation(({ input }) => setMenuProductStatus(input.id, input.status)),
+    createCategory: adminProcedure.input(z.object({ name: z.string().trim().min(1).max(100) })).mutation(({ input, ctx }) => auditMutation(ctx, "CATEGORY_CREATED", "menu_category", undefined, () => createMenuCategory(input.name))),
+    create: adminProcedure.input(z.object({ categoryId: z.number().int().positive(), name: z.string().trim().min(1).max(160), description: z.string().max(4000).optional(), preparation: z.string().max(1000).optional(), preparationEn: z.string().max(1000).optional(), price: z.number().nonnegative(), imageUrl: menuImageUrlSchema })).mutation(async ({ input, ctx }) => auditMutation(ctx, "PRODUCT_CREATED", "menu_product", undefined, async () => createMenuProduct({ ...input, imageUrl: await persistMenuImage(input.imageUrl) }))),
+    update: adminProcedure.input(z.object({ id: z.number().int().positive(), categoryId: z.number().int().positive(), name: z.string().trim().min(1).max(160), description: z.string().max(4000).optional(), preparation: z.string().max(1000).optional(), preparationEn: z.string().max(1000).optional(), price: z.number().nonnegative(), imageUrl: menuImageUrlSchema })).mutation(async ({ input, ctx }) => { const { id, ...data } = input; return auditMutation(ctx, "PRODUCT_UPDATED", "menu_product", id, async () => updateMenuProduct(id, { ...data, imageUrl: await persistMenuImage(data.imageUrl) })); }),
+    setStatus: adminProcedure.input(z.object({ id: z.number().int().positive(), status: z.enum(["ACTIVE", "INACTIVE", "REMOVED"]) })).mutation(({ input, ctx }) => auditMutation(ctx, "PRODUCT_STATUS_CHANGED", "menu_product", input.id, () => setMenuProductStatus(input.id, input.status))),
   }),
 
   tableHistory: router({
@@ -58,13 +64,13 @@ export const appRouter = router({
     staffTables: staffProcedure.query(() => getStaffTables()),
     qrCodes: adminProcedure.query(() => listTableQrCodes()),
     viewedReceipts: staffProcedure.query(() => listViewedReceipts()),
-    generateQrCode: adminProcedure.input(z.object({ tableNumber: z.string().min(1).max(64) })).mutation(({ input }) => upsertTableQrCode(input.tableNumber)),
-    assumeTable: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => assumeTableSession(input.sessionToken, ctx.user.id)),
-    markViewed: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => markTableViewedByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
-    releaseTable: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => releaseTableSessionByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
-    closeSession: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => closeTableSessionByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
-    updateSelectionStatus: staffProcedure.input(z.object({ selectionId: z.number().int().positive(), status: selectionStatusSchema })).mutation(({ input, ctx }) => setTableSelectionStatus(input.selectionId, input.status, ctx.user.id, ctx.user.role === "admin")),
-    removeSelectionItem: staffProcedure.input(z.object({ itemId: z.number().int().positive() })).mutation(({ input, ctx }) => removeTableSelectionItem(input.itemId, ctx.user.id, ctx.user.role === "admin")),
+    generateQrCode: adminProcedure.input(z.object({ tableNumber: z.string().min(1).max(64) })).mutation(({ input, ctx }) => auditMutation(ctx, "QR_CODE_CREATED", "table_qr_code", input.tableNumber, () => upsertTableQrCode(input.tableNumber))),
+    assumeTable: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "TABLE_ASSIGNED", "table_session", input.sessionToken, () => assumeTableSession(input.sessionToken, ctx.user.id))),
+    markViewed: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "SELECTION_VIEWED", "table_session", input.sessionToken, () => markTableViewedByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin"))),
+    releaseTable: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "TABLE_RELEASED", "table_session", input.sessionToken, () => releaseTableSessionByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin"))),
+    closeSession: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "TABLE_CLOSED", "table_session", input.sessionToken, () => closeTableSessionByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin"))),
+    updateSelectionStatus: staffProcedure.input(z.object({ selectionId: z.number().int().positive(), status: selectionStatusSchema })).mutation(({ input, ctx }) => auditMutation(ctx, "ORDER_STATUS_CHANGED", "table_selection", input.selectionId, () => setTableSelectionStatus(input.selectionId, input.status, ctx.user.id, ctx.user.role === "admin"))),
+    removeSelectionItem: staffProcedure.input(z.object({ itemId: z.number().int().positive() })).mutation(({ input, ctx }) => auditMutation(ctx, "SELECTION_ITEM_REMOVED", "table_selection_item", input.itemId, () => removeTableSelectionItem(input.itemId, ctx.user.id, ctx.user.role === "admin"))),
     staffLookup: staffProcedure
       .input(z.object({ sessionToken: z.string().min(32).max(128) }))
       .query(({ input, ctx }) => getTableHistoryForStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
@@ -82,7 +88,7 @@ export const appRouter = router({
           unitPrice: z.number().nonnegative(),
         }),
       ).min(1),
-    })).mutation(({ input }) => createTableSelection(input)),
+    })).mutation(({ input, ctx }) => auditMutation(ctx, "ORDER_CREATED", "table_selection", undefined, () => createTableSelection(input))),
   }),
 });
 
