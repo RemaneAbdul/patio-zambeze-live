@@ -779,3 +779,40 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Remover as entradas `api/*` do deployment Vercel, pois interceptam o proxy externo e geram `FUNCTION_INVOCATION_FAILED`.
 - [x] Manter o backend Manus como origem única de `/api/*` no domínio Vercel.
 - [x] Republicar e validar resposta JSON tRPC, rota do painel, OAuth e imagens.
+
+
+## Teste de login real do garçom
+
+- [ ] Abrir `/painel/mesas` no domínio Vercel e iniciar o fluxo OAuth.
+- [ ] Concluir o login numa conta autorizada sem expor credenciais no chat.
+- [ ] Confirmar cookie/sessão, carregamento do painel e acesso aos dados Supabase.
+- [ ] Registar o resultado no TODO e criar checkpoint se houver correcção necessária.
+
+
+## Login OAuth no domínio Vercel
+
+- [ ] Diagnosticar por que o login concluído regressa a `/painel/mesas` sem sessão.
+- [ ] Corrigir callback, origem de redireccionamento e propagação do cookie de sessão no proxy Vercel.
+- [ ] Republicar e validar login real, sessão autenticada e carregamento do painel.
+
+
+## Bloqueio de login no Vercel
+
+- [ ] Capturar a mensagem ou URL de erro ao clicar em Sign in no domínio Vercel.
+- [ ] Corrigir a configuração OAuth/callback para o domínio Vercel.
+- [ ] Republicar e validar que o garçom entra no painel com sessão persistente.
+
+
+## Botão Sign in sem navegação
+
+- [ ] Identificar a variável pública OAuth ausente ou inválida no build Vercel.
+- [ ] Corrigir a configuração do botão Sign in sem expor credenciais.
+- [ ] Republicar e validar que o clique abre o portal OAuth e regressa ao painel.
+
+
+## Incidente crítico de segurança no bundle Vercel
+
+- [ ] Remover `SUPABASE_DATABASE_URL` e qualquer segredo server-side do bundle frontend.
+- [ ] Confirmar que apenas variáveis `VITE_*` públicas chegam ao cliente.
+- [ ] Invalidar e substituir a connection string Supabase que foi usada no build público.
+- [ ] Republicar e validar o botão Sign in sem expor credenciais.
