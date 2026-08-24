@@ -766,13 +766,13 @@ async function assertMenuCategory(db: NonNullable<Awaited<ReturnType<typeof getD
   if (!rows[0]) throw new Error("CATEGORY_NOT_FOUND");
 }
 
-export async function createMenuProduct(input: { categoryId: number; name: string; nameEn?: string; description?: string; descriptionEn?: string; preparation?: string; preparationEn?: string; price: number; imageUrl?: string; }) {
+export async function createMenuProduct(input: { categoryId: number; name: string; description?: string; preparation?: string; price: number; imageUrl?: string; }) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const name = input.name.trim();
   if (!name) throw new Error("PRODUCT_NAME_REQUIRED");
   await assertMenuCategory(db, input.categoryId);
-  const inserted = await db.insert(menuProducts).values({ ...input, name, nameEn: input.nameEn?.trim() || null, description: input.description?.trim() || null, descriptionEn: input.descriptionEn?.trim() || null, preparation: input.preparation?.trim() || null, preparationEn: input.preparationEn?.trim() || null, restaurantId: MENU_RESTAURANT_ID, price: input.price.toFixed(2), status: "ACTIVE" }).returning({ id: menuProducts.id });
+  const inserted = await db.insert(menuProducts).values({ categoryId: input.categoryId, name, description: input.description?.trim() || null, preparation: input.preparation?.trim() || null, restaurantId: MENU_RESTAURANT_ID, price: input.price.toFixed(2), status: "ACTIVE" }).returning({ id: menuProducts.id });
   const productId = inserted[0]?.id;
   if (!productId) throw new Error("PRODUCT_CREATE_FAILED");
   const rows = await db.select().from(menuProducts).where(eq(menuProducts.id, productId)).limit(1);
@@ -780,7 +780,7 @@ export async function createMenuProduct(input: { categoryId: number; name: strin
   return rows[0];
 }
 
-export async function updateMenuProduct(id: number, input: { categoryId: number; name: string; nameEn?: string; description?: string; descriptionEn?: string; preparation?: string; preparationEn?: string; price: number; imageUrl?: string; }) {
+export async function updateMenuProduct(id: number, input: { categoryId: number; name: string; description?: string; preparation?: string; price: number; imageUrl?: string; }) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const name = input.name.trim();
@@ -788,7 +788,7 @@ export async function updateMenuProduct(id: number, input: { categoryId: number;
   await assertMenuCategory(db, input.categoryId);
   const existing = await db.select({ id: menuProducts.id }).from(menuProducts).where(and(eq(menuProducts.id, id), eq(menuProducts.restaurantId, MENU_RESTAURANT_ID), inArray(menuProducts.status, ["ACTIVE", "INACTIVE"]))).limit(1);
   if (!existing[0]) throw new Error("PRODUCT_NOT_FOUND");
-  await db.update(menuProducts).set({ ...input, name, nameEn: input.nameEn?.trim() || null, description: input.description?.trim() || null, descriptionEn: input.descriptionEn?.trim() || null, preparation: input.preparation?.trim() || null, preparationEn: input.preparationEn?.trim() || null, price: input.price.toFixed(2), updatedAt: new Date() }).where(eq(menuProducts.id, id));
+  await db.update(menuProducts).set({ categoryId: input.categoryId, name, description: input.description?.trim() || null, preparation: input.preparation?.trim() || null, price: input.price.toFixed(2), imageUrl: input.imageUrl, updatedAt: new Date() }).where(eq(menuProducts.id, id));
   const rows = await db.select().from(menuProducts).where(eq(menuProducts.id, id)).limit(1);
   if (!rows[0]) throw new Error("PRODUCT_UPDATE_FAILED");
   return rows[0];

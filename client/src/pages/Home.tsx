@@ -14,7 +14,7 @@ import { Accessibility, ArrowUp, Bell, BellOff, ChevronDown, ChevronLeft, Heart,
 type Category = string;
 type Tag = "Especial da Casa" | "Mais Pedido" | "Novo" | "Recomendado";
 type Product = {
-  id?: number; name: string; nameEn?: string; category: Exclude<Category, "Todos">; description: string; descriptionEn?: string; preparationEn?: string; price: number; image?: string;
+  id?: number; name: string; category: Exclude<Category, "Todos">; description: string; price: number; image?: string;
   tag?: Tag; available: boolean; ingredients?: string; allergens?: string; spicy?: string; variations?: string;
   portion?: string; preparation?: string; features?: string; combines?: string; popular?: boolean; recommended?: boolean; vegetarian?: boolean;
 };
@@ -22,10 +22,6 @@ type Selection = Record<string, number>;
 type HistoryEntry = { id: number; createdAt: string; items: { name: string; quantity: number; price: number }[]; subtotal: number; viewedAt: string | null; status: string; viewedByWaiter: { name?: string | null; waiterCode?: string | null } | null };
 type StatusNotification = { id: string; selectionId: number; status: string; createdAt: string };
 type Lang = "pt" | "en";
-const englishNames: Record<string, string> = { "Frango à Zambeziana": "Zambezi Chicken", "Frango Grelhado": "Grilled Chicken", "Peixe Grelhado": "Grilled Fish", Matapa: "Matapa", Chamuça: "Samosa", "Rissóis": "Croquettes", "Batata frita": "French Fries", "Hambúrguer Clássico": "Classic Burger", "Hambúrguer Especial": "Special Burger", "Coca-Cola": "Coca-Cola", Fanta: "Fanta", Água: "Water", Sumol: "Sumol", Gelado: "Ice Cream", "Salada de Frutas": "Fruit Salad" };
-const categoryEnglish: Record<string, string> = { Todos: "All", Entradas: "Starters", Pratos: "Mains", Hambúrgueres: "Burgers", Bebidas: "Drinks", Sobremesas: "Desserts" };
-
-const englishDescriptions: Record<string, string> = { "Frango à Zambeziana": "Tender chicken, fragrant rice, fresh salad and coconut lemon sauce.", "Frango Grelhado": "Grilled chicken breast with rice, salad and house sauce.", "Peixe Grelhado": "Grilled fish of the day, toasted lemon, coconut rice and greens.", Matapa: "Ground cassava leaves with peanuts, coconut and white rice.", Chamuça: "Crispy pastry filled with spices and vegetables.", "Rissóis": "Golden croquettes with a creamy filling and gentle seasoning.", "Batata frita": "Hand-cut potatoes, crisp outside and soft inside.", "Hambúrguer Clássico": "Grilled beef, cheese, tomato, onion and house sauce.", "Hambúrguer Especial": "Grilled beef, cheese, caramelized onion and spicy sauce.", "Coca-Cola": "Soft drink served chilled.", Fanta: "Orange soft drink served chilled.", Água: "Still mineral water.", Sumol: "Fruit soft drink served chilled.", Gelado: "A creamy and refreshing scoop of the day.", "Salada de Frutas": "Seasonal tropical fruits with mint and coconut cream." };
 
 
 const money = (price: number) => `${price.toLocaleString("pt-MZ")} MT`;
@@ -50,11 +46,8 @@ export default function Home() {
   const catalogProducts = useMemo<Product[]>(() => (activeMenuQuery.data ?? []).map(({ product, category: itemCategory }) => ({
     id: product.id,
     name: product.name,
-    nameEn: product.nameEn ?? undefined,
     category: itemCategory?.name ?? "",
     description: product.description ?? "",
-    descriptionEn: product.descriptionEn ?? undefined,
-    preparationEn: product.preparationEn ?? undefined,
     price: Number(product.price),
     image: product.imageUrl ?? undefined,
     available: product.status === "ACTIVE",
@@ -63,6 +56,7 @@ export default function Home() {
   const categories = useMemo<Category[]>(() => ["Todos", ...(publicCategoriesQuery.data ?? []).map((item) => item.name)], [publicCategoriesQuery.data]);
   const [selection, setSelection] = useState<Selection>({});
   const [lang, setLang] = useState<Lang>("pt");
+  const translationsQuery = trpc.menu.translations.useQuery(undefined, { enabled: lang === "en", staleTime: 10 * 60 * 1000, gcTime: 30 * 60 * 1000, retry: false });
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("patio-zambeze-dark-mode") === "true");
   const [statusAlertsEnabled, setStatusAlertsEnabled] = useState(() => localStorage.getItem("patio-zambeze-status-alerts") !== "false");
   const [sessionToken, setSessionToken] = useState<string | null>(null);
@@ -175,10 +169,11 @@ export default function Home() {
   const toggleFavorite = (name: string) => setFavorites((current) => { const next = current.includes(name) ? current.filter((item) => item !== name) : [...current, name]; localStorage.setItem("patio-zambeze-favorites", JSON.stringify(next)); return next; });
   const clearFilters = () => { setCategory("Todos"); setQuery(""); setPriceFilter("todos"); setMaxPrice(""); setSortBy("recommended"); setShowFavorites(false); };
 
-  const categoryLabel = (category: Category) => lang === "en" ? categoryEnglish[category] : category;
-  const productName = (product: Product) => lang === "en" ? product.nameEn || englishNames[product.name] || product.name : product.name;
-  const productDescription = (product: Product) => lang === "en" ? product.descriptionEn || englishDescriptions[product.name] || product.description : product.description;
-  const productPreparation = (product: Product) => lang === "en" ? product.preparationEn || product.preparation : product.preparation;
+  const categoryLabel = (category: Category) => { if (lang !== "en") return category; if (category === "Todos") return "All"; const source = publicCategoriesQuery.data?.find((item) => item.name === category); return (source && translationsQuery.data?.categories[String(source.id)]) || category; };
+  const productTranslation = (product: Product) => product.id ? translationsQuery.data?.products[String(product.id)] : undefined;
+  const productName = (product: Product) => lang === "en" ? productTranslation(product)?.name || product.name : product.name;
+  const productDescription = (product: Product) => lang === "en" ? productTranslation(product)?.description || product.description : product.description;
+  const productPreparation = (product: Product) => lang === "en" ? productTranslation(product)?.preparation || product.preparation : product.preparation;
   const productImage = (product: Product) => product.image;
   const showToWaiter = () => { setPendingConfirmation(true); };
   const confirmHistory = () => { if (!sessionToken || !selectionItems.length || historyMutation.isPending) return; historyMutation.mutate({ sessionToken, tableNumber, tableId, subtotal: selectionTotal, items: selectionItems.map((product) => ({ productId: product.id, productName: product.name, preparation: product.preparation, quantity: selection[product.name], unitPrice: product.price })) }, { onSuccess: () => { updateSelection({}); setPendingConfirmation(false); setShowSelection(false); setSelectionNoticeText(lang === "pt" ? "✓ Seleção adicionada ao histórico da mesa." : "✓ Selection added to table history."); setSelectionNotice(true); window.setTimeout(() => setSelectionNotice(false), 3200); } }); };

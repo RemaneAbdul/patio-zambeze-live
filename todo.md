@@ -1081,3 +1081,15 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Mostrar uma mensagem clara antes ou depois da tentativa inválida.
 - [x] Adicionar teste de regressão para remoção do último item.
 - [x] Validar TypeScript, Vitest, build e publicar checkpoint.
+
+## Tradução automática PT → EN — pasted_content_12.txt
+
+- [x] Auditar campos de tradução existentes, i18n e integração LLM.
+- [x] Remover do formulário admin a edição manual de nome, descrição, preparação e categoria em inglês.
+- [x] Manter português como fonte original sem apagar nem duplicar pratos ou categorias.
+- [x] Implementar tradução automática server-side para conteúdos dinâmicos do menu, incluindo categorias, com cache controlado e fallback para português.
+- [x] Traduzir apenas conteúdo textual do restaurante; preservar preços, quantidades, IDs, mesas, QR Codes, datas e valores numéricos.
+- [x] Integrar PT/EN no menu actual sem alterar layout, pedidos, recibos, imagens ou QR Codes.
+- [x] Invalidar traduções quando o conteúdo português for alterado.
+- [x] Adicionar testes de formulário, cache, fallback, categorias, edição e preservação de IDs/preços.
+- [x] Validar TypeScript, Vitest, build, Supabase e publicação.
