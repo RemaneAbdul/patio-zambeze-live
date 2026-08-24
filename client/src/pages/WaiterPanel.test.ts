@@ -12,3 +12,19 @@ describe("waiter staff lookup query", () => {
     expect(source).not.toContain(": skipToken");
   });
 });
+
+describe("daily summary and viewed confirmation", () => {
+  it("loads the daily summary only for administrators", () => {
+    expect(source).toContain("dailySummary.useQuery");
+    expect(source).toContain("enabled: isAdminRole(user?.role)");
+    expect(source).toContain('aria-label="Resumo diário"');
+    expect(source).toContain("totalProcessed");
+    expect(source).toContain("byAction");
+  });
+
+  it("shows the visual confirmation after marking a table as viewed", () => {
+    expect(source).toContain("setViewedConfirmation(true)");
+    expect(source).toContain('role="status"');
+    expect(source).toContain("viewed-confirmation");
+  });
+});

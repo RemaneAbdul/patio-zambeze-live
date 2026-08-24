@@ -1044,3 +1044,32 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Preservar a segurança server-side de seen_by, seen_at e estado visto.
 - [x] Adicionar testes de regressão para recibo não visto, recibo visto, pedidos posteriores e impressão/PDF.
 - [x] Validar Supabase, TypeScript, Vitest, build e deployment Vercel; guardar checkpoint.
+
+## Recibos independentes e bloqueio pós “Marcar como visto” — pasted_content_11.txt
+
+- [x] Garantir que cada nova selecção após um recibo fechado/visto permanece um recibo independente.
+- [x] Garantir que imprimir, baixar e partilhar usam o ID da selecção/recibo correspondente.
+- [x] Impedir que uma acção num recibo afecte outros recibos da mesma mesa.
+- [x] Preservar itens, total, estado e atendente dos recibos já vistos/fechados.
+- [x] Fazer “Marcar como visto” apenas registar viewedAt/viewedByWaiterId e bloquear edição do garçom.
+- [x] Manter o estado operacional do pedido separado do estado de visualização.
+- [x] Permitir edição pós-visto apenas ao administrador, com protecção server-side.
+- [x] Manter impressão, download, partilha e visualização do cliente disponíveis após o bloqueio.
+- [x] Adicionar testes de regressão para independência, isolamento de acções e permissões.
+- [x] Validar Supabase, TypeScript, Vitest, build, rotas e publicação.
+- [x] Ajustar o arquivo de impressões e a segunda via para usar o ID de cada selecção, com total, hora e garçom correspondentes.
+
+## Pesquisa, feedback e resumo diário — novo pedido
+
+- [x] Adicionar barra de pesquisa e filtros por data e garçom no arquivo de impressões.
+- [x] Implementar filtragem server/client com dados reais e estados de carregamento/vazio.
+- [x] Adicionar transição suave e alerta visual de sucesso após “Marcar como visto”.
+- [x] Criar procedure protegida para resumo diário de recibos processados e ações por garçom.
+- [x] Adicionar painel de resumo diário na página inicial do painel administrativo.
+- [x] Criar testes de filtros, resumo diário, permissões e feedback visual.
+- [x] Validar TypeScript, Vitest, build, responsividade e publicação.
+
+## Sincronização adicional com GitHub
+
+- [ ] Sincronizar o checkpoint mais recente com `RemaneAbdul/patio-zambeze-menu`.
+- [ ] Confirmar o commit e o estado do repositório remoto.
