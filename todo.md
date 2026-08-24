@@ -1068,3 +1068,16 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar painel de resumo diário na página inicial do painel administrativo.
 - [x] Criar testes de filtros, resumo diário, permissões e feedback visual.
 - [x] Validar TypeScript, Vitest, build, responsividade e publicação.
+
+## Sincronização adicional com GitHub
+
+- [x] Sincronizar o checkpoint mais recente com `RemaneAbdul/patio-zambeze-menu`.
+- [x] Confirmar o commit e o estado do repositório remoto.
+
+## Correcção SELECTION_CANNOT_BE_EMPTY no painel de mesas
+
+- [x] Identificar a acção que tenta remover o último item de uma selecção.
+- [x] Impedir a chamada inválida no painel e manter a protecção server-side.
+- [x] Mostrar uma mensagem clara antes ou depois da tentativa inválida.
+- [x] Adicionar teste de regressão para remoção do último item.
+- [x] Validar TypeScript, Vitest, build e publicar checkpoint.

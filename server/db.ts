@@ -631,12 +631,13 @@ export async function removeTableSelectionItem(itemId: number, waiterId: number,
     if (selection.viewedAt && !isAdmin) throw new Error("SELECTION_ALREADY_VIEWED");
     const canOperate = isAdmin || session.attendingWaiterId === waiterId;
     if (!canOperate) throw new Error(session.attendingWaiterId ? "TABLE_ALREADY_ASSIGNED" : "TABLE_NOT_ASSIGNED");
-    const deleted = await tx.delete(tableSelectionItems).where(and(eq(tableSelectionItems.id, itemId), eq(tableSelectionItems.selectionId, selection.id)));
-    if (deleted.rowCount === 0) throw new Error("ITEM_NOT_FOUND");
-    const remaining = await tx.select({ quantity: tableSelectionItems.quantity, unitPrice: tableSelectionItems.unitPrice })
+    const currentItems = await tx.select({ id: tableSelectionItems.id, quantity: tableSelectionItems.quantity, unitPrice: tableSelectionItems.unitPrice })
       .from(tableSelectionItems)
       .where(eq(tableSelectionItems.selectionId, selection.id));
-    if (!remaining.length) throw new Error("SELECTION_CANNOT_BE_EMPTY");
+    if (currentItems.length <= 1) throw new Error("SELECTION_CANNOT_BE_EMPTY");
+    const deleted = await tx.delete(tableSelectionItems).where(and(eq(tableSelectionItems.id, itemId), eq(tableSelectionItems.selectionId, selection.id)));
+    if (deleted.rowCount === 0) throw new Error("ITEM_NOT_FOUND");
+    const remaining = currentItems.filter((item) => item.id !== itemId);
     const subtotal = remaining.reduce((sum, item) => sum + Number(item.unitPrice) * item.quantity, 0);
     await tx.update(tableSelections).set({ subtotal: subtotal.toFixed(2) }).where(isAdmin ? eq(tableSelections.id, selection.id) : and(eq(tableSelections.id, selection.id), isNull(tableSelections.viewedAt)));
     await tx.update(tableSessions).set({ lastActivityAt: new Date() }).where(eq(tableSessions.id, session.id));
