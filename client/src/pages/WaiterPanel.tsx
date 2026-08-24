@@ -7,7 +7,7 @@ import { trpc } from "@/lib/trpc";
 import { printRenderedReceipt, receiptPaperClass, type ReceiptPrintState } from "@/lib/receiptPrint";
 import { shouldQueryStaffLookup, staffLookupInput } from "@/lib/staffLookupGuard";
 import { canUseWaiterPanel, isAdminRole } from "@shared/roles";
-import { ArrowLeft, CheckCircle2, Circle, Eye, LockKeyhole, Printer, Search, Trash2, X } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Circle, Eye, LockKeyhole, Printer, RefreshCw, Search, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -25,6 +25,7 @@ export default function WaiterPanel() {
   const [showReceipt, setShowReceipt] = useState(false);
   const [printState, setPrintState] = useState<ReceiptPrintState>("idle");
   const [viewedConfirmation, setViewedConfirmation] = useState(false);
+  const [refreshConfirmation, setRefreshConfirmation] = useState(false);
   const [summaryDate] = useState(() => new Date().toISOString().slice(0, 10));
   const isAuthorized = canUseWaiterPanel(user?.role, user?.waiterCode, user?.waiterActive);
   const tables = trpc.tableHistory.staffTables.useQuery(undefined, { enabled: isAuthorized, refetchInterval: 5000, retry: false });
@@ -39,6 +40,11 @@ export default function WaiterPanel() {
   const closeSession = trpc.tableHistory.closeSession.useMutation({ onSuccess: () => { setSelectedToken(""); void utils.tableHistory.staffTables.invalidate(); } });
   const updateSelectionStatus = trpc.tableHistory.updateSelectionStatus.useMutation({ onSuccess: () => { void lookup.refetch(); void utils.tableHistory.staffTables.invalidate(); } });
   const removeSelectionItem = trpc.tableHistory.removeSelectionItem.useMutation({ onSuccess: () => { void lookup.refetch(); void utils.tableHistory.staffTables.invalidate(); } });
+  const handleRefreshTables = async () => {
+    await tables.refetch();
+    setRefreshConfirmation(true);
+    window.setTimeout(() => setRefreshConfirmation(false), 2200);
+  };
   const statusLabel = (status: string) => ({ PENDING: "Pendente", PREPARING: "Em preparação", READY: "Pronto", DELIVERED: "Entregue", COMPLETED: "Concluído" }[status] ?? status);
 
   if (!isAuthorized) {
@@ -81,7 +87,7 @@ export default function WaiterPanel() {
 
         {!selectedToken && (
           <section className="waiter-tables-section">
-            <div className="waiter-section-heading"><div><p className="eyebrow">Operação</p><h2>Mesas</h2></div><div className="waiter-table-search"><Search className="h-4 w-4" /><Input aria-label="Pesquisar mesa" placeholder="Pesquisar mesa" value={search} onChange={(event) => setSearch(event.target.value)} /></div></div>
+            <div className="waiter-section-heading"><div><p className="eyebrow">Operação</p><h2>Mesas</h2></div><div className="waiter-table-toolbar"><div className="waiter-table-search"><Search className="h-4 w-4" /><Input aria-label="Pesquisar mesa" placeholder="Pesquisar mesa" value={search} onChange={(event) => setSearch(event.target.value)} /></div><Button type="button" variant="outline" onClick={() => void handleRefreshTables()} disabled={tables.isFetching} aria-label="Actualizar lista de mesas" title="Actualizar lista de mesas"><RefreshCw className={`h-4 w-4 ${tables.isFetching ? "animate-spin" : ""}`} /> {tables.isFetching ? "A actualizar…" : "Actualizar"}</Button></div></div>{refreshConfirmation && <div className="waiter-refresh-confirmation" role="status">Lista de mesas actualizada.</div>}
             {tables.isLoading ? <div className="waiter-empty">A carregar mesas…</div> : tables.error ? <div className="waiter-alert">Não foi possível carregar as mesas. Tente novamente.</div> : filteredTables.length ? <div className="waiter-table-grid">{filteredTables.map((table) => { const locked = Boolean(table.attendingWaiter); const waiterName = table.attendingWaiter?.name || "outro garçom"; return <article className={`waiter-table-card ${locked ? "waiter-table-card-locked" : ""}`} key={`table-${table.tableNumber}`}><button className="waiter-table-card-main" onClick={() => table.sessionToken && setSelectedToken(table.sessionToken)} disabled={!table.sessionToken}><div className="waiter-table-card-title"><span>Mesa</span><strong>{table.tableNumber}</strong></div><div className={`waiter-status waiter-status-${table.statusLabel}`}><Circle className="h-3 w-3 fill-current" /> {locked ? "EM ATENDIMENTO" : table.statusLabel === "new" ? "NOVO" : table.statusLabel === "viewed" ? "VISTO" : "SEM PEDIDO"}</div>{locked && <p className="waiter-lock-label"><LockKeyhole className="h-3.5 w-3.5" /> Garçom: {waiterName}</p>}<p>{table.selectionCount ? `${table.selectionCount} seleção${table.selectionCount > 1 ? "ões" : ""}` : "Sem seleções"}</p>{table.latestSelectionAt && <small>Última: {dateTime(table.latestSelectionAt)}</small>}<b>{money(Number(table.total))}</b></button>{table.sessionToken && <Button size="sm" variant={locked ? "outline" : "default"} disabled={locked || assumeTable.isPending} onClick={() => assumeTable.mutate({ sessionToken: table.sessionToken })}>{locked ? `Em atendimento por ${waiterName}` : assumeTable.isPending ? "A assumir…" : "Atender Mesa"}</Button>}</article>})}</div> : <div className="waiter-empty">Nenhuma mesa encontrada.</div>}
           </section>
         )}

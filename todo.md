@@ -1133,3 +1133,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Preservar RLS/isolamento Supabase, auditoria e o menu do cliente.
 - [x] Adicionar regressões para dois garçons, acesso negado e admin autorizado.
 - [x] Validar TypeScript, Vitest, build, interface, Supabase e sincronização GitHub.
+
+## Actualização rápida da lista do garçom
+
+- [x] Adicionar botão de actualização manual à lista de mesas.
+- [x] Usar a query existente para actualizar apenas os dados, sem recarregar a página inteira.
+- [x] Mostrar estado visual de carregamento e resultado da actualização.
+- [x] Adicionar teste de regressão e validar TypeScript, Vitest e build.
