@@ -564,7 +564,7 @@ export async function getTableHistoryForStaff(sessionToken: string, waiterId?: n
   };
 }
 
-export async function listViewedReceipts() {
+export async function listViewedReceipts(waiterId?: number, isAdmin = false) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const sessions = await db.select().from(tableSessions)
@@ -579,9 +579,10 @@ export async function listViewedReceipts() {
     const items = await db.select().from(tableSelectionItems)
       .where(inArray(tableSelectionItems.selectionId, selections.map((selection) => selection.id)));
     for (const selection of selections) {
-      const waiterId = selection.viewedByWaiterId ?? session.waiterId;
-      const waiter = waiterId
-        ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode }).from(users).where(eq(users.id, waiterId)).limit(1)
+      const assignedWaiterId = selection.viewedByWaiterId;
+      if (!isAdmin && (waiterId === undefined || assignedWaiterId !== waiterId)) continue;
+      const waiter = assignedWaiterId
+        ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode }).from(users).where(eq(users.id, assignedWaiterId)).limit(1)
         : [];
       const receiptSelection = {
         ...selection,
@@ -602,6 +603,11 @@ export async function listViewedReceipts() {
     }
   }
   return result;
+}
+
+export async function getViewedReceiptForStaff(selectionId: number, waiterId: number, isAdmin = false) {
+  const receipts = await listViewedReceipts(waiterId, isAdmin);
+  return receipts.find((receipt) => receipt.id === selectionId) ?? null;
 }
 
 export async function setTableSelectionStatus(selectionId: number, status: "PENDING" | "PREPARING" | "READY" | "DELIVERED" | "COMPLETED", waiterId: number, isAdmin = false) {

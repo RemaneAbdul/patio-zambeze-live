@@ -6,7 +6,7 @@ import { z } from "zod";
 import { translateActiveMenu } from "./menuTranslation";
 import { randomUUID } from "node:crypto";
 import { storagePut } from "./storage";
-import {   assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, updateMenuCategory, deleteMenuCategory, createMenuProduct, createTableSelection, getStaffTables, listWaiterUsers, recordAuditLog, setWaiterActive, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, getWaiterServiceHistory, listMenuCategories, listMenuProducts, listWaiterCandidates, listWaiterCurrentAssignments, promoteUserToWaiter,   listTableQrCodes, listViewedReceipts, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode, listGarcons, createGarcon, updateGarcon, deleteGarcon, getGarconProfileByLegacyUserId, getDailyStaffSummary, MENU_RESTAURANT_ID } from "./db";
+import {   assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, updateMenuCategory, deleteMenuCategory, createMenuProduct, createTableSelection, getStaffTables, listWaiterUsers, recordAuditLog, setWaiterActive, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, getWaiterServiceHistory, listMenuCategories, listMenuProducts, listWaiterCandidates, listWaiterCurrentAssignments, promoteUserToWaiter,   listTableQrCodes, listViewedReceipts, getViewedReceiptForStaff, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode, listGarcons, createGarcon, updateGarcon, deleteGarcon, getGarconProfileByLegacyUserId, getDailyStaffSummary, MENU_RESTAURANT_ID } from "./db";
 
 const allowedMenuImageUrl = /^(https?:\/\/|\/|data:image\/(jpeg|jpg|png|webp|avif);base64,)/;
 export const menuImageUrlSchema = z.string().max(8_000_000).refine((value) => allowedMenuImageUrl.test(value), "Formato de imagem inválido").optional();
@@ -85,7 +85,8 @@ export const appRouter = router({
     sessionInfo: publicProcedure.input(z.object({ sessionToken: z.string().min(32).max(128), tableNumber: z.string().min(1).max(64).default("01"), tableId: z.string().min(1).max(128).optional() })).query(({ input }) => getTableSessionInfo(input.sessionToken, input.tableNumber, input.tableId)),
     staffTables: staffProcedure.query(() => getStaffTables()),
     qrCodes: adminProcedure.query(() => listTableQrCodes()),
-    viewedReceipts: staffProcedure.query(() => listViewedReceipts()),
+    viewedReceipts: staffProcedure.query(({ ctx }) => listViewedReceipts(ctx.user.role === "admin" ? undefined : ctx.user.id, ctx.user.role === "admin")),
+    viewedReceipt: staffProcedure.input(z.object({ selectionId: z.number().int().positive() })).query(({ input, ctx }) => getViewedReceiptForStaff(input.selectionId, ctx.user.id, ctx.user.role === "admin")),
     dailySummary: adminProcedure.input(z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) })).query(({ input }) => getDailyStaffSummary(input.date, MENU_RESTAURANT_ID)),
     generateQrCode: adminProcedure.input(z.object({ tableNumber: z.string().min(1).max(64) })).mutation(({ input, ctx }) => auditMutation(ctx, "QR_CODE_CREATED", "table_qr_code", input.tableNumber, () => upsertTableQrCode(input.tableNumber))),
     assumeTable: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "TABLE_ASSIGNED", "table_session", input.sessionToken, () => assumeTableSession(input.sessionToken, ctx.user.id), result => ({ table_id: input.sessionToken, previous_waiter_id: result?.previousAttendingWaiterId ?? null, new_waiter_id: result?.newAttendingWaiterId ?? ctx.user.id }))),

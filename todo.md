@@ -1103,3 +1103,14 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Preservar a lógica de editar, activar/desactivar e remover.
 - [x] Validar consola, TypeScript, Vitest, build e screenshots responsivos.
 - [x] Criar commit Git sem segredos e sincronizar com o repositório remoto.
+
+## Recibos do garçom por atendente — pasted_content_14.txt
+
+- [x] Auditar as consultas do dashboard e as acções de recibo existentes.
+- [x] Filtrar recibos do dashboard do garçom pelo atendente real que marcou a selecção como vista.
+- [x] Manter o administrador com as permissões administrativas existentes.
+- [x] Bloquear server-side impressão, download e partilha de recibos de outro garçom.
+- [x] Garantir que pedidos posteriores e recibos da mesma mesa não sejam misturados.
+- [x] Preservar RLS/isolamento Supabase, auditoria e o menu do cliente.
+- [x] Adicionar regressões para dois garçons, acesso negado e admin autorizado.
+- [x] Validar TypeScript, Vitest, build, interface, Supabase e sincronização GitHub.
