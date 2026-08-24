@@ -1093,3 +1093,13 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Invalidar traduções quando o conteúdo português for alterado.
 - [x] Adicionar testes de formulário, cache, fallback, categorias, edição e preservação de IDs/preços.
 - [x] Validar TypeScript, Vitest, build, Supabase e publicação.
+
+## Botões de categorias e catálogo — pasted_content_13.txt
+
+- [x] Auditar CSS e componentes dos botões de categorias e pratos.
+- [x] Tornar as acções sempre visíveis, sem depender de hover.
+- [x] Corrigir contraste, espaçamento e área de toque no desktop e mobile.
+- [x] Adicionar ou confirmar aria-labels nas acções icónicas.
+- [x] Preservar a lógica de editar, activar/desactivar e remover.
+- [x] Validar consola, TypeScript, Vitest, build e screenshots responsivos.
+- [x] Criar commit Git sem segredos e sincronizar com o repositório remoto.
