@@ -1114,3 +1114,22 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Preservar RLS/isolamento Supabase, auditoria e o menu do cliente.
 - [x] Adicionar regressões para dois garçons, acesso negado e admin autorizado.
 - [x] Validar TypeScript, Vitest, build, interface, Supabase e sincronização GitHub.
+
+## Indicador e filtro de recibos no painel admin
+
+- [x] Auditar o painel administrativo e a fonte real de recibos visualizados.
+- [x] Adicionar indicador visual para recibos já visualizados por garçons.
+- [x] Adicionar filtro rápido por garçom específico no painel administrativo.
+- [x] Preservar o acesso total do administrador, os dados do Supabase e o layout existente.
+- [x] Adicionar testes e validar TypeScript, Vitest, build e responsividade.
+
+## Recibos do garçom por atendente — pasted_content_14.txt
+
+- [x] Auditar as consultas do dashboard e as acções de recibo existentes.
+- [x] Filtrar recibos do dashboard do garçom pelo atendente real que marcou a selecção como vista.
+- [x] Manter o administrador com as permissões administrativas existentes.
+- [x] Bloquear server-side impressão, download e partilha de recibos de outro garçom.
+- [x] Garantir que pedidos posteriores e recibos da mesma mesa não sejam misturados.
+- [x] Preservar RLS/isolamento Supabase, auditoria e o menu do cliente.
+- [x] Adicionar regressões para dois garçons, acesso negado e admin autorizado.
+- [x] Validar TypeScript, Vitest, build, interface, Supabase e sincronização GitHub.

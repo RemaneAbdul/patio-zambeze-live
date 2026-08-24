@@ -11,6 +11,7 @@ describe("receipt ownership authorization", () => {
     expect(dbSource).toContain("export async function listViewedReceipts(waiterId?: number, isAdmin = false)");
     expect(dbSource).toContain("assignedWaiterId !== waiterId");
     expect(dbSource).toContain("if (!isAdmin && (waiterId === undefined || assignedWaiterId !== waiterId)) continue;");
+    expect(dbSource).toContain("const receiptWaiterId = assignedWaiterId ?? (isAdmin ? session.waiterId : null);");
     expect(routerSource).toContain('ctx.user.role === "admin" ? undefined : ctx.user.id');
   });
 

@@ -581,8 +581,9 @@ export async function listViewedReceipts(waiterId?: number, isAdmin = false) {
     for (const selection of selections) {
       const assignedWaiterId = selection.viewedByWaiterId;
       if (!isAdmin && (waiterId === undefined || assignedWaiterId !== waiterId)) continue;
-      const waiter = assignedWaiterId
-        ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode }).from(users).where(eq(users.id, assignedWaiterId)).limit(1)
+      const receiptWaiterId = assignedWaiterId ?? (isAdmin ? session.waiterId : null);
+      const waiter = receiptWaiterId
+        ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode }).from(users).where(eq(users.id, receiptWaiterId)).limit(1)
         : [];
       const receiptSelection = {
         ...selection,
