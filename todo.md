@@ -1071,5 +1071,5 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 ## Sincronização adicional com GitHub
 
-- [ ] Sincronizar o checkpoint mais recente com `RemaneAbdul/patio-zambeze-menu`.
-- [ ] Confirmar o commit e o estado do repositório remoto.
+- [x] Sincronizar o checkpoint mais recente com `RemaneAbdul/patio-zambeze-menu`.
+- [x] Confirmar o commit e o estado do repositório remoto.
