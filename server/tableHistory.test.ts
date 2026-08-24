@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { eq, sql } from "drizzle-orm";
 import { appRouter } from "./routers";
-import { assumeTableSession, closeTableSessionByStaff, createTableSelection, ensureTableSession, getDb, getStaffTables, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, listTableQrCodes, markTableViewedByStaff, releaseTableSessionByStaff, removeTableSelectionItem, upsertTableQrCode } from "./db";
+import { assumeTableSession, closeTableSessionByStaff, createTableSelection, ensureTableSession, getDb, getStaffTables, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, listTableQrCodes, markTableViewedByStaff, setTableSelectionStatus, releaseTableSessionByStaff, removeTableSelectionItem, upsertTableQrCode } from "./db";
 import { tableQrCodes, tableSelectionItems, tableSelections, tableSessions, users } from "../drizzle/schema";
 import type { TrpcContext } from "./_core/context";
 
@@ -216,7 +216,9 @@ integration("tableHistory persistence", () => {
       expect(afterRemoval?.selections[0]?.subtotal).toBe(300);
       expect(afterRemoval?.selections[0]?.items).toHaveLength(1);
       await markTableViewedByStaff(token, 1, true);
-      await expect(removeTableSelectionItem(afterRemoval!.selections[0]!.items[0]!.id, 1, true)).rejects.toThrow("SELECTION_ALREADY_VIEWED");
+      await expect(removeTableSelectionItem(afterRemoval!.selections[0]!.items[0]!.id, 1, false)).rejects.toThrow("SELECTION_ALREADY_VIEWED");
+      await expect(setTableSelectionStatus(afterRemoval!.selections[0]!.id, "READY", 1, false)).rejects.toThrow("SELECTION_ALREADY_VIEWED");
+      await expect(setTableSelectionStatus(afterRemoval!.selections[0]!.id, "READY", 1, true)).resolves.toMatchObject({ success: true, status: "READY" });
     } finally {
       const session = await db.select({ id: tableSessions.id }).from(tableSessions).where(eq(tableSessions.sessionToken, token)).limit(1);
       if (session[0]) {

@@ -454,10 +454,11 @@ export async function markTableViewedByStaff(sessionToken: string, waiterId: num
   const session = await assertTableAccess(db, sessionToken, waiterId, isAdmin);
   const viewedAt = new Date();
   const historicalWaiterId = session.waiterId ?? session.attendingWaiterId ?? (isAdmin ? null : waiterId);
+  const pendingSelections = await db.select({ id: tableSelections.id }).from(tableSelections).where(and(eq(tableSelections.sessionId, session.id), isNull(tableSelections.viewedAt)));
   await db.update(tableSessions).set({ waiterId: historicalWaiterId, viewedAt, lastActivityAt: viewedAt, updatedAt: viewedAt }).where(eq(tableSessions.id, session.id));
   await db.update(tableSelections).set({ viewedAt, viewedByWaiterId: waiterId, receivedAt: viewedAt })
     .where(and(eq(tableSelections.sessionId, session.id), isNull(tableSelections.viewedAt)));
-  return { success: true, waiterId: historicalWaiterId, viewedAt } as const;
+  return { success: true, waiterId: historicalWaiterId, viewedAt, selectionIds: pendingSelections.map((selection) => selection.id) } as const;
 }
 
 export async function closeTableSessionByStaff(sessionToken: string, waiterId = 0, isAdmin = false) {
@@ -539,19 +540,17 @@ export async function listViewedReceipts() {
   const result = [];
   for (const session of sessions) {
     const selections = await db.select().from(tableSelections)
-      .where(eq(tableSelections.sessionId, session.id))
-      .orderBy(tableSelections.selectionNumber);
+      .where(and(eq(tableSelections.sessionId, session.id), sql`${tableSelections.viewedAt} IS NOT NULL`))
+      .orderBy(desc(tableSelections.viewedAt), tableSelections.selectionNumber);
     if (!selections.length) continue;
     const items = await db.select().from(tableSelectionItems)
       .where(inArray(tableSelectionItems.selectionId, selections.map((selection) => selection.id)));
-    const waiter = session.waiterId
-      ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode }).from(users).where(eq(users.id, session.waiterId)).limit(1)
-      : [];
-    result.push({
-      session,
-      waiter: waiter[0] ?? null,
-      total: selections.reduce((sum, selection) => sum + Number(selection.subtotal), 0),
-      selections: selections.map((selection) => ({
+    for (const selection of selections) {
+      const waiterId = selection.viewedByWaiterId ?? session.waiterId;
+      const waiter = waiterId
+        ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode }).from(users).where(eq(users.id, waiterId)).limit(1)
+        : [];
+      const receiptSelection = {
         ...selection,
         subtotal: Number(selection.subtotal),
         items: items.filter((item) => item.selectionId === selection.id).map((item) => ({
@@ -559,8 +558,15 @@ export async function listViewedReceipts() {
           unitPrice: Number(item.unitPrice),
           subtotal: Number(item.unitPrice) * item.quantity,
         })),
-      })),
-    });
+      };
+      result.push({
+        id: selection.id,
+        session,
+        waiter: waiter[0] ?? null,
+        total: receiptSelection.subtotal,
+        selections: [receiptSelection],
+      });
+    }
   }
   return result;
 }
@@ -571,6 +577,8 @@ export async function setTableSelectionStatus(selectionId: number, status: "PEND
   const rows = await db.select({ sessionToken: tableSessions.sessionToken }).from(tableSelections).innerJoin(tableSessions, eq(tableSelections.sessionId, tableSessions.id)).where(eq(tableSelections.id, selectionId)).limit(1);
   if (!rows[0]) throw new Error("SELECTION_NOT_FOUND");
   await assertTableAccess(db, rows[0].sessionToken, waiterId, isAdmin);
+  const selection = await db.select({ viewedAt: tableSelections.viewedAt }).from(tableSelections).where(eq(tableSelections.id, selectionId)).limit(1);
+  if (selection[0]?.viewedAt && !isAdmin) throw new Error("SELECTION_ALREADY_VIEWED");
   const updated = await db.update(tableSelections).set({ status, finalizedAt: status === "COMPLETED" ? new Date() : undefined }).where(eq(tableSelections.id, selectionId));
   return { success: (updated.rowCount ?? 0) > 0, selectionId, status } as const;
 }
@@ -587,7 +595,7 @@ export async function removeTableSelectionItem(itemId: number, waiterId: number,
       .limit(1);
     if (!rows[0]) throw new Error("ITEM_NOT_FOUND");
     const { selection, session } = rows[0];
-    if (selection.viewedAt) throw new Error("SELECTION_ALREADY_VIEWED");
+    if (selection.viewedAt && !isAdmin) throw new Error("SELECTION_ALREADY_VIEWED");
     const canOperate = isAdmin || session.attendingWaiterId === waiterId;
     if (!canOperate) throw new Error(session.attendingWaiterId ? "TABLE_ALREADY_ASSIGNED" : "TABLE_NOT_ASSIGNED");
     const deleted = await tx.delete(tableSelectionItems).where(and(eq(tableSelectionItems.id, itemId), eq(tableSelectionItems.selectionId, selection.id)));
@@ -597,7 +605,7 @@ export async function removeTableSelectionItem(itemId: number, waiterId: number,
       .where(eq(tableSelectionItems.selectionId, selection.id));
     if (!remaining.length) throw new Error("SELECTION_CANNOT_BE_EMPTY");
     const subtotal = remaining.reduce((sum, item) => sum + Number(item.unitPrice) * item.quantity, 0);
-    await tx.update(tableSelections).set({ subtotal: subtotal.toFixed(2) }).where(and(eq(tableSelections.id, selection.id), isNull(tableSelections.viewedAt)));
+    await tx.update(tableSelections).set({ subtotal: subtotal.toFixed(2) }).where(isAdmin ? eq(tableSelections.id, selection.id) : and(eq(tableSelections.id, selection.id), isNull(tableSelections.viewedAt)));
     await tx.update(tableSessions).set({ lastActivityAt: new Date() }).where(eq(tableSessions.id, session.id));
     return { success: true, itemId, selectionId: selection.id, subtotal } as const;
   });
