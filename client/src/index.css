@@ -880,3 +880,24 @@ body[data-receipt-printing="true"] > .receipt-print-source { position: fixed !im
     }
   }
 }
+
+/* Pesquisa, filtros e resumo diário do painel */
+.daily-summary-panel { margin-top: 24px; border: 1px solid rgb(200 90 63 / 24%); background: rgb(255 255 255 / 62%); padding: 18px; box-shadow: 0 12px 28px rgb(24 58 50 / 7%); }
+.daily-summary-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 1px solid rgb(24 58 50 / 12%); padding-bottom: 14px; }
+.daily-summary-heading h2 { margin: 4px 0 0; color: #183A32; font-family: Georgia, serif; font-size: 24px; }
+.daily-summary-heading > span { color: #C85A3F; font: 700 12px var(--font-sans); text-transform: uppercase; letter-spacing: .06em; }
+.daily-summary-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 16px 0; }
+.daily-summary-metrics > div { background: rgb(247 242 233 / 78%); padding: 13px; }
+.daily-summary-metrics span, .daily-summary-staff small { display: block; color: rgb(24 58 50 / 62%); font: 11px var(--font-sans); text-transform: uppercase; letter-spacing: .06em; }
+.daily-summary-metrics strong { display: block; margin-top: 5px; color: #183A32; font: 700 25px Georgia, serif; }
+.daily-summary-staff { display: grid; gap: 8px; }
+.daily-summary-staff article { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px; border-top: 1px solid rgb(24 58 50 / 10%); padding: 11px 0 2px; }
+.daily-summary-staff article > div { display: grid; gap: 3px; }
+.daily-summary-staff article > div strong { color: #183A32; font: 700 14px var(--font-sans); }
+.daily-summary-staff article > span { color: #C85A3F; font: 700 13px var(--font-sans); }
+.daily-summary-staff article p { grid-column: 1 / -1; margin: 0; color: rgb(24 58 50 / 66%); font: 12px/1.4 var(--font-sans); }
+.prints-archive-toolbar { align-items: flex-end; flex-wrap: wrap; justify-content: flex-start; }
+.prints-archive-toolbar > label:not(.prints-archive-search) { display: grid; gap: 4px; color: rgb(24 58 50 / 68%); font: 11px var(--font-sans); text-transform: uppercase; letter-spacing: .05em; }
+.prints-archive-toolbar > label input, .prints-archive-toolbar > label select { min-height: 38px; border: 1px solid rgba(24,58,50,.18); background: #fff; padding: .55rem .65rem; color: #183A32; font: 13px var(--font-sans); text-transform: none; letter-spacing: normal; }
+@media (max-width: 640px) { .daily-summary-heading, .daily-summary-metrics { grid-template-columns: 1fr; flex-direction: column; } .daily-summary-metrics { display: grid; } .prints-archive-toolbar > label, .prints-archive-toolbar > label input, .prints-archive-toolbar > label select, .prints-archive-toolbar > button { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .viewed-confirmation { animation: none; } }

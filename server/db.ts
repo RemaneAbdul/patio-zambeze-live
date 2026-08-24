@@ -105,6 +105,39 @@ export async function recordAuditLog(input: { userId?: number | null; restaurant
   }
 }
 
+export async function getDailyStaffSummary(date: string, restaurantId = "default") {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const start = new Date(`${date}T00:00:00.000Z`);
+  if (Number.isNaN(start.getTime())) throw new Error("INVALID_SUMMARY_DATE");
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  const staff = await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode })
+    .from(users).where(eq(users.role, "garcom")).orderBy(users.name);
+  const events = await db.select({ userId: auditLogs.userId, action: auditLogs.action })
+    .from(auditLogs)
+    .where(and(eq(auditLogs.restaurantId, restaurantId), eq(auditLogs.role, "garcom"), gte(auditLogs.createdAt, start), lt(auditLogs.createdAt, end)));
+  const processed = await db.select({ id: tableSelections.id, waiterId: tableSelections.viewedByWaiterId })
+    .from(tableSelections)
+    .where(and(gte(tableSelections.viewedAt, start), lt(tableSelections.viewedAt, end), isNotNull(tableSelections.viewedByWaiterId)));
+  const byStaff = new Map<number, { actions: number; receiptsProcessed: number; byAction: Record<string, number> }>();
+  for (const member of staff) byStaff.set(member.id, { actions: 0, receiptsProcessed: 0, byAction: {} });
+  for (const event of events) {
+    if (event.userId == null) continue;
+    const stats = byStaff.get(event.userId) ?? { actions: 0, receiptsProcessed: 0, byAction: {} };
+    stats.actions += 1;
+    stats.byAction[event.action] = (stats.byAction[event.action] ?? 0) + 1;
+    byStaff.set(event.userId, stats);
+  }
+  for (const receipt of processed) {
+    if (receipt.waiterId == null) continue;
+    const stats = byStaff.get(receipt.waiterId) ?? { actions: 0, receiptsProcessed: 0, byAction: {} };
+    stats.receiptsProcessed += 1;
+    byStaff.set(receipt.waiterId, stats);
+  }
+  const waiters = staff.map((member) => ({ ...member, ...(byStaff.get(member.id) ?? { actions: 0, receiptsProcessed: 0, byAction: {} }) }));
+  return { date, totalProcessed: processed.length, totalActions: events.length, waiters };
+}
+
 export async function getGarconProfileByLegacyUserId(legacyUserId: number) {
   const db = await getDb();
   if (!db) return null;
@@ -291,7 +324,7 @@ export async function getUserByOpenId(openId: string) {
 // TODO: add feature queries here as your schema grows.
 
 
-import { and, asc, desc, eq, inArray, isNull, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNull, isNotNull, lt, sql } from "drizzle-orm";
 import { menuCategories, menuProducts, tableQrCodes, tableSelectionItems, tableSelections, tableSessions, InsertTableSelectionItem } from "../drizzle/schema";
 
 let lastSessionCleanupAt = 0;

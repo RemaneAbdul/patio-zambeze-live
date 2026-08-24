@@ -6,7 +6,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { printRenderedReceipt, receiptPaperClass, type ReceiptPrintState } from "@/lib/receiptPrint";
 import { shouldQueryStaffLookup, staffLookupInput } from "@/lib/staffLookupGuard";
-import { canUseWaiterPanel } from "@shared/roles";
+import { canUseWaiterPanel, isAdminRole } from "@shared/roles";
 import { ArrowLeft, CheckCircle2, Circle, Eye, LockKeyhole, Printer, Search, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -25,10 +25,13 @@ export default function WaiterPanel() {
   const [showReceipt, setShowReceipt] = useState(false);
   const [printState, setPrintState] = useState<ReceiptPrintState>("idle");
   const [viewedConfirmation, setViewedConfirmation] = useState(false);
+  const [summaryDate] = useState(() => new Date().toISOString().slice(0, 10));
   const isAuthorized = canUseWaiterPanel(user?.role, user?.waiterCode, user?.waiterActive);
   const tables = trpc.tableHistory.staffTables.useQuery(undefined, { enabled: isAuthorized, refetchInterval: 5000, retry: false });
   const lookupInput = useMemo(() => staffLookupInput(selectedToken) ?? { sessionToken: EMPTY_LOOKUP_TOKEN }, [selectedToken]);
+  const summaryInput = useMemo(() => ({ date: summaryDate }), [summaryDate]);
   const lookup = trpc.tableHistory.staffLookup.useQuery(lookupInput, { enabled: shouldQueryStaffLookup(Boolean(isAuthorized), selectedToken), retry: false });
+  const dailySummary = trpc.tableHistory.dailySummary.useQuery(summaryInput, { enabled: isAdminRole(user?.role), retry: false });
   const utils = trpc.useUtils();
   const assumeTable = trpc.tableHistory.assumeTable.useMutation({ onSuccess: () => { void utils.tableHistory.staffTables.invalidate(); void lookup.refetch(); }, onError: () => { void tables.refetch(); } });
   const markViewed = trpc.tableHistory.markViewed.useMutation({ onSuccess: () => { void utils.tableHistory.staffTables.invalidate(); void lookup.refetch(); setViewedConfirmation(true); window.setTimeout(() => setViewedConfirmation(false), 3200); } });
@@ -69,6 +72,8 @@ export default function WaiterPanel() {
           <div><p className="eyebrow">Pátio Zambeze · operação interna</p><h1 className="waiter-title">Painel do restaurante</h1><p className="waiter-subtitle">Consulte as mesas, confirme novas seleções e imprima o histórico sem alterar os dados do cliente.</p></div>
           <div className="waiter-user-chip"><LockKeyhole className="h-4 w-4" /> {user?.name || "Utilizador autorizado"}{user?.waiterCode && <span> · {user.waiterCode}</span>}</div>
         </header>
+
+        {isAdminRole(user?.role) && <section className="daily-summary-panel" aria-label="Resumo diário"><div className="daily-summary-heading"><div><p className="eyebrow">Hoje · {new Date(`${summaryDate}T00:00:00`).toLocaleDateString("pt-PT")}</p><h2>Resumo diário</h2></div><span>{dailySummary.isLoading ? "A carregar…" : dailySummary.error ? "Indisponível" : `${dailySummary.data?.totalProcessed ?? 0} recibos processados`}</span></div>{dailySummary.error ? <div className="waiter-alert" role="alert">Não foi possível carregar o resumo diário.</div> : <><div className="daily-summary-metrics"><div><span>Recibos processados</span><strong>{dailySummary.data?.totalProcessed ?? 0}</strong></div><div><span>Acções registadas</span><strong>{dailySummary.data?.totalActions ?? 0}</strong></div><div><span>Garçons activos</span><strong>{dailySummary.data?.waiters.filter((waiter) => waiter.receiptsProcessed > 0 || waiter.actions > 0).length ?? 0}</strong></div></div><div className="daily-summary-staff">{dailySummary.data?.waiters.length ? dailySummary.data.waiters.map((waiter) => <article key={waiter.id}><div><strong>{waiter.name || "Garçom sem nome"}</strong><small>{waiter.waiterCode || `ID ${waiter.id}`}</small></div><span>{waiter.receiptsProcessed} recibo{waiter.receiptsProcessed === 1 ? "" : "s"}</span><p>{Object.entries(waiter.byAction).map(([action, count]) => `${action}: ${count}`).join(" · ") || "Sem acções registadas hoje"}</p></article>) : <div className="waiter-empty">Ainda não existem garçons registados.</div>}</div></>}</section>}
 
         <section className="waiter-summary-grid" aria-label="Resumo das mesas">
           <div><span>Novas</span><strong>{newCount}</strong></div><div><span>Visualizadas</span><strong>{viewedCount}</strong></div><div><span>Sem pedido</span><strong>{emptyCount}</strong></div>
