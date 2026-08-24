@@ -1143,8 +1143,8 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 ## Actualização final do GitHub — pasted_content_15.txt
 
-- [ ] Verificar branch, remoto, estado e alterações locais.
-- [ ] Rever diff e excluir segredos, tokens, credenciais e ficheiros temporários.
-- [ ] Confirmar build e testes antes do commit.
-- [ ] Criar commit profissional na branch actual e enviar sem force push.
-- [ ] Confirmar commit remoto e working tree sincronizada.
+- [x] Verificar branch, remoto, estado e alterações locais.
+- [x] Rever diff e excluir segredos, tokens, credenciais e ficheiros temporários.
+- [x] Confirmar build e testes antes do commit.
+- [x] Criar commit profissional na branch actual e enviar sem force push.
+- [x] Confirmar commit remoto e working tree sincronizada.
