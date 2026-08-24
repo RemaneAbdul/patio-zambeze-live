@@ -28,3 +28,10 @@ describe("daily summary and viewed confirmation", () => {
     expect(source).toContain("viewed-confirmation");
   });
 });
+
+describe("selection item removal guard", () => {
+  it("disables removal of the final item and keeps the server guard", () => {
+    expect(source).toContain("selection.items.length <= 1");
+    expect(source).toContain("Não é possível remover o último item");
+  });
+});

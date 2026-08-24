@@ -1073,3 +1073,78 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 - [x] Sincronizar o checkpoint mais recente com `RemaneAbdul/patio-zambeze-menu`.
 - [x] Confirmar o commit e o estado do repositório remoto.
+
+## Correcção SELECTION_CANNOT_BE_EMPTY no painel de mesas
+
+- [x] Identificar a acção que tenta remover o último item de uma selecção.
+- [x] Impedir a chamada inválida no painel e manter a protecção server-side.
+- [x] Mostrar uma mensagem clara antes ou depois da tentativa inválida.
+- [x] Adicionar teste de regressão para remoção do último item.
+- [x] Validar TypeScript, Vitest, build e publicar checkpoint.
+
+## Tradução automática PT → EN — pasted_content_12.txt
+
+- [x] Auditar campos de tradução existentes, i18n e integração LLM.
+- [x] Remover do formulário admin a edição manual de nome, descrição, preparação e categoria em inglês.
+- [x] Manter português como fonte original sem apagar nem duplicar pratos ou categorias.
+- [x] Implementar tradução automática server-side para conteúdos dinâmicos do menu, incluindo categorias, com cache controlado e fallback para português.
+- [x] Traduzir apenas conteúdo textual do restaurante; preservar preços, quantidades, IDs, mesas, QR Codes, datas e valores numéricos.
+- [x] Integrar PT/EN no menu actual sem alterar layout, pedidos, recibos, imagens ou QR Codes.
+- [x] Invalidar traduções quando o conteúdo português for alterado.
+- [x] Adicionar testes de formulário, cache, fallback, categorias, edição e preservação de IDs/preços.
+- [x] Validar TypeScript, Vitest, build, Supabase e publicação.
+
+## Botões de categorias e catálogo — pasted_content_13.txt
+
+- [x] Auditar CSS e componentes dos botões de categorias e pratos.
+- [x] Tornar as acções sempre visíveis, sem depender de hover.
+- [x] Corrigir contraste, espaçamento e área de toque no desktop e mobile.
+- [x] Adicionar ou confirmar aria-labels nas acções icónicas.
+- [x] Preservar a lógica de editar, activar/desactivar e remover.
+- [x] Validar consola, TypeScript, Vitest, build e screenshots responsivos.
+- [x] Criar commit Git sem segredos e sincronizar com o repositório remoto.
+
+## Recibos do garçom por atendente — pasted_content_14.txt
+
+- [x] Auditar as consultas do dashboard e as acções de recibo existentes.
+- [x] Filtrar recibos do dashboard do garçom pelo atendente real que marcou a selecção como vista.
+- [x] Manter o administrador com as permissões administrativas existentes.
+- [x] Bloquear server-side impressão, download e partilha de recibos de outro garçom.
+- [x] Garantir que pedidos posteriores e recibos da mesma mesa não sejam misturados.
+- [x] Preservar RLS/isolamento Supabase, auditoria e o menu do cliente.
+- [x] Adicionar regressões para dois garçons, acesso negado e admin autorizado.
+- [x] Validar TypeScript, Vitest, build, interface, Supabase e sincronização GitHub.
+
+## Indicador e filtro de recibos no painel admin
+
+- [x] Auditar o painel administrativo e a fonte real de recibos visualizados.
+- [x] Adicionar indicador visual para recibos já visualizados por garçons.
+- [x] Adicionar filtro rápido por garçom específico no painel administrativo.
+- [x] Preservar o acesso total do administrador, os dados do Supabase e o layout existente.
+- [x] Adicionar testes e validar TypeScript, Vitest, build e responsividade.
+
+## Recibos do garçom por atendente — pasted_content_14.txt
+
+- [x] Auditar as consultas do dashboard e as acções de recibo existentes.
+- [x] Filtrar recibos do dashboard do garçom pelo atendente real que marcou a selecção como vista.
+- [x] Manter o administrador com as permissões administrativas existentes.
+- [x] Bloquear server-side impressão, download e partilha de recibos de outro garçom.
+- [x] Garantir que pedidos posteriores e recibos da mesma mesa não sejam misturados.
+- [x] Preservar RLS/isolamento Supabase, auditoria e o menu do cliente.
+- [x] Adicionar regressões para dois garçons, acesso negado e admin autorizado.
+- [x] Validar TypeScript, Vitest, build, interface, Supabase e sincronização GitHub.
+
+## Actualização rápida da lista do garçom
+
+- [x] Adicionar botão de actualização manual à lista de mesas.
+- [x] Usar a query existente para actualizar apenas os dados, sem recarregar a página inteira.
+- [x] Mostrar estado visual de carregamento e resultado da actualização.
+- [x] Adicionar teste de regressão e validar TypeScript, Vitest e build.
+
+## Actualização final do GitHub — pasted_content_15.txt
+
+- [ ] Verificar branch, remoto, estado e alterações locais.
+- [ ] Rever diff e excluir segredos, tokens, credenciais e ficheiros temporários.
+- [ ] Confirmar build e testes antes do commit.
+- [ ] Criar commit profissional na branch actual e enviar sem force push.
+- [ ] Confirmar commit remoto e working tree sincronizada.

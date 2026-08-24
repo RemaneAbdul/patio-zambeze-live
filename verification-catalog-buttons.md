@@ -1,0 +1,1 @@
+Verificação visual: em desktop, os botões de categorias ficaram sempre visíveis, contrastados e espaçados. Em mobile a 375 px, as acções ficaram empilhadas com altura de toque adequada; a primeira captura revelou que o botão “Nova categoria” invadia o título, por isso foi adicionado um override mobile para empilhar o cabeçalho do cartão e ocupar a largura disponível.
