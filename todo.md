@@ -1284,3 +1284,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Criar commit com a mensagem profissional solicitada.
 - [x] Enviar a branch actual para o GitHub sem force push.
 - [x] Confirmar hash remoto, working tree limpa e ausência de alterações pendentes.
+
+## Teste completo do sistema — pasted_content_27.txt
+- [x] Inventariar tecnologias, rotas, testes, integrações e configurações sem modificar a arquitectura.
+- [x] Validar desenvolvimento e produção: rotas, HTTPS, assets, API, consola, Vercel e Supabase.
+- [x] Validar catálogo, pedidos, mesas, recibos, autenticação, roles, RLS, Audit Logs e Storage.
+- [x] Validar fluxos concorrentes, segundo pedido/recibo, impressão, PDF, partilha, offline e responsividade sem criar dados fictícios.
+- [x] Corrigir apenas falhas confirmadas, repetir os testes afectados e preparar relatório PASSOU/ATENÇÃO/FALHOU.
+- [x] Investigar falha de integração `tableHistory persistence`: após marcar como visto, a mesa encontrada não reflectiu o estado esperado `viewed`; reproduzir, identificar a causa no backend/Supabase/teste e corrigir apenas se confirmado. A falha não foi reproduzida isoladamente nem em suite serial.
