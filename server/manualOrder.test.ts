@@ -29,7 +29,9 @@ describe("manual waiter orders", () => {
   });
 
   it("offers table, category, product, quantity, notes and confirmation in the existing waiter panel", () => {
-    expect(panelSource).toContain('> Novo Pedido</Button>');
+    expect(panelSource).toContain('Novo Pedido (pedido feito pelo cliente)');
+    expect(panelSource).toContain('trpc.menu.staffCatalog.useQuery');
+    expect(panelSource).toContain('enabled: Boolean(isAuthorized && manualOpen)');
     expect(panelSource).toContain('id="manual-order-title"');
     expect(panelSource).toContain("Seleccione a mesa");
     expect(panelSource).toContain("Todas as categorias");

@@ -3,3 +3,7 @@
 Data: 25/08/2026
 
 Foram capturados `/painel/garcom` e `/painel/garcons` em viewport móvel de 375x812. O painel operacional mantém o cabeçalho, resumo diário, identidade do utilizador e composição vertical sem overflow horizontal. A página de gestão de garçons mantém os botões “Adicionar Garçom” e “Criar Administrador” visíveis, e a lista de administradores permanece dentro do cartão responsivo. O formulário de pedido manual fica no fluxo da página e usa a grelha responsiva definida em `index.css`; a edição de admin mantém o campo de password opcional sem alterar a estrutura das restantes acções.
+
+## Revalidação após reinício
+
+O servidor foi reiniciado para limpar o estado HMR antigo. Em viewport 375x812, `/painel/garcom` e `/painel/garcons` abriram sem erro de parsing. O dashboard inicial não renderiza categorias nem pratos; o catálogo só fica disponível através do fluxo “Novo Pedido (pedido feito pelo cliente)”.

@@ -86,6 +86,7 @@ export const appRouter = router({
 
   menu: router({
     active: publicProcedure.query(() => listMenuProducts(false, true)),
+    staffCatalog: staffProcedure.query(() => listMenuProducts(false, false)),
     categories: adminProcedure.query(() => listMenuCategories(true)),
     publicCategories: publicProcedure.query(() => listMenuCategories(false)),
     translations: publicProcedure.query(() => translateActiveMenu()),

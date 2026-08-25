@@ -1211,3 +1211,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar auditoria `CREATE_MANUAL_ORDER` sem passwords ou tokens.
 - [x] Criar testes de segurança, persistência, recibo, concorrência e regressões.
 - [x] Validar TypeScript, Vitest, build, interface e guardar checkpoint.
+
+## Catálogo do garçom sob demanda — pasted_content_21.txt
+
+- [x] Manter categorias e pratos ocultos no dashboard inicial do garçom.
+- [x] Mostrar o catálogo real do Supabase apenas após clicar em “Novo Pedido (pedido feito pelo cliente)”.
+- [x] Preservar mesa, quantidades, observações, confirmação, recibo, estados e auditoria existentes.
+- [x] Fechar e limpar o fluxo após confirmar ou cancelar, sem criar pedido incompleto.
+- [x] Validar categorias, disponibilidade, preços, pesquisa, responsividade e ausência de catálogo no reload.
