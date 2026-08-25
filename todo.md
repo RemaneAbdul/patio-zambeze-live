@@ -1315,3 +1315,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Mostrar estados acessíveis de preparação, envio, sucesso e erro sem permitir submissões duplicadas.
 - [x] Adicionar regressões e validar TypeScript, testes, build e interface.
 - [x] Guardar checkpoint da melhoria de progresso concluída.
+
+## Nova sincronização GitHub após indicador de progresso
+- [x] Verificar branch, remotos, estado local e diferenças face ao GitHub.
+- [x] Rever alterações e confirmar que não existem dados sensíveis no commit.
+- [x] Executar testes e build antes do commit.
+- [x] Criar ou confirmar commit coerente e enviar a branch main para o GitHub sem force push.
+- [x] Confirmar working tree limpa e remoto sincronizado.
