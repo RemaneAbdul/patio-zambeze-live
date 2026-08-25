@@ -4,7 +4,7 @@ import { Pool } from "pg";
 import { InsertUser, users, auditLogs, garcons } from "../drizzle/schema";
 import * as schema from "../drizzle/schema";
 import { ENV } from './_core/env';
-import { createSupabaseAdminUser, createSupabaseWaiter, deleteSupabaseUser, deleteSupabaseWaiter, disableSupabaseWaiter, enableSupabaseWaiter, updateSupabaseWaiter } from './supabaseAuth';
+import { createSupabaseAdminUser, createSupabaseWaiter, deleteSupabaseUser, deleteSupabaseWaiter, disableSupabaseWaiter, enableSupabaseWaiter, updateSupabaseAdmin, updateSupabaseWaiter } from './supabaseAuth';
 
 let _db: NodePgDatabase<typeof schema> | null = null;
 let _pool: Pool | null = null;
@@ -261,7 +261,62 @@ export async function listWaiterUsers() {
 export async function listAdminUsers() {
   const db = await getDb();
   if (!db) return [];
-  return db.select({ id: users.id, openId: users.openId, name: users.name, email: users.email, role: users.role, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).where(eq(users.role, "admin")).orderBy(users.name);
+  return db.select({ id: users.id, openId: users.openId, name: users.name, email: users.email, role: users.role, waiterActive: users.waiterActive, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).where(eq(users.role, "admin")).orderBy(users.name);
+}
+
+export async function getAdminById(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const [admin] = await db.select({ id: users.id, openId: users.openId, name: users.name, email: users.email, role: users.role, waiterActive: users.waiterActive }).from(users).where(and(eq(users.id, id), eq(users.role, "admin"))).limit(1);
+  if (!admin) throw new Error("ADMIN_NOT_FOUND");
+  if (!admin.openId.startsWith("supabase:")) throw new Error("ADMIN_AUTH_ID_MISSING");
+  return { db, admin, authUserId: admin.openId.slice("supabase:".length) };
+}
+
+export async function updateAdminUser(input: { id: number; fullName: string; email: string }) {
+  const { db, admin, authUserId } = await getAdminById(input.id);
+  const fullName = input.fullName.trim();
+  const email = input.email.trim().toLowerCase();
+  if (!fullName || !email) throw new Error("ADMIN_REQUIRED_FIELDS");
+  const [duplicate] = await db.select({ id: users.id }).from(users).where(and(sql`lower(${users.email}) = ${email}`, sql`${users.id} <> ${input.id}`)).limit(1);
+  if (duplicate) throw new Error("ADMIN_EMAIL_ALREADY_EXISTS");
+  await updateSupabaseAdmin({ authUserId, email, fullName });
+  try {
+    const [updated] = await db.update(users).set({ name: fullName, email, role: "admin", updatedAt: new Date() }).where(and(eq(users.id, input.id), eq(users.role, "admin"))).returning({ id: users.id, name: users.name, email: users.email, role: users.role, waiterActive: users.waiterActive });
+    if (!updated) throw new Error("ADMIN_UPDATE_FAILED");
+    return updated;
+  } catch (error) {
+    try { await updateSupabaseAdmin({ authUserId, email: admin.email ?? email, fullName: admin.name ?? fullName }); } catch (rollbackError) { console.error("[Auth] Failed to rollback admin update", rollbackError); }
+    throw error;
+  }
+}
+
+export async function setAdminActive(id: number, active: boolean) {
+  const { db, admin, authUserId } = await getAdminById(id);
+  if (!active && admin.waiterActive === 1) {
+    const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(and(eq(users.role, "admin"), eq(users.waiterActive, 1)));
+    if (Number(count) <= 1) throw new Error("LAST_ACTIVE_ADMIN");
+  }
+  const [updated] = await db.update(users).set({ waiterActive: active ? 1 : 0, updatedAt: new Date() }).where(and(eq(users.id, id), eq(users.role, "admin"))).returning({ id: users.id, name: users.name, email: users.email, role: users.role, waiterActive: users.waiterActive });
+  if (!updated) throw new Error("ADMIN_UPDATE_FAILED");
+  return updated;
+}
+
+export async function deleteAdminUser(id: number) {
+  const { db, admin, authUserId } = await getAdminById(id);
+  if (admin.waiterActive === 1) {
+    const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(and(eq(users.role, "admin"), eq(users.waiterActive, 1)));
+    if (Number(count) <= 1) throw new Error("LAST_ACTIVE_ADMIN");
+  }
+  await deleteSupabaseUser(authUserId);
+  try {
+    const [updated] = await db.update(users).set({ role: "user", waiterCode: null, waiterActive: 0, updatedAt: new Date() }).where(and(eq(users.id, id), eq(users.role, "admin"))).returning({ id: users.id, name: users.name, email: users.email, role: users.role, waiterActive: users.waiterActive });
+    if (!updated) throw new Error("ADMIN_DELETE_FAILED");
+    return updated;
+  } catch (error) {
+    console.error("[Database] Admin Auth deleted but profile cleanup failed", error);
+    throw error;
+  }
 }
 
 export async function listWaiterCurrentAssignments() {

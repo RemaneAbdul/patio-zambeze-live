@@ -15,7 +15,7 @@ async function resolveSupabaseUser(accessToken: string): Promise<User | null> {
   if (!supabaseUser) return null;
 
   const legacyUser = await getUserByOpenId(`supabase:${supabaseUser.id}`);
-  if (legacyUser?.role === "admin") return legacyUser;
+  if (legacyUser?.role === "admin") return legacyUser.waiterActive === 1 ? legacyUser : null;
   if (!legacyUser) return null;
 
   const garconProfile = await getGarconProfileByLegacyUserId(legacyUser.id);
@@ -52,6 +52,6 @@ export async function createContext(
   return {
     req: opts.req,
     res: opts.res,
-    user,
+    user: user?.role === "admin" && user.waiterActive === 0 ? null : user,
   };
 }

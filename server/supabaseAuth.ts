@@ -95,6 +95,29 @@ export async function deleteSupabaseWaiter(authUserId: string) {
   return deleteSupabaseUser(authUserId);
 }
 
+export async function updateSupabaseAdmin(input: { authUserId: string; email: string; fullName: string }) {
+  const { data, error } = await getAdminClient().auth.admin.updateUserById(input.authUserId, {
+    email: input.email.trim().toLowerCase(),
+    email_confirm: true,
+    user_metadata: { full_name: input.fullName.trim(), role: "ADMIN" },
+  });
+  if (error) throw new Error(error.message);
+  if (!data.user) throw new Error("SUPABASE_AUTH_ADMIN_UPDATE_FAILED");
+  return data.user;
+}
+
+export async function disableSupabaseUser(authUserId: string) {
+  const { data, error } = await getAdminClient().auth.admin.updateUserById(authUserId, { ban_duration: "876000h" });
+  if (error) throw new Error(error.message);
+  return data.user;
+}
+
+export async function enableSupabaseUser(authUserId: string) {
+  const { data, error } = await getAdminClient().auth.admin.updateUserById(authUserId, { ban_duration: "none" });
+  if (error) throw new Error(error.message);
+  return data.user;
+}
+
 export async function updateSupabaseWaiter(input: { authUserId: string; email: string; password?: string; fullName: string; phone?: string }) {
   const { data, error } = await getAdminClient().auth.admin.updateUserById(input.authUserId, {
     email: input.email,

@@ -1181,3 +1181,14 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Validar campos, email duplicado, falhas sem perfil incompleto e mensagens de sucesso/erro.
 - [x] Criar testes de autorização, criação, login, role, auditoria e regressões.
 - [x] Validar TypeScript, Vitest, build e guardar checkpoint.
+
+## Gestão completa de administradores — pasted_content_19.txt
+
+- [x] Auditar estado actual, sessões, Auth, relações históricas e permissões administrativas.
+- [x] Implementar edição de admin com role preservada e email sincronizado no Auth e em `users`.
+- [x] Implementar activação/desactivação e impedir login/uso administrativo de contas inactivas.
+- [x] Implementar eliminação segura com confirmação, auto-protecção, último admin activo e histórico preservado.
+- [x] Registar UPDATE_ADMIN, ACTIVATE_ADMIN, DEACTIVATE_ADMIN e DELETE_ADMIN sem credenciais.
+- [x] Adicionar acções sempre visíveis na lista actual de administradores.
+- [x] Criar testes de RBAC, duplicados, sessões, último admin, histórico e regressões.
+- [x] Validar TypeScript, Vitest, build, verificação visual e guardar checkpoint.

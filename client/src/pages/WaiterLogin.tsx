@@ -16,6 +16,7 @@ export default function WaiterLogin() {
   const [recoverySent, setRecoverySent] = useState(false);
   const utils = trpc.useUtils();
   const profileQuery = trpc.staff.profile.useQuery(undefined, { enabled: false, retry: false });
+  const loginStatusQuery = trpc.staff.loginStatus.useQuery(undefined, { enabled: false, retry: false });
   const recordLogin = trpc.auth.recordLogin.useMutation();
 
   const submit = async (event: React.FormEvent) => {
@@ -43,12 +44,20 @@ export default function WaiterLogin() {
     }
 
     sessionStorage.setItem("supabase-access-token", data.session.access_token);
+    const statusResult = await loginStatusQuery.refetch();
+    if (statusResult.data?.status === "ADMIN_INACTIVE") {
+      sessionStorage.removeItem("supabase-access-token");
+      await supabase.auth.signOut();
+      setError("Esta conta está desactivada. Contacte um administrador.");
+      setLoading(false);
+      return;
+    }
     const profileResult = await profileQuery.refetch();
     const profile = profileResult.data;
     if (!profile) {
       sessionStorage.removeItem("supabase-access-token");
       await supabase.auth.signOut();
-      setError("O seu perfil não está configurado ou está inactivo. Contacte o administrador.");
+      setError("O seu perfil não está configurado. Contacte o administrador.");
       setLoading(false);
       return;
     }

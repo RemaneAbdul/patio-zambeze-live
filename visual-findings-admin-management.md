@@ -1,0 +1,3 @@
+# Verificação visual — gestão completa de administradores
+
+A rota `/painel/garcons` mantém a estrutura visual existente. A secção de administradores apresenta os cartões com nome, email, estado e as acções Editar, Desactivar/Activar e Apagar. No desktop, os botões permanecem visíveis e alinhados dentro dos cartões; a conta autenticada aparece protegida contra auto-desactivação e auto-eliminação. No mobile, os cartões empilham-se, as três acções continuam visíveis sem hover e não foi observado overflow horizontal. A indicação de conta legada aparece separadamente para o perfil sem identidade Supabase gerível.

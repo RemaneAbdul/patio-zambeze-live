@@ -7,6 +7,8 @@ const appSource = fs.readFileSync(path.resolve(import.meta.dirname, "../App.tsx"
 
 describe("Supabase waiter login routing", () => {
   it("loads the persisted profile before navigating", () => {
+    expect(source).toContain("loginStatusQuery.refetch()");
+    expect(source).toContain('statusResult.data?.status === "ADMIN_INACTIVE"');
     expect(source).toContain("profileQuery.refetch()");
     expect(source).toContain('profile.role === "admin" ? "/painel/admin" : "/painel/garcom"');
     expect(source).toContain("recordLogin.mutateAsync()");
@@ -23,7 +25,8 @@ describe("Supabase waiter login routing", () => {
   });
 
   it("rejects accounts without an active configured profile", () => {
-    expect(source).toContain("O seu perfil não está configurado ou está inactivo");
+    expect(source).toContain("Esta conta está desactivada. Contacte um administrador.");
+    expect(source).toContain("O seu perfil não está configurado. Contacte o administrador.");
     expect(source).toContain("supabase.auth.signOut()");
   });
 });

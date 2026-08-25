@@ -45,8 +45,8 @@ export const adminProcedure = t.procedure.use(
   t.middleware(async opts => {
     const { ctx, next } = opts;
 
-    if (!ctx.user || ctx.user.role !== 'admin') {
-      throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
+    if (!ctx.user || ctx.user.role !== 'admin' || ctx.user.waiterActive === 0) {
+      throw new TRPCError({ code: "FORBIDDEN", message: ctx.user?.role === 'admin' ? "Esta conta está desactivada. Contacte um administrador." : NOT_ADMIN_ERR_MSG });
     }
 
     return next({
