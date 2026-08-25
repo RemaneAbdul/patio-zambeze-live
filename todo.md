@@ -1276,3 +1276,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Apresentar pedido actual com mesa, linhas, total, quantidades e acções sem apagar itens ao limpar filtros.
 - [x] Criar apresentação desktop em duas colunas e mobile vertical/expansível, preservando catálogo Supabase, disponibilidade, permissões e lógica existente.
 - [x] Adicionar testes de regressão, validar desktop/tablet/mobile e guardar checkpoint.
+
+## Actualização final GitHub — pasted_content_26.txt
+- [ ] Verificar branch, remoto, working tree e diff actuais.
+- [ ] Auditar alterações staged e excluir segredos, credenciais e ficheiros temporários.
+- [ ] Executar testes completos e build de produção.
+- [ ] Criar commit com a mensagem profissional solicitada.
+- [ ] Enviar a branch actual para o GitHub sem force push.
+- [ ] Confirmar hash remoto, working tree limpa e ausência de alterações pendentes.
