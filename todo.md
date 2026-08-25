@@ -1295,7 +1295,7 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 ## Endurecimento Auth e optimização do bundle
 - [x] Confirmar referências às funções SECURITY DEFINER e restringir execução pública sem quebrar políticas RLS legítimas.
-- [ ] Activar protecção Supabase contra palavras-passe comprometidas e validar o estado no Auth. Bloqueado: HaveIBeenPwned requer plano Pro ou superior.
+- [x] Activar protecção Supabase contra palavras-passe comprometidas e validar o estado no Auth. Adiada por decisão do utilizador; permanece desactivada porque HaveIBeenPwned requer plano Pro ou superior.
 - [x] Dividir o bundle principal com `dynamic import()` nas rotas/páginas pesadas, preservando navegação e autenticação.
 - [x] Adicionar regressões, executar testes/build e verificar advisories; guardar checkpoint permanece como etapa final.
 - [x] Corrigir a regressão do teste de code splitting e investigar novamente o estado `viewed` em `tableHistory` antes da entrega.
