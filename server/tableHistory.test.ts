@@ -254,5 +254,5 @@ integration("tableHistory persistence", () => {
       await db.delete(tableSessions).where(eq(tableSessions.tableNumber, tableNumber));
       if (created[0]) await db.delete(tableQrCodes).where(eq(tableQrCodes.id, created[0].id));
     }
-  });
+  }, 30_000);
 });

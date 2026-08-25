@@ -1246,3 +1246,12 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 - [x] Verificar que o catálogo público e o catálogo de staff usam exclusivamente o catálogo Supabase e que o fluxo Novo Pedido só consulta/renderiza os pratos após abertura.
 - [x] Validar actualização do catálogo após alterações do administrador e cobertura de testes/build.
+
+## Commit e sincronização GitHub — pasted_content_23.txt
+- [x] Inspeccionar branch, remoto, estado e diff local.
+- [x] Rever ficheiros staged e impedir inclusão de segredos, credenciais ou temporários.
+- [x] Executar testes e build do projecto.
+- [ ] Criar commit profissional com as alterações actuais.
+- [ ] Enviar o commit para a branch remota actual sem force push.
+- [ ] Confirmar working tree limpa e sincronização com GitHub.
+- [x] Ajustar o timeout do teste de integração de QR Code para ambientes Supabase lentos e repetir a suite completa.
