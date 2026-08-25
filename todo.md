@@ -1192,3 +1192,9 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar acções sempre visíveis na lista actual de administradores.
 - [x] Criar testes de RBAC, duplicados, sessões, último admin, histórico e regressões.
 - [x] Validar TypeScript, Vitest, build, verificação visual e guardar checkpoint.
+
+## Bug ADMIN_CANNOT_DELETE_SELF — 25/08/2026
+
+- [x] Bloquear visualmente a própria conta admin por ID e email, incluindo perfis duplicados.
+- [x] Manter a recusa backend e mostrar feedback seguro para tentativas directas.
+- [x] Adicionar teste de regressão e validar painel, build e publicação.

@@ -77,6 +77,10 @@ describe("admin creation safeguards", () => {
     expect(panelSource).toContain('active ? "Desactivar" : "Activar"');
     expect(panelSource).toContain('"Apagar"');
     expect(panelSource).toContain('Tem certeza que deseja apagar permanentemente');
-    expect(panelSource).toContain('A sua própria conta não pode ser desactivada ou apagada');
-  });
+    expect(panelSource).toContain('A sua própria conta não pode ser desactivada ou apagada enquanto está autenticado.');
+    expect(panelSource).toContain('user?.email?.trim().toLowerCase()');
+    expect(panelSource).toContain('admin.email?.trim().toLowerCase()');
+    expect(panelSource).toContain('Boolean(currentEmail && adminEmail && currentEmail === adminEmail)');
+});
+
 });
