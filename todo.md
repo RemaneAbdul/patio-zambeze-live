@@ -1233,3 +1233,16 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Abrir/fechar painel de pesquisa e filtros sem mostrar o catálogo no dashboard inicial.
 - [x] Filtrar apenas os pratos reais carregados do Supabase e permitir limpar o filtro.
 - [x] Validar desktop/mobile, testes, build e publicação.
+
+## Sincronização total do catálogo — pasted_content_22.txt
+
+- [x] Auditar queries, caches e listas mockadas no Admin, Menu Cliente e Novo Pedido.
+- [x] Garantir catálogo oficial Supabase como fonte única nos três fluxos.
+- [x] Corrigir invalidação/actualização após criar, editar, remover, alterar preço, disponibilidade, categoria ou imagem.
+- [x] Preservar preços e nomes históricos em pedidos/recibos existentes e validar novos pedidos no backend.
+- [x] Garantir que indisponíveis não entram em novos pedidos e que garçons não editam catálogo.
+- [x] Adicionar testes de sincronização, dados reais, cache, disponibilidade e histórico.
+- [x] Validar TypeScript, Vitest, build, interface e publicar checkpoint.
+
+- [x] Verificar que o catálogo público e o catálogo de staff usam exclusivamente o catálogo Supabase e que o fluxo Novo Pedido só consulta/renderiza os pratos após abertura.
+- [x] Validar actualização do catálogo após alterações do administrador e cobertura de testes/build.

@@ -40,13 +40,13 @@ export default function ProductsPanel() {
   const create = trpc.menu.create.useMutation({ onSuccess: () => finish("Prato adicionado com sucesso."), onError: showMutationError });
   const update = trpc.menu.update.useMutation({ onSuccess: () => finish("Prato actualizado com sucesso."), onError: showMutationError });
   const statusMutation = trpc.menu.setStatus.useMutation({ onSuccess: (_, variables) => finish(variables.status === "ACTIVE" ? "Prato activado." : variables.status === "INACTIVE" ? "Prato desactivado." : "Prato removido."), onError: showMutationError });
-  const createCategory = trpc.menu.createCategory.useMutation({ onSuccess: () => { void categories.refetch(); setNotice("Categoria criada."); toast.success("Categoria criada.", { duration: 3500 }); }, onError: showMutationError });
-  const updateCategory = trpc.menu.updateCategory.useMutation({ onSuccess: () => { void categories.refetch(); setNotice("Categoria actualizada."); toast.success("Categoria actualizada.", { duration: 3500 }); }, onError: showMutationError });
-  const deleteCategory = trpc.menu.deleteCategory.useMutation({ onSuccess: () => { void categories.refetch(); setNotice("Categoria removida."); toast.success("Categoria removida.", { duration: 3500 }); }, onError: showMutationError });
+  const createCategory = trpc.menu.createCategory.useMutation({ onSuccess: () => { void categories.refetch(); void Promise.all([utils.menu.publicCategories.invalidate(), utils.menu.staffCatalog.invalidate(), utils.menu.active.invalidate(), utils.menu.translations.invalidate()]); setNotice("Categoria criada."); toast.success("Categoria criada.", { duration: 3500 }); }, onError: showMutationError });
+  const updateCategory = trpc.menu.updateCategory.useMutation({ onSuccess: () => { void categories.refetch(); void Promise.all([utils.menu.publicCategories.invalidate(), utils.menu.staffCatalog.invalidate(), utils.menu.active.invalidate(), utils.menu.translations.invalidate()]); setNotice("Categoria actualizada."); toast.success("Categoria actualizada.", { duration: 3500 }); }, onError: showMutationError });
+  const deleteCategory = trpc.menu.deleteCategory.useMutation({ onSuccess: () => { void categories.refetch(); void Promise.all([utils.menu.publicCategories.invalidate(), utils.menu.staffCatalog.invalidate(), utils.menu.active.invalidate(), utils.menu.translations.invalidate()]); setNotice("Categoria removida."); toast.success("Categoria removida.", { duration: 3500 }); }, onError: showMutationError });
 
   function finish(message: string) {
     setEditingId(null); setForm(emptyForm); setNotice(message); toast.success(message, { duration: 3500 });
-    void Promise.all([products.refetch(), utils.menu.active.invalidate(), utils.menu.active.refetch()]);
+    void Promise.all([products.refetch(), categories.refetch(), utils.menu.active.invalidate(), utils.menu.active.refetch(), utils.menu.staffCatalog.invalidate(), utils.menu.publicCategories.invalidate(), utils.menu.translations.invalidate()]);
     window.setTimeout(() => setNotice(""), 3200);
   }
   const filtered = useMemo(() => (products.data ?? []).filter(({ product, category: itemCategory }) => {

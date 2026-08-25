@@ -6,6 +6,8 @@ const dbSource = fs.readFileSync(path.resolve(import.meta.dirname, "db.ts"), "ut
 const routerSource = fs.readFileSync(path.resolve(import.meta.dirname, "routers.ts"), "utf8");
 const schemaSource = fs.readFileSync(path.resolve(import.meta.dirname, "../drizzle/schema.ts"), "utf8");
 const panelSource = fs.readFileSync(path.resolve(import.meta.dirname, "../client/src/pages/WaiterPanel.tsx"), "utf8");
+const homeSource = fs.readFileSync(path.resolve(import.meta.dirname, "../client/src/pages/Home.tsx"), "utf8");
+const productsPanelSource = fs.readFileSync(path.resolve(import.meta.dirname, "../client/src/pages/ProductsPanel.tsx"), "utf8");
 
 
 describe("manual waiter orders", () => {
@@ -28,6 +30,17 @@ describe("manual waiter orders", () => {
     expect(routerSource).toContain("items: z.array");
   });
 
+  it("keeps the public menu and admin mutations on the shared Supabase catalog", () => {
+    expect(routerSource).toContain('active: publicProcedure.query(() => listMenuProducts(false, true))');
+    expect(routerSource).toContain('staffCatalog: staffProcedure.query(() => listMenuProducts(false, false))');
+    expect(dbSource).toContain('publicOnly ? ["ACTIVE"]');
+    expect(homeSource).toContain('trpc.menu.active.useQuery');
+    expect(homeSource).toContain('refetchInterval: 15000');
+    expect(productsPanelSource).toContain('utils.menu.staffCatalog.invalidate()');
+    expect(productsPanelSource).toContain('utils.menu.publicCategories.invalidate()');
+    expect(productsPanelSource).toContain('utils.menu.active.refetch()');
+  });
+
   it("offers table, category, product, quantity, notes and confirmation in the existing waiter panel", () => {
     expect(panelSource).toContain('Novo Pedido (pedido feito pelo cliente)');
     expect(panelSource).toContain('manualFiltersOpen');
@@ -36,6 +49,7 @@ describe("manual waiter orders", () => {
     expect(panelSource).toContain('Limpar filtros');
     expect(panelSource).toContain('trpc.menu.staffCatalog.useQuery');
     expect(panelSource).toContain('enabled: Boolean(isAuthorized && manualOpen)');
+    expect(panelSource).toContain('refetchInterval: manualOpen ? 15000 : false');
     expect(panelSource).toContain('manualOrderRef.current?.scrollIntoView');
     expect(panelSource).toContain('ref={manualOrderRef}');
     expect(panelSource).toContain('id="manual-order-title"');

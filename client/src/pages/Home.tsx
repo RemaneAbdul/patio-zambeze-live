@@ -42,8 +42,8 @@ export default function Home() {
   const [sortBy, setSortBy] = useState("recommended");
   const [showFavorites, setShowFavorites] = useState(false);
   const [favorites, setFavorites] = useState<string[]>(() => { try { return JSON.parse(localStorage.getItem("patio-zambeze-favorites") || "[]"); } catch { return []; } });
-  const activeMenuQuery = trpc.menu.active.useQuery(undefined, { retry: false });
-  const publicCategoriesQuery = trpc.menu.publicCategories.useQuery(undefined, { retry: false });
+  const activeMenuQuery = trpc.menu.active.useQuery(undefined, { retry: false, refetchInterval: 15000 });
+  const publicCategoriesQuery = trpc.menu.publicCategories.useQuery(undefined, { retry: false, refetchInterval: 15000 });
   const catalogProducts = useMemo<Product[]>(() => (activeMenuQuery.data ?? []).map(({ product, category: itemCategory }) => ({
     id: product.id,
     name: product.name,
@@ -57,7 +57,7 @@ export default function Home() {
   const categories = useMemo<Category[]>(() => ["Todos", ...(publicCategoriesQuery.data ?? []).map((item) => item.name)], [publicCategoriesQuery.data]);
   const [selection, setSelection] = useState<Selection>({});
   const [lang, setLang] = useState<Lang>("pt");
-  const translationsQuery = trpc.menu.translations.useQuery(undefined, { enabled: lang === "en", staleTime: 10 * 60 * 1000, gcTime: 30 * 60 * 1000, retry: false });
+  const translationsQuery = trpc.menu.translations.useQuery(undefined, { enabled: lang === "en", staleTime: 10 * 60 * 1000, gcTime: 30 * 60 * 1000, refetchInterval: lang === "en" ? 15000 : false, retry: false });
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("patio-zambeze-dark-mode") === "true");
   const [statusAlertsEnabled, setStatusAlertsEnabled] = useState(() => localStorage.getItem("patio-zambeze-status-alerts") !== "false");
   const [sessionToken, setSessionToken] = useState<string | null>(null);

@@ -39,7 +39,7 @@ export default function WaiterPanel() {
   const isAuthorized = canUseWaiterPanel(user?.role, user?.waiterCode, user?.waiterActive);
   const tables = trpc.tableHistory.staffTables.useQuery(undefined, { enabled: isAuthorized, refetchInterval: 5000, retry: false });
   const qrCodes = trpc.tableHistory.qrCodes.useQuery(undefined, { enabled: isAuthorized, retry: false });
-  const menuCatalog = trpc.menu.staffCatalog.useQuery(undefined, { enabled: Boolean(isAuthorized && manualOpen), retry: false });
+  const menuCatalog = trpc.menu.staffCatalog.useQuery(undefined, { enabled: Boolean(isAuthorized && manualOpen), refetchInterval: manualOpen ? 15000 : false, retry: false });
   const lookupInput = useMemo(() => staffLookupInput(selectedToken) ?? { sessionToken: EMPTY_LOOKUP_TOKEN }, [selectedToken]);
   const summaryInput = useMemo(() => ({ date: summaryDate }), [summaryDate]);
   const lookup = trpc.tableHistory.staffLookup.useQuery(lookupInput, { enabled: shouldQueryStaffLookup(Boolean(isAuthorized), selectedToken), retry: false });
