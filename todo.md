@@ -1141,10 +1141,26 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Mostrar estado visual de carregamento e resultado da actualização.
 - [x] Adicionar teste de regressão e validar TypeScript, Vitest e build.
 
-## Actualização final do GitHub — pasted_content_15.txt
+## Rodapé REMA — pasted_content_16.txt
 
-- [x] Verificar branch, remoto, estado e alterações locais.
-- [x] Rever diff e excluir segredos, tokens, credenciais e ficheiros temporários.
-- [x] Confirmar build e testes antes do commit.
-- [x] Criar commit profissional na branch actual e enviar sem force push.
-- [x] Confirmar commit remoto e working tree sincronizada.
+- [x] Preparar o ícone REMA fornecido sem alterar as proporções nem redesenhar o símbolo.
+- [x] Criar o componente reutilizável `REMAFooter` com o texto exacto solicitado.
+- [x] Integrar o rodapé no final absoluto do menu do cliente.
+- [x] Integrar o mesmo rodapé no final dos dashboards existentes.
+- [x] Garantir responsividade, nitidez, contraste e ausência de overflow horizontal.
+- [x] Preservar navegação, pedidos, mesas, pratos, QR Codes, garçons, recibos, autenticação e base de dados.
+- [x] Adicionar testes e validar TypeScript, Vitest, build e publicação.
+
+## Transparência real do ícone REMA — pasted_content_17.txt
+
+- [x] Remover o fundo branco do ícone REMA sem alterar o símbolo azul, proporções ou cor.
+- [x] Substituir no REMAFooter o asset por uma versão PNG transparente persistente.
+- [x] Manter o texto exacto, composição, posição final e responsividade do rodapé.
+- [x] Adicionar teste de transparência/configuração e validar TypeScript, Vitest, build e publicação.
+
+## Incidente de publicação Vercel — 25/08/2026
+
+- [ ] Diagnosticar por que a página publicada no Vercel não está a abrir.
+- [ ] Sincronizar o código e a configuração actual com o projecto Vercel correcto.
+- [ ] Validar deployment, domínio oficial, rota raiz e rota pública do menu.
+- [ ] Guardar checkpoint da correcção e comunicar o link funcional.

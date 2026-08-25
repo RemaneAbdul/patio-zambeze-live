@@ -935,3 +935,8 @@ body[data-receipt-printing="true"] > .receipt-print-source { position: fixed !im
   .waiter-refresh-confirmation { margin-top: 10px; border: 1px solid #b9d7c3; border-radius: 8px; background: #edf8f0; color: #214c3a; padding: 8px 12px; font-size: .82rem; animation: waiter-refresh-in 180ms ease-out both; }
   @keyframes waiter-refresh-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
   @media (max-width: 640px) { .waiter-table-toolbar { align-items: stretch; flex-direction: column; width: 100%; } .waiter-table-toolbar > button { width: 100%; } }
+
+  .rema-footer { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 100%; padding: 34px 16px 28px; margin-top: 24px; border-top: 1px solid rgba(24, 58, 50, .10); color: rgba(24, 58, 50, .58); text-align: center; }
+  .rema-footer-logo { display: block; width: 58px; height: 38px; max-width: 100%; object-fit: contain; object-position: center; }
+  .rema-footer p { max-width: 100%; margin: 0; font: 500 .72rem/1.5 var(--font-sans); letter-spacing: .02em; overflow-wrap: anywhere; }
+  @media (max-width: 640px) { .rema-footer { padding: 28px 14px 22px; margin-top: 18px; } .rema-footer-logo { width: 48px; height: 30px; } .rema-footer p { max-width: 290px; } }
