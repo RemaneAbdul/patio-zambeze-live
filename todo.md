@@ -1150,3 +1150,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Garantir responsividade, nitidez, contraste e ausência de overflow horizontal.
 - [x] Preservar navegação, pedidos, mesas, pratos, QR Codes, garçons, recibos, autenticação e base de dados.
 - [x] Adicionar testes e validar TypeScript, Vitest, build e publicação.
+
+## Transparência real do ícone REMA — pasted_content_17.txt
+
+- [x] Remover o fundo branco do ícone REMA sem alterar o símbolo azul, proporções ou cor.
+- [x] Substituir no REMAFooter o asset por uma versão PNG transparente persistente.
+- [x] Manter o texto exacto, composição, posição final e responsividade do rodapé.
+- [x] Adicionar teste de transparência/configuração e validar TypeScript, Vitest, build e publicação.
