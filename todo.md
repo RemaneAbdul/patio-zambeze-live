@@ -1157,3 +1157,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Substituir no REMAFooter o asset por uma versão PNG transparente persistente.
 - [x] Manter o texto exacto, composição, posição final e responsividade do rodapé.
 - [x] Adicionar teste de transparência/configuração e validar TypeScript, Vitest, build e publicação.
+
+## Incidente de publicação Vercel — 25/08/2026
+
+- [x] Diagnosticar por que a página publicada no Vercel não está a abrir.
+- [x] Sincronizar o código e a configuração actual com o projecto Vercel correcto.
+- [x] Validar deployment, domínio oficial, rota raiz e rota pública do menu.
+- [x] Guardar checkpoint da correcção e comunicar o link funcional.
