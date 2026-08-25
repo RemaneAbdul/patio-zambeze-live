@@ -44,9 +44,10 @@ describe("manual waiter orders", () => {
   it("offers table, category, product, quantity, notes and confirmation in the existing waiter panel", () => {
     expect(panelSource).toContain('Novo Pedido (pedido feito pelo cliente)');
     expect(panelSource).toContain('manualFiltersOpen');
-    expect(panelSource).toContain('Pesquisar no catálogo');
+    expect(panelSource).toContain('placeholder="Pesquisar prato…"');
     expect(panelSource).toContain('manual-catalog-search-button');
-    expect(panelSource).toContain('aria-label={manualFiltersOpen ? "Ocultar filtros do catálogo" : "Pesquisar no catálogo"}');
+    expect(panelSource).toContain('aria-controls="manual-order-filters"');
+    expect(panelSource).toContain('aria-label={manualFiltersOpen ? "Ocultar filtros do catálogo" : "Abrir filtros do catálogo"}');
     expect(panelSource).toContain('Ocultar filtros');
     expect(panelSource).toContain('Limpar filtros');
     expect(panelSource).toContain('trpc.menu.staffCatalog.useQuery');
@@ -57,9 +58,10 @@ describe("manual waiter orders", () => {
     expect(panelSource).toContain('id="manual-order-title"');
     expect(panelSource).toContain("Seleccione a mesa");
     expect(panelSource).toContain("Todas as categorias");
-    expect(panelSource).toContain("Seleccione o prato");
+    expect(panelSource).toContain('manual-order-products');
+    expect(panelSource).toContain('Adicionar');
     expect(panelSource).toContain("Observação");
-    expect(panelSource).toContain("Confirmar Pedido");
+    expect(panelSource).toContain("Confirmar pedido");
     expect(panelSource).toContain("trpc.tableHistory.createManualOrder.useMutation");
     expect(panelSource).toContain('manualSuccess');
     expect(panelSource).toContain('aria-busy={createManualOrder.isPending}');

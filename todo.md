@@ -1268,3 +1268,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Aplicar estados normal, hover, active, focus e disabled sem esconder acções importantes.
 - [x] Melhorar espaçamento, contraste, identificação de ícones e acções destrutivas sem alterar a lógica existente.
 - [x] Validar desktop, notebook, tablet e smartphone, actualizar testes e guardar checkpoint.
+
+## Reorganização da secção Novo Pedido — pasted_content_25.txt
+- [x] Reorganizar visualmente a ordem Mesa, Pesquisa, Filtros, Categorias, Pratos, Pedido actual e Confirmar pedido.
+- [x] Separar claramente o controlo de filtros do controlo de visualização do pedido.
+- [x] Tornar pesquisa, categorias, limpar pesquisa/filtros e estado vazio claros e responsivos.
+- [x] Apresentar pedido actual com mesa, linhas, total, quantidades e acções sem apagar itens ao limpar filtros.
+- [x] Criar apresentação desktop em duas colunas e mobile vertical/expansível, preservando catálogo Supabase, disponibilidade, permissões e lógica existente.
+- [x] Adicionar testes de regressão, validar desktop/tablet/mobile e guardar checkpoint.
