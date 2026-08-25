@@ -932,7 +932,8 @@ body[data-receipt-printing="true"] > .receipt-print-source { position: fixed !im
 
   .waiter-table-toolbar { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
   .waiter-table-toolbar > button { min-height: 42px; white-space: nowrap; }
-  .waiter-refresh-confirmation { margin-top: 10px; border: 1px solid #b9d7c3; border-radius: 8px; background: #edf8f0; color: #214c3a; padding: 8px 12px; font-size: .82rem; animation: waiter-refresh-in 180ms ease-out both; }
+  .waiter-refresh-confirmation, .waiter-success { margin-top: 10px; border: 1px solid #b9d7c3; border-radius: 8px; background: #edf8f0; color: #214c3a; padding: 8px 12px; font-size: .82rem; animation: waiter-refresh-in 180ms ease-out both; }
+  .waiter-success { display: flex; align-items: center; gap: 8px; font-weight: 700; }
   @keyframes waiter-refresh-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
   @media (max-width: 640px) { .waiter-table-toolbar { align-items: stretch; flex-direction: column; width: 100%; } .waiter-table-toolbar > button { width: 100%; } }
 

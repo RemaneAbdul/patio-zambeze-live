@@ -1255,3 +1255,9 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Enviar o commit para a branch remota actual sem force push.
 - [x] Confirmar working tree limpa e sincronização com GitHub.
 - [x] Ajustar o timeout do teste de integração de QR Code para ambientes Supabase lentos e repetir a suite completa.
+
+## Feedback visual de QR Code e criação de pedidos
+- [x] Mostrar estado de leitura do QR Code, reconhecimento bem-sucedido e erro de leitura com feedback acessível.
+- [x] Mostrar carregamento imediato durante a criação de um novo pedido e impedir submissões duplicadas.
+- [x] Mostrar confirmação visual de sucesso após a criação do pedido e limpar o estado sem perder o contexto necessário.
+- [x] Criar testes de regressão e validar os fluxos em desktop e mobile.

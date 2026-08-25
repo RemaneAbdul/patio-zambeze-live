@@ -59,5 +59,18 @@ describe("manual waiter orders", () => {
     expect(panelSource).toContain("Observação");
     expect(panelSource).toContain("Confirmar Pedido");
     expect(panelSource).toContain("trpc.tableHistory.createManualOrder.useMutation");
+    expect(panelSource).toContain('manualSuccess');
+    expect(panelSource).toContain('aria-busy={createManualOrder.isPending}');
+    expect(panelSource).toContain('Pedido criado com sucesso e associado à mesa seleccionada.');
+  });
+
+  it("shows immediate QR recognition and customer order feedback", () => {
+    expect(homeSource).toContain('const qrFeedback = tableId ?');
+    expect(homeSource).toContain('QR Code reconhecido');
+    expect(homeSource).toContain('A reconhecer o QR Code');
+    expect(homeSource).toContain('aria-live="polite"');
+    expect(homeSource).toContain('aria-busy={historyMutation.isPending}');
+    expect(homeSource).toContain('A criar o pedido');
+    expect(homeSource).toContain('Pedido criado com sucesso e adicionado ao histórico da mesa.');
   });
 });
