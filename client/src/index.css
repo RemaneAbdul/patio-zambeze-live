@@ -622,10 +622,18 @@
 .products-shell .products-notice[data-state="error"] { background: #fff1ef !important; border-color: #c85a3f !important; color: #8c2f22 !important; }
 
 .photo-processing-feedback,
-.save-processing-feedback { display:flex; align-items:center; gap:8px; margin-top:10px; border:1px solid #b9d7c3; border-radius:10px; background:#edf8f0 !important; color:#145a37 !important; padding:10px 12px; font-size:13px; font-weight:700; opacity:1 !important; }
+.save-processing-feedback,
+.photo-upload-feedback { display:flex; flex-direction:column; align-items:stretch; gap:8px; margin-top:10px; border:1px solid #b9d7c3; border-radius:10px; background:#edf8f0 !important; color:#145a37 !important; padding:10px 12px; font-size:13px; font-weight:700; opacity:1 !important; }
+.photo-processing-feedback,
+.save-processing-feedback { flex-direction:row; align-items:center; }
 .loading-spinner { width:15px; height:15px; flex:0 0 15px; border:2px solid #b9d7c3; border-top-color:#17633e; border-radius:999px; animation: menu-spinner .75s linear infinite; }
+.photo-upload-feedback-heading { display:flex; align-items:center; gap:8px; }
+.photo-upload-status { margin-left:auto; color:#3b6b51; font-size:12px; font-weight:600; }
+.photo-upload-progress { height:7px; overflow:hidden; border-radius:999px; background:#cfe7d6; }
+.photo-upload-progress span { display:block; width:38%; height:100%; border-radius:inherit; background:#17633e; animation: menu-upload-progress 1.15s cubic-bezier(.23,1,.32,1) infinite; }
 @keyframes menu-spinner { to { transform:rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .loading-spinner { animation:none; } }
+@keyframes menu-upload-progress { 0% { transform:translateX(-120%); } 50% { transform:translateX(145%); } 100% { transform:translateX(290%); } }
+@media (prefers-reduced-motion: reduce) { .loading-spinner, .photo-upload-progress span { animation:none; } .photo-upload-progress span { width:100%; transform:none; } }
 
 /* Pré-visualização e impressão térmica em página única. */
 @layer components {

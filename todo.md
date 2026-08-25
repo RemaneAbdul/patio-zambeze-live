@@ -1309,3 +1309,9 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar regressões para imagem seleccionada, referência persistente, erro de upload e fonte única do catálogo.
 - [x] Validar TypeScript, testes, build e fluxo visual antes do checkpoint.
 - [x] Guardar checkpoint da correcção de imagens concluída.
+
+## Indicador de progresso no envio de imagem
+- [x] Adicionar indicador visual durante o processamento e envio da imagem do prato.
+- [x] Mostrar estados acessíveis de preparação, envio, sucesso e erro sem permitir submissões duplicadas.
+- [x] Adicionar regressões e validar TypeScript, testes, build e interface.
+- [x] Guardar checkpoint da melhoria de progresso concluída.

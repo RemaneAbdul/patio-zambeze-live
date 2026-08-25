@@ -68,6 +68,15 @@ describe("manual waiter orders", () => {
     expect(panelSource).toContain('Pedido criado com sucesso e associado à mesa seleccionada.');
   });
 
+  it("shows image upload progress and blocks duplicate submission", () => {
+    expect(productsPanelSource).toContain('photoUploadState');
+    expect(productsPanelSource).toContain('setPhotoUploadState("uploading")');
+    expect(productsPanelSource).toContain('className="photo-upload-progress"');
+    expect(productsPanelSource).toContain('role="progressbar"');
+    expect(productsPanelSource).toContain('Não feche esta página');
+    expect(productsPanelSource).toContain('disabled={isSaving || photoProcessing}');
+  });
+
   it("shows immediate QR recognition and customer order feedback", () => {
     expect(homeSource).toContain('const qrFeedback = tableId ?');
     expect(homeSource).toContain('QR Code reconhecido');
