@@ -1299,3 +1299,13 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Dividir o bundle principal com `dynamic import()` nas rotas/páginas pesadas, preservando navegação e autenticação.
 - [x] Adicionar regressões, executar testes/build e verificar advisories; guardar checkpoint permanece como etapa final.
 - [x] Corrigir a regressão do teste de code splitting e investigar novamente o estado `viewed` em `tableHistory` antes da entrega.
+
+## Correcção de imagens seleccionadas da galeria
+- [x] Auditar o fluxo actual de selecção, pré-visualização, upload, referência no catálogo e renderização nos três menus.
+- [x] Corrigir validação e pré-visualização de JPG/JPEG, PNG e WEBP em Android, iPhone e computador.
+- [x] Garantir upload persistente através do armazenamento existente, sem guardar blob/base64 temporário no prato.
+- [x] Impedir gravação do prato quando o upload falhar e apresentar feedback claro de erro/tamanho/formato.
+- [x] Corrigir criação, edição, substituição e remoção da imagem com sincronização Cliente/Garçom/Admin.
+- [x] Adicionar regressões para imagem seleccionada, referência persistente, erro de upload e fonte única do catálogo.
+- [x] Validar TypeScript, testes, build e fluxo visual antes do checkpoint.
+- [x] Guardar checkpoint da correcção de imagens concluída.

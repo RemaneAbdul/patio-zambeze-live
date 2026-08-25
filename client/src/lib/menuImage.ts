@@ -1,9 +1,25 @@
 const MAX_EDGE = 1600;
 const JPEG_QUALITY = 0.78;
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+function detectImageType(file: File): "image/jpeg" | "image/png" | "image/webp" | null {
+  if (/^image\/(jpeg|jpg)$/.test(file.type)) return "image/jpeg";
+  if (file.type === "image/png") return "image/png";
+  if (file.type === "image/webp") return "image/webp";
+  const extension = file.name.split(".").pop()?.toLowerCase();
+  if (extension === "jpg" || extension === "jpeg") return "image/jpeg";
+  if (extension === "png") return "image/png";
+  if (extension === "webp") return "image/webp";
+  return null;
+}
+
+export function validateMenuImageFile(file: File): void {
+  if (!detectImageType(file)) throw new Error("IMAGE_FORMAT_INVALID");
+  if (file.size > MAX_FILE_SIZE) throw new Error("IMAGE_TOO_LARGE");
+}
 
 export async function prepareMenuImage(file: File): Promise<string> {
-  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error("IMAGE_FORMAT_INVALID");
-  if (file.size > 10 * 1024 * 1024) throw new Error("IMAGE_TOO_LARGE");
+  validateMenuImageFile(file);
 
   const source = await new Promise<HTMLImageElement>((resolve, reject) => {
     const url = URL.createObjectURL(file);

@@ -905,7 +905,7 @@ export async function createMenuProduct(input: { categoryId: number; name: strin
   const name = input.name.trim();
   if (!name) throw new Error("PRODUCT_NAME_REQUIRED");
   await assertMenuCategory(db, input.categoryId);
-  const inserted = await db.insert(menuProducts).values({ categoryId: input.categoryId, name, description: input.description?.trim() || null, preparation: input.preparation?.trim() || null, restaurantId: MENU_RESTAURANT_ID, price: input.price.toFixed(2), status: "ACTIVE" }).returning({ id: menuProducts.id });
+  const inserted = await db.insert(menuProducts).values({ categoryId: input.categoryId, name, description: input.description?.trim() || null, preparation: input.preparation?.trim() || null, restaurantId: MENU_RESTAURANT_ID, price: input.price.toFixed(2), status: "ACTIVE", imageUrl: input.imageUrl ?? null }).returning({ id: menuProducts.id });
   const productId = inserted[0]?.id;
   if (!productId) throw new Error("PRODUCT_CREATE_FAILED");
   const rows = await db.select().from(menuProducts).where(eq(menuProducts.id, productId)).limit(1);
@@ -913,7 +913,7 @@ export async function createMenuProduct(input: { categoryId: number; name: strin
   return rows[0];
 }
 
-export async function updateMenuProduct(id: number, input: { categoryId: number; name: string; description?: string; preparation?: string; price: number; imageUrl?: string; }) {
+export async function updateMenuProduct(id: number, input: { categoryId: number; name: string; description?: string; preparation?: string; price: number; imageUrl?: string | null; }) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const name = input.name.trim();
