@@ -1219,3 +1219,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Preservar mesa, quantidades, observações, confirmação, recibo, estados e auditoria existentes.
 - [x] Fechar e limpar o fluxo após confirmar ou cancelar, sem criar pedido incompleto.
 - [x] Validar categorias, disponibilidade, preços, pesquisa, responsividade e ausência de catálogo no reload.
+
+## Bug: Novo Pedido não abre o catálogo — 25/08/2026
+
+- [x] Diagnosticar o clique, `manualOpen` e a query `menu.staffCatalog`.
+- [x] Corrigir a abertura/renderização do catálogo real no painel do garçom.
+- [x] Mostrar carregamento, erro e estado vazio de forma accionável.
+- [x] Criar regressão do clique e validar TypeScript, testes, build e publicação.
