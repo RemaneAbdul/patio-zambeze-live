@@ -959,6 +959,15 @@ body[data-receipt-printing="true"] > .receipt-print-source { position: fixed !im
 
 @layer components {
   .waiter-manual-filter-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
-  .waiter-manual-filter-toolbar button { min-height: 42px; }
-  @media (max-width: 520px) { .waiter-manual-filter-toolbar { align-items: stretch; flex-direction: column; } .waiter-manual-filter-toolbar button { width: 100%; } }
+  .waiter-manual-filter-toolbar button { min-height: 44px; }
+  .manual-catalog-search-button { border-color: #6f9581 !important; background: #f7fbf8 !important; color: #173d2f !important; font-weight: 750 !important; box-shadow: 0 1px 2px rgb(23 61 47 / 10%); }
+  .manual-catalog-search-button:hover { border-color: #17633e !important; background: #eaf4ed !important; color: #173d2f !important; }
+  .manual-catalog-search-button:active { background: #d9ecdf !important; transform: scale(.98); }
+  .manual-catalog-search-button:focus-visible { outline: 3px solid #c85a3f !important; outline-offset: 3px; }
+  .manual-catalog-search-button:disabled { border-color: #a9b9af !important; background: #edf1ee !important; color: #53685d !important; opacity: .72 !important; }
+  :where(.qr-action-row, .receipt-preview-actions, .prints-archive-toolbar, .waiter-detail-actions, .waiter-result-actions, .history-actions, .selection-footer-actions) { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+  :where(.qr-action-row, .receipt-preview-actions, .prints-archive-toolbar, .waiter-detail-actions, .waiter-result-actions) > button { min-height: 42px; }
+  :where(.qr-action-row, .receipt-preview-actions, .prints-archive-toolbar, .waiter-detail-actions, .waiter-result-actions) > button:focus-visible { outline: 3px solid #c85a3f; outline-offset: 3px; }
+  :where(.qr-action-row, .receipt-preview-actions, .prints-archive-toolbar, .waiter-detail-actions, .waiter-result-actions) > button:disabled { opacity: .68; cursor: not-allowed; }
+  @media (max-width: 520px) { .waiter-manual-filter-toolbar { align-items: stretch; flex-direction: column; } .waiter-manual-filter-toolbar button { width: 100%; } :where(.qr-action-row, .receipt-preview-actions, .prints-archive-toolbar, .waiter-detail-actions, .waiter-result-actions) { align-items: stretch; flex-direction: column; } :where(.qr-action-row, .receipt-preview-actions, .prints-archive-toolbar, .waiter-detail-actions, .waiter-result-actions) > button { width: 100%; } }
 }

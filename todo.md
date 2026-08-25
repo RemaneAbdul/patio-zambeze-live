@@ -1261,3 +1261,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Mostrar carregamento imediato durante a criação de um novo pedido e impedir submissões duplicadas.
 - [x] Mostrar confirmação visual de sucesso após a criação do pedido e limpar o estado sem perder o contexto necessário.
 - [x] Criar testes de regressão e validar os fluxos em desktop e mobile.
+
+## Melhoria geral da visibilidade dos botões — pasted_content_24.txt
+- [x] Auditar botões, acções, estados, contraste e áreas de toque em Admin, Garçom, catálogo, mesas, recibos, QR Codes, definições e menu cliente.
+- [x] Tornar “Pesquisar no catálogo” sempre visível, legível e responsivo sem depender de hover.
+- [x] Aplicar estados normal, hover, active, focus e disabled sem esconder acções importantes.
+- [x] Melhorar espaçamento, contraste, identificação de ícones e acções destrutivas sem alterar a lógica existente.
+- [x] Validar desktop, notebook, tablet e smartphone, actualizar testes e guardar checkpoint.

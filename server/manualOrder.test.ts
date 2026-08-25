@@ -44,7 +44,9 @@ describe("manual waiter orders", () => {
   it("offers table, category, product, quantity, notes and confirmation in the existing waiter panel", () => {
     expect(panelSource).toContain('Novo Pedido (pedido feito pelo cliente)');
     expect(panelSource).toContain('manualFiltersOpen');
-    expect(panelSource).toContain('Filtrar pratos');
+    expect(panelSource).toContain('Pesquisar no catálogo');
+    expect(panelSource).toContain('manual-catalog-search-button');
+    expect(panelSource).toContain('aria-label={manualFiltersOpen ? "Ocultar filtros do catálogo" : "Pesquisar no catálogo"}');
     expect(panelSource).toContain('Ocultar filtros');
     expect(panelSource).toContain('Limpar filtros');
     expect(panelSource).toContain('trpc.menu.staffCatalog.useQuery');
