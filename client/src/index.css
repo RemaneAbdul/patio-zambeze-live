@@ -954,3 +954,10 @@ body[data-receipt-printing="true"] > .receipt-print-source { position: fixed !im
   @media (max-width: 760px) { .waiter-manual-order-form { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 520px) { .waiter-manual-order { padding: 14px; } .waiter-manual-order-form { grid-template-columns: 1fr; } .waiter-manual-order-form > label, .waiter-manual-order-form > button, .waiter-manual-order-form > div { grid-column: auto !important; } }
 }
+
+
+@layer components {
+  .waiter-manual-filter-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .waiter-manual-filter-toolbar button { min-height: 42px; }
+  @media (max-width: 520px) { .waiter-manual-filter-toolbar { align-items: stretch; flex-direction: column; } .waiter-manual-filter-toolbar button { width: 100%; } }
+}

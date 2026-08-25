@@ -1226,3 +1226,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Corrigir a abertura/renderização do catálogo real no painel do garçom.
 - [x] Mostrar carregamento, erro e estado vazio de forma accionável.
 - [x] Criar regressão do clique e validar TypeScript, testes, build e publicação.
+
+## Filtro de pratos no novo pedido — 25/08/2026
+
+- [x] Adicionar botão “Filtrar pratos” dentro do fluxo “Novo Pedido”.
+- [x] Abrir/fechar painel de pesquisa e filtros sem mostrar o catálogo no dashboard inicial.
+- [x] Filtrar apenas os pratos reais carregados do Supabase e permitir limpar o filtro.
+- [x] Validar desktop/mobile, testes, build e publicação.
