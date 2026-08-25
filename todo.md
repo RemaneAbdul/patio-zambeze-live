@@ -1140,3 +1140,13 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Usar a query existente para actualizar apenas os dados, sem recarregar a página inteira.
 - [x] Mostrar estado visual de carregamento e resultado da actualização.
 - [x] Adicionar teste de regressão e validar TypeScript, Vitest e build.
+
+## Rodapé REMA — pasted_content_16.txt
+
+- [x] Preparar o ícone REMA fornecido sem alterar as proporções nem redesenhar o símbolo.
+- [x] Criar o componente reutilizável `REMAFooter` com o texto exacto solicitado.
+- [x] Integrar o rodapé no final absoluto do menu do cliente.
+- [x] Integrar o mesmo rodapé no final dos dashboards existentes.
+- [x] Garantir responsividade, nitidez, contraste e ausência de overflow horizontal.
+- [x] Preservar navegação, pedidos, mesas, pratos, QR Codes, garçons, recibos, autenticação e base de dados.
+- [x] Adicionar testes e validar TypeScript, Vitest, build e publicação.
