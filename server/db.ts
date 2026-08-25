@@ -273,14 +273,14 @@ export async function getAdminById(id: number) {
   return { db, admin, authUserId: admin.openId.slice("supabase:".length) };
 }
 
-export async function updateAdminUser(input: { id: number; fullName: string; email: string }) {
+export async function updateAdminUser(input: { id: number; fullName: string; email: string; password?: string }) {
   const { db, admin, authUserId } = await getAdminById(input.id);
   const fullName = input.fullName.trim();
   const email = input.email.trim().toLowerCase();
   if (!fullName || !email) throw new Error("ADMIN_REQUIRED_FIELDS");
   const [duplicate] = await db.select({ id: users.id }).from(users).where(and(sql`lower(${users.email}) = ${email}`, sql`${users.id} <> ${input.id}`)).limit(1);
   if (duplicate) throw new Error("ADMIN_EMAIL_ALREADY_EXISTS");
-  await updateSupabaseAdmin({ authUserId, email, fullName });
+  await updateSupabaseAdmin({ authUserId, email, fullName, password: input.password });
   try {
     const [updated] = await db.update(users).set({ name: fullName, email, role: "admin", updatedAt: new Date() }).where(and(eq(users.id, input.id), eq(users.role, "admin"))).returning({ id: users.id, name: users.name, email: users.email, role: users.role, waiterActive: users.waiterActive });
     if (!updated) throw new Error("ADMIN_UPDATE_FAILED");
@@ -740,6 +740,10 @@ export async function createTableSelection(input: {
   tableId?: string;
   items: Array<{ productId?: number; productName: string; preparation?: string; quantity: number; unitPrice: number }>;
   subtotal: number;
+  notes?: string;
+  source?: "customer" | "waiter";
+  createdByWaiterId?: number;
+  mergeOpenOrder?: boolean;
 }) {
   if (!input.items.length) throw new Error("Cannot persist an empty selection");
   const db = await getDb();
@@ -772,7 +776,7 @@ export async function createTableSelection(input: {
       });
     }
     const persistedSubtotal = itemsToPersist.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
-    const openOrders = await tx.select({ id: tableSelections.id, selectionNumber: tableSelections.selectionNumber, subtotal: tableSelections.subtotal })
+    const openOrders = input.mergeOpenOrder === false ? [] : await tx.select({ id: tableSelections.id, selectionNumber: tableSelections.selectionNumber, subtotal: tableSelections.subtotal })
       .from(tableSelections)
       .where(and(eq(tableSelections.sessionId, session.id), isNull(tableSelections.viewedAt)))
       .orderBy(desc(tableSelections.createdAt))
@@ -788,7 +792,7 @@ export async function createTableSelection(input: {
     const existing = await tx.select({ id: tableSelections.id }).from(tableSelections).where(eq(tableSelections.sessionId, session.id));
     const selectionNumber = existing.length + 1;
     const now = new Date();
-    const inserted = await tx.insert(tableSelections).values({ sessionId: session.id, selectionNumber, subtotal: persistedSubtotal.toFixed(2), sentAt: now }).returning({ id: tableSelections.id });
+    const inserted = await tx.insert(tableSelections).values({ sessionId: session.id, selectionNumber, subtotal: persistedSubtotal.toFixed(2), notes: input.notes?.trim() || null, source: input.source ?? "customer", createdByWaiterId: input.createdByWaiterId ?? null, sentAt: now }).returning({ id: tableSelections.id });
     const selectionId = inserted[0]?.id;
     if (!selectionId) throw new Error("SELECTION_CREATE_FAILED");
     await tx.insert(tableSelectionItems).values(itemsToPersist.map((item) => ({ ...item, selectionId, unitPrice: item.unitPrice.toFixed(2) })));
@@ -797,6 +801,46 @@ export async function createTableSelection(input: {
   });
 }
 
+
+export async function createManualTableSelection(input: {
+  tableId: string;
+  waiterId: number;
+  items: Array<{ productId: number; quantity: number }>;
+  notes?: string;
+}) {
+  if (!input.items.length) throw new Error("SELECTION_CANNOT_BE_EMPTY");
+  const db = await getDb();
+  if (!db) throw new Error("DATABASE_UNAVAILABLE");
+  const table = await resolveTableReference(db, input.tableId, true);
+  const openSessions = await db.select().from(tableSessions)
+    .where(and(eq(tableSessions.tableNumber, table.tableNumber), eq(tableSessions.status, "open")))
+    .orderBy(desc(tableSessions.updatedAt)).limit(1);
+  let session = openSessions[0];
+  if (session?.attendingWaiterId && session.attendingWaiterId !== input.waiterId) throw new Error("TABLE_ALREADY_ASSIGNED");
+  if (!session) {
+    const sessionToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
+    session = await ensureTableSession(sessionToken, table.tableNumber);
+  }
+  if (!session.attendingWaiterId) {
+    await assumeTableSession(session.sessionToken, input.waiterId);
+    const claimed = await db.select().from(tableSessions).where(eq(tableSessions.sessionToken, session.sessionToken)).limit(1);
+    session = claimed[0] ?? session;
+  }
+  const productIds = input.items.map((item) => item.productId);
+  const products = await db.select({ id: menuProducts.id, name: menuProducts.name, price: menuProducts.price, preparation: menuProducts.preparation })
+    .from(menuProducts)
+    .where(and(eq(menuProducts.restaurantId, MENU_RESTAURANT_ID), inArray(menuProducts.id, productIds), eq(menuProducts.status, "ACTIVE")));
+  const byId = new Map(products.map((product) => [product.id, product]));
+  if (products.length !== new Set(productIds).size) throw new Error("PRODUCT_NOT_AVAILABLE");
+  const items = input.items.map((item) => {
+    const product = byId.get(item.productId);
+    if (!product) throw new Error("PRODUCT_NOT_AVAILABLE");
+    return { productId: product.id, productName: product.name, preparation: product.preparation ?? undefined, quantity: item.quantity, unitPrice: Number(product.price) };
+  });
+  const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+  const result = await createTableSelection({ sessionToken: session.sessionToken, tableNumber: table.tableNumber, items, subtotal, notes: input.notes, source: "waiter", createdByWaiterId: input.waiterId, mergeOpenOrder: false });
+  return { ...result, tableNumber: table.tableNumber, waiterId: input.waiterId };
+}
 
 export const MENU_RESTAURANT_ID = "default";
 

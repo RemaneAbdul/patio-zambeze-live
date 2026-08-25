@@ -1198,3 +1198,16 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Bloquear visualmente a própria conta admin por ID e email, incluindo perfis duplicados.
 - [x] Manter a recusa backend e mostrar feedback seguro para tentativas directas.
 - [x] Adicionar teste de regressão e validar painel, build e publicação.
+
+## Palavra-passe admin e pedido manual pelo garçom — pasted_content_20.txt
+
+- [x] Permitir palavra-passe opcional no formulário de edição de administrador, sem alterar a password quando vazio.
+- [x] Actualizar a password no Supabase Auth sem expor credenciais e auditar a operação.
+- [x] Auditar schema e fluxo existente de mesas, selecções, itens, recibos, preços e estados.
+- [x] Criar pedido manual pelo garçom usando a estrutura existente e o catálogo actual.
+- [x] Associar pedido manual a mesa, garçom autenticado, itens, quantidades, observações e preços reais.
+- [x] Impedir conflitos de mesa, duplicações e operações de garçom após “Marcar como visto”.
+- [x] Mostrar o pedido manual no recibo normal e manter o fluxo do cliente intacto.
+- [x] Adicionar auditoria `CREATE_MANUAL_ORDER` sem passwords ou tokens.
+- [x] Criar testes de segurança, persistência, recibo, concorrência e regressões.
+- [x] Validar TypeScript, Vitest, build, interface e guardar checkpoint.

@@ -37,7 +37,11 @@ describe("admin creation safeguards", () => {
 
   it("updates only permitted admin profile data and preserves the role", () => {
     expect(routerSource).toContain('updateAdmin: adminProcedure');
-    expect(dbSource).toContain('updateSupabaseAdmin({ authUserId, email, fullName })');
+    expect(dbSource).toContain('updateSupabaseAdmin({ authUserId, email, fullName, password: input.password })');
+    expect(authSource).toContain('...(input.password ? { password: input.password } : {})');
+    expect(routerSource).toContain('password: z.string().min(8).max(128).optional()');
+    expect(panelSource).toContain('Nova palavra-passe');
+    expect(panelSource).toContain('Deixe vazio para manter');
     expect(dbSource).toContain('role: "admin"');
     expect(dbSource).toContain('ADMIN_EMAIL_ALREADY_EXISTS');
   });

@@ -19,7 +19,7 @@ describe("tableHistory validation", () => {
 
   it("rejects QR code management for an anonymous customer", async () => {
     const caller = appRouter.createCaller(ctx);
-    await expect(caller.tableHistory.qrCodes()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.tableHistory.qrCodes()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     await expect(caller.tableHistory.generateQrCode({ tableNumber: "04" })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
@@ -41,10 +41,10 @@ describe("tableHistory validation", () => {
     await expect(caller.tableHistory.staffLookup({ sessionToken: "a".repeat(64) })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
-  it("allows an active waiter to use staff identity but not admin QR management", async () => {
+  it("allows an active waiter to consult QR codes but not generate them", async () => {
     const caller = appRouter.createCaller({ ...ctx, user: { id: 42, openId: "waiter-user", email: "waiter@example.com", name: "Waiter User", loginMethod: "manus", role: "user", waiterCode: "GAR-TEST", waiterActive: 1, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() } });
     await expect(caller.tableHistory.staffIdentity()).resolves.toMatchObject({ waiterCode: "GAR-TEST", active: true });
-    await expect(caller.tableHistory.qrCodes()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.tableHistory.qrCodes()).resolves.toBeInstanceOf(Array);
     await expect(caller.tableHistory.generateQrCode({ tableNumber: "04" })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 

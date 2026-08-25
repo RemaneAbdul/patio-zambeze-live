@@ -92,10 +92,13 @@ export const tableSelections = pgTable("table_selections", {
   sentAt: timestamp("sentAt", { withTimezone: true }),
   receivedAt: timestamp("receivedAt", { withTimezone: true }),
   finalizedAt: timestamp("finalizedAt", { withTimezone: true }),
+  source: varchar("source", { length: 16 }).default("customer").notNull(),
+  createdByWaiterId: integer("createdByWaiterId"),
   createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
   sessionNumberUnique: uniqueIndex("table_selections_session_number_idx").on(table.sessionId, table.selectionNumber),
   sessionCreatedIdx: index("table_selections_session_created_idx").on(table.sessionId, table.createdAt),
+  creatorIdx: index("table_selections_creator_idx").on(table.createdByWaiterId),
 }));
 
 export const tableSelectionItems = pgTable("table_selection_items", {

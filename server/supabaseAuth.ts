@@ -95,9 +95,10 @@ export async function deleteSupabaseWaiter(authUserId: string) {
   return deleteSupabaseUser(authUserId);
 }
 
-export async function updateSupabaseAdmin(input: { authUserId: string; email: string; fullName: string }) {
+export async function updateSupabaseAdmin(input: { authUserId: string; email: string; fullName: string; password?: string }) {
   const { data, error } = await getAdminClient().auth.admin.updateUserById(input.authUserId, {
     email: input.email.trim().toLowerCase(),
+    ...(input.password ? { password: input.password } : {}),
     email_confirm: true,
     user_metadata: { full_name: input.fullName.trim(), role: "ADMIN" },
   });
