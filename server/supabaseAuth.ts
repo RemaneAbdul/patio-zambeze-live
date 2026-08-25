@@ -22,6 +22,24 @@ export async function getSupabaseUserFromAccessToken(accessToken: string): Promi
   return data.user;
 }
 
+export async function createSupabaseAdminUser(input: { email: string; password: string; fullName: string }) {
+  const client = getAdminClient();
+  const normalizedEmail = input.email.trim().toLowerCase();
+  const { data: usersPage, error: listError } = await client.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  if (listError) throw new Error(listError.message);
+  const existing = usersPage.users.find((user) => user.email?.toLowerCase() === normalizedEmail);
+  if (existing) throw new Error("ADMIN_EMAIL_ALREADY_EXISTS");
+  const { data, error } = await client.auth.admin.createUser({
+    email: normalizedEmail,
+    password: input.password,
+    email_confirm: true,
+    user_metadata: { full_name: input.fullName.trim(), role: "ADMIN" },
+  });
+  if (error) throw new Error(error.message);
+  if (!data.user) throw new Error("SUPABASE_AUTH_ADMIN_CREATE_FAILED");
+  return data.user;
+}
+
 export async function createSupabaseAdmin(input: { email: string; password: string; fullName: string }) {
   const client = getAdminClient();
   const normalizedEmail = input.email.trim().toLowerCase();
@@ -68,9 +86,13 @@ export async function createSupabaseWaiter(input: { email: string; password: str
   return data.user;
 }
 
-export async function deleteSupabaseWaiter(authUserId: string) {
+export async function deleteSupabaseUser(authUserId: string) {
   const { error } = await getAdminClient().auth.admin.deleteUser(authUserId);
   if (error) throw new Error(error.message);
+}
+
+export async function deleteSupabaseWaiter(authUserId: string) {
+  return deleteSupabaseUser(authUserId);
 }
 
 export async function updateSupabaseWaiter(input: { authUserId: string; email: string; password?: string; fullName: string; phone?: string }) {

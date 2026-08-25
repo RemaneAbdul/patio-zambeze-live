@@ -1171,3 +1171,13 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Alinhar o email do perfil admin na tabela `users` e a configuração `SUPABASE_ADMIN_EMAIL`.
 - [x] Validar autenticação, role admin e acesso ao dashboard.
 - [x] Guardar checkpoint da alteração.
+
+## Criar outro administrador — pasted_content_18.txt
+
+- [x] Auditar a gestão actual de utilizadores/garçons, RBAC e Supabase Auth.
+- [x] Criar endpoint backend protegido para admin criar outro admin sem expor Service Role Key.
+- [x] Persistir perfil `admin` completo e registar `CREATE_ADMIN` no audit log.
+- [x] Reutilizar a área actual de gestão de garçons com formulário “Criar Administrador”.
+- [x] Validar campos, email duplicado, falhas sem perfil incompleto e mensagens de sucesso/erro.
+- [x] Criar testes de autorização, criação, login, role, auditoria e regressões.
+- [x] Validar TypeScript, Vitest, build e guardar checkpoint.

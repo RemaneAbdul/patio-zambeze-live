@@ -4,7 +4,7 @@ import { Pool } from "pg";
 import { InsertUser, users, auditLogs, garcons } from "../drizzle/schema";
 import * as schema from "../drizzle/schema";
 import { ENV } from './_core/env';
-import { createSupabaseWaiter, deleteSupabaseWaiter, disableSupabaseWaiter, enableSupabaseWaiter, updateSupabaseWaiter } from './supabaseAuth';
+import { createSupabaseAdminUser, createSupabaseWaiter, deleteSupabaseUser, deleteSupabaseWaiter, disableSupabaseWaiter, enableSupabaseWaiter, updateSupabaseWaiter } from './supabaseAuth';
 
 let _db: NodePgDatabase<typeof schema> | null = null;
 let _pool: Pool | null = null;
@@ -182,6 +182,27 @@ export async function createGarcon(input: { fullName: string; username: string; 
   }
 }
 
+export async function createAdminUser(input: { fullName: string; email: string; password: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const fullName = input.fullName.trim();
+  const email = input.email.trim().toLowerCase();
+  if (!fullName || !email || !input.password) throw new Error("ADMIN_REQUIRED_FIELDS");
+  if (input.password.length < 6) throw new Error("ADMIN_PASSWORD_TOO_SHORT");
+  const [existingProfile] = await db.select({ id: users.id }).from(users).where(sql`lower(${users.email}) = ${email}`).limit(1);
+  if (existingProfile) throw new Error("ADMIN_EMAIL_ALREADY_EXISTS");
+
+  const authUser = await createSupabaseAdminUser({ email, password: input.password, fullName });
+  try {
+    const [profile] = await db.insert(users).values({ openId: `supabase:${authUser.id}`, name: fullName, email, loginMethod: "supabase", role: "admin", waiterActive: 1 }).returning({ id: users.id, openId: users.openId, name: users.name, email: users.email, role: users.role });
+    if (!profile) throw new Error("ADMIN_PROFILE_CREATE_FAILED");
+    return profile;
+  } catch (error) {
+    try { await deleteSupabaseUser(authUser.id); } catch (cleanupError) { console.error("[Auth] Failed to rollback orphan admin", cleanupError); }
+    throw error;
+  }
+}
+
 export async function updateGarcon(input: { id: string; fullName: string; username: string; email: string; phone?: string; active: boolean; password?: string }) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
@@ -235,6 +256,12 @@ export async function listWaiterUsers() {
   const db = await getDb();
   if (!db) return [];
   return db.select({ id: users.id, openId: users.openId, name: users.name, email: users.email, role: users.role, waiterCode: users.waiterCode, waiterActive: users.waiterActive, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).where(sql`(${users.waiterCode} is not null OR ${users.role} in ('waiter', 'garcom'))`).orderBy(users.name);
+}
+
+export async function listAdminUsers() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({ id: users.id, openId: users.openId, name: users.name, email: users.email, role: users.role, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).where(eq(users.role, "admin")).orderBy(users.name);
 }
 
 export async function listWaiterCurrentAssignments() {
