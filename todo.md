@@ -1164,3 +1164,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Sincronizar o código e a configuração actual com o projecto Vercel correcto.
 - [x] Validar deployment, domínio oficial, rota raiz e rota pública do menu.
 - [x] Guardar checkpoint da correcção e comunicar o link funcional.
+
+## Alteração do email administrativo — 25/08/2026
+
+- [x] Actualizar o email Auth do administrador para `yuranremane51@gmail.com` sem alterar a palavra-passe.
+- [x] Alinhar o email do perfil admin na tabela `users` e a configuração `SUPABASE_ADMIN_EMAIL`.
+- [x] Validar autenticação, role admin e acesso ao dashboard.
+- [x] Guardar checkpoint da alteração.
