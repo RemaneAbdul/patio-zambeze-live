@@ -70,19 +70,21 @@ integration("tableHistory persistence", () => {
   it("persists a selection, isolates sessions and exposes a read-only history view", async () => {
     const tokenA = `vitest-${crypto.randomUUID()}${crypto.randomUUID()}`;
     const tokenB = `vitest-${crypto.randomUUID()}${crypto.randomUUID()}`;
+    const integrationTableNumber = `T-${crypto.randomUUID().slice(0, 8)}`;
     let replacementToken = "";
     const db = await getDb();
     if (!db) throw new Error("SUPABASE_DATABASE_URL is required for this integration test");
 
     try {
       const [firstSession, secondSession] = await Promise.all([
-        ensureTableSession(tokenA),
-        ensureTableSession(tokenA),
+        ensureTableSession(tokenA, integrationTableNumber),
+        ensureTableSession(tokenA, integrationTableNumber),
       ]);
       expect(secondSession.id).toBe(firstSession.id);
 
       const created = await createTableSelection({
         sessionToken: tokenA,
+        tableNumber: integrationTableNumber,
         subtotal: 600,
         items: [{ productName: "Frango Grelhado", quantity: 2, unitPrice: 300 }],
       });
@@ -124,7 +126,7 @@ integration("tableHistory persistence", () => {
       const viewedSelection = await getTableHistoryForStaff(tokenA);
       expect(viewedSelection?.selections.find((selection) => selection.selectionNumber === 1)?.viewedByWaiterId).toBe(1);
       expect(viewedSelection?.selections.find((selection) => selection.selectionNumber === 1)?.viewedByWaiter?.id).toBe(1);
-      const nextOrder = await createTableSelection({ sessionToken: tokenA, tableNumber: "01", subtotal: 80, items: [{ productName: "Coca-Cola", quantity: 1, unitPrice: 80 }] });
+      const nextOrder = await createTableSelection({ sessionToken: tokenA, tableNumber: integrationTableNumber, subtotal: 80, items: [{ productName: "Coca-Cola", quantity: 1, unitPrice: 80 }] });
       expect(nextOrder.selectionNumber).toBe(2);
       const separatedHistory = await getTableHistoryForStaff(tokenA);
       expect(separatedHistory?.selections).toHaveLength(2);

@@ -1292,3 +1292,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Validar fluxos concorrentes, segundo pedido/recibo, impressão, PDF, partilha, offline e responsividade sem criar dados fictícios.
 - [x] Corrigir apenas falhas confirmadas, repetir os testes afectados e preparar relatório PASSOU/ATENÇÃO/FALHOU.
 - [x] Investigar falha de integração `tableHistory persistence`: após marcar como visto, a mesa encontrada não reflectiu o estado esperado `viewed`; reproduzir, identificar a causa no backend/Supabase/teste e corrigir apenas se confirmado. A falha não foi reproduzida isoladamente nem em suite serial.
+
+## Endurecimento Auth e optimização do bundle
+- [x] Confirmar referências às funções SECURITY DEFINER e restringir execução pública sem quebrar políticas RLS legítimas.
+- [ ] Activar protecção Supabase contra palavras-passe comprometidas e validar o estado no Auth. Bloqueado: HaveIBeenPwned requer plano Pro ou superior.
+- [x] Dividir o bundle principal com `dynamic import()` nas rotas/páginas pesadas, preservando navegação e autenticação.
+- [x] Adicionar regressões, executar testes/build e verificar advisories; guardar checkpoint permanece como etapa final.
+- [x] Corrigir a regressão do teste de code splitting e investigar novamente o estado `viewed` em `tableHistory` antes da entrega.
