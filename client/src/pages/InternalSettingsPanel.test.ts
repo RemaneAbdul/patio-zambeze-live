@@ -15,6 +15,16 @@ describe("prints archive filters", () => {
     expect(source).toContain("matchesWaiter");
   });
 
+  it("normalizes and searches table, waiter name and waiter code variants", () => {
+    expect(source).toContain("String(value ?? \"\")");
+    expect(source).toContain("replace(/[^a-z0-9]+/g, \" \")");
+    expect(source).toContain("tableWithoutLeadingZeros");
+    expect(source).toContain("`mesa ${tableNumber}`");
+    expect(source).toContain("`garcom ${waiterName}`");
+    expect(source).toContain("`garcom ${waiterCode}`");
+    expect(source).toContain("const matchesText = !query || searchableText.includes(query)");
+  });
+
   it("keeps second-copy actions scoped to the receipt id", () => {
     expect(source).toContain("selectedReceipt.id");
     expect(source).toContain("viewed-receipt-${selectedReceipt.id}");

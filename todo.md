@@ -1339,3 +1339,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Confirmar que não existem ocorrências inadequadas do texto antigo.
 - [x] Testar o fluxo do botão e a apresentação em desktop, tablet e telemóvel.
 - [x] Guardar checkpoint da alteração textual concluída.
+
+## Correcção da pesquisa por mesa ou garçom
+- [x] Auditar a normalização e a filtragem actual na página Admin → Impressões.
+- [x] Corrigir correspondência por número de mesa, nome e código de garçom, incluindo acentos e espaços.
+- [x] Preservar combinação com datas, filtro de garçom, contador, limpar filtros e permissões.
+- [x] Adicionar regressões para pesquisa por mesa, nome, código e filtros combinados.
+- [x] Validar TypeScript, testes, build e interface responsiva.
+- [x] Guardar checkpoint da correcção concluída.
