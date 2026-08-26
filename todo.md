@@ -1371,3 +1371,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Executar testes e build antes do commit.
 - [x] Criar ou confirmar commit solicitado e enviar para GitHub sem force push.
 - [x] Confirmar commit remoto, branch sincronizada e alterações pendentes.
+
+## Impressão, carregamento do pedido e optimização do bundle
+- [x] Corrigir o selector CSS de impressão que gera o aviso do Vite e validar o layout do recibo.
+- [x] Adicionar estado de carregamento no botão “Fazer pedido” sem permitir submissões duplicadas.
+- [x] Configurar divisão adicional do bundle para reduzir o chunk JavaScript superior a 500 kB.
+- [x] Adicionar regressões e validar TypeScript, testes, build e impressão responsiva.
+- [x] Guardar checkpoint das melhorias concluídas.

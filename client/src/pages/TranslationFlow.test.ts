@@ -6,6 +6,8 @@ const productsSource = fs.readFileSync(path.resolve(import.meta.dirname, "Produc
 const homeSource = fs.readFileSync(path.resolve(import.meta.dirname, "Home.tsx"), "utf8");
 const translationSource = fs.readFileSync(path.resolve(import.meta.dirname, "../../../server/menuTranslation.ts"), "utf8");
 const receiptSource = fs.readFileSync(path.resolve(import.meta.dirname, "../components/ThermalReceipt.tsx"), "utf8");
+const stylesSource = fs.readFileSync(path.resolve(import.meta.dirname, "../index.css"), "utf8");
+const viteSource = fs.readFileSync(path.resolve(import.meta.dirname, "../../../vite.config.ts"), "utf8");
 
 describe("Portuguese-first catalog translation", () => {
   it("removes manual English fields from the admin form and payload", () => {
@@ -51,6 +53,21 @@ describe("Portuguese-first catalog translation", () => {
     expect(homeSource).toContain('role="listbox"');
     expect(homeSource).toContain('highlightMatch(productName(product))');
     expect(homeSource).toContain('<mark');
+  });
+
+  it("shows loading feedback and prevents duplicate order submission", () => {
+    expect(homeSource).toContain("historyMutation.isPending");
+    expect(homeSource).toContain("aria-busy={historyMutation.isPending}");
+    expect(homeSource).toContain("A criar o pedido");
+    expect(homeSource).toContain("disabled={historyMutation.isPending}");
+  });
+
+  it("keeps print CSS valid and splits third-party dependencies into chunks", () => {
+    expect(stylesSource).toContain(".receipt-modal .sm\\:p-8");
+    expect(stylesSource).not.toContain(".receipt-modal .sm\\\\:p-8");
+    expect(viteSource).toContain("manualChunks(id)");
+    expect(viteSource).toContain('return "vendor-react"');
+    expect(viteSource).toContain("packageName.replace");
   });
 
   it("uses a server-side content hash cache and does not expose manual database mutations", () => {

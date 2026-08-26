@@ -167,6 +167,22 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          if (id.includes("/react/") || id.includes("react-dom") || id.includes("scheduler") || id.includes("wouter")) return "vendor-react";
+          if (id.includes("@radix-ui") || id.includes("lucide-react") || id.includes("sonner")) return "vendor-ui";
+          if (id.includes("@trpc") || id.includes("@tanstack") || id.includes("superjson")) return "vendor-data";
+          if (id.includes("date-fns") || id.includes("zod")) return "vendor-utils";
+          if (id.includes("@supabase")) return "vendor-supabase";
+          const packagePath = id.split("node_modules/").pop() ?? "unknown";
+          const packageParts = packagePath.split("/");
+          const packageName = packageParts[0]?.startsWith("@") ? packageParts.slice(0, 2).join("-") : packageParts[0] ?? "unknown";
+          return `vendor-${packageName.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+        },
+      },
+    },
   },
   server: {
     host: true,

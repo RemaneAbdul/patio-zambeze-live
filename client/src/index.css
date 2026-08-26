@@ -223,7 +223,7 @@
   .receipt-modal.receipt-80mm { --receipt-print-width: 80mm; }
   .modal-backdrop:has(.receipt-modal) .modal-close, .modal-backdrop:has(.receipt-modal) .receipt-width-control, .modal-backdrop:has(.receipt-modal) .history-actions { display: none !important; }
   .receipt-modal .receipt-datetime, .receipt-modal .history-entry-title, .receipt-modal .history-line, .receipt-modal .history-subtotal, .receipt-modal .selection-total, .receipt-modal .selection-disclaimer, .receipt-modal .eyebrow, .receipt-modal h2 { color: #000 !important; }
-  .receipt-modal .p-6, .receipt-modal .sm\\:p-8 { padding: 0 !important; }
+  .receipt-modal .p-6, .receipt-modal .sm\:p-8 { padding: 0 !important; }
   @page { size: auto; margin: 4mm; }
 }
 
