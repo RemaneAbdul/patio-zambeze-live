@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <title>Pendências e Recomendações</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .slide-container { width: 1280px; min-height: 720px; background: #f7f2e9; color: #183a32; font-family: Arial, sans-serif; border-top: 12px solid #c85a3f; padding: 60px 80px 0; }
+        .kicker { color: #c85a3f; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 16px; }
+        .title { font-family: Georgia, serif; font-size: 48px; line-height: 1.1; margin-bottom: 50px; max-width: 900px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .issue-block { border: 2px solid #183a32; background: #ffffff; padding: 32px; min-height: 240px; }
+        .issue-block h3 { font-size: 20px; font-weight: 900; text-transform: uppercase; margin-bottom: 16px; color: #c85a3f; border-bottom: 1px solid #c85a3f; padding-bottom: 8px; display: inline-block; }
+        .issue-block p { font-size: 16px; line-height: 1.5; color: #49665a; margin-bottom: 12px; }
+        .recommendation-box { margin-top: 40px; background: #183a32; color: #f7f2e9; padding: 32px; border-left: 8px solid #c85a3f; }
+        .recommendation-box h3 { font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #e3a38e; }
+        .recommendation-box ul { list-style: none; }
+        .recommendation-box li { font-size: 17px; margin-top: 8px; display: flex; align-items: center; }
+        .recommendation-box li::before { content: "→"; margin-right: 12px; color: #c85a3f; font-weight: 900; }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="kicker">10 · Notas de Entrega</div>
+        <h1 class="title">Pendências conhecidas e decisão recomendada</h1>
+        
+        <div class="grid">
+            <div class="issue-block">
+                <h3>Segurança (HIBP)</h3>
+                <p>A protecção contra palavras-passe comprometidas (HaveIBeenPwned) permanece desactivada.</p>
+                <p><strong>Motivo:</strong> Esta funcionalidade exige o plano Pro do Supabase. O projecto utiliza actualmente o plano Free.</p>
+            </div>
+            <div class="issue-block">
+                <h3>Optimização (Chunks)</h3>
+                <p>O aviso de "chunk grande" no build do Vite persiste para o ficheiro principal (~976 kB).</p>
+                <p><strong>Impacto:</strong> Não impede o funcionamento. É apenas uma recomendação técnica para futuras melhorias de velocidade.</p>
+            </div>
+        </div>
+
+        <div class="recommendation-box">
+            <h3>Decisão Recomendada</h3>
+            <ul>
+                <li>Executar o roteiro de testes práticos (slides 6–8) com dados reais controlados.</li>
+                <li>Avaliar a actualização para Supabase Pro apenas se a protecção HIBP for considerada crítica.</li>
+                <li>Iniciar a operação após a validação presencial bem-sucedida.</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

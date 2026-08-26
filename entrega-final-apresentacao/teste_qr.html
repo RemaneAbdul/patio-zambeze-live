@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste Prático 1</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .slide-container { width: 1280px; min-height: 720px; background: #f7f2e9; color: #183a32; font-family: 'Manrope', sans-serif; border-top: 12px solid #c85a3f; display: flex; flex-direction: column; }
+        .header { padding-top: 60px; padding-left: 80px; padding-right: 80px; }
+        .kicker { font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; color: #c85a3f; margin-bottom: 16px; }
+        .title { font-family: 'DM Serif Display', serif; font-size: 48px; font-weight: 900; line-height: 1.1; max-width: 800px; }
+        .content { flex: 1; display: flex; gap: 28px; padding-top: 28px; padding-left: 80px; padding-right: 80px; }
+        .left-col { flex: 1; }
+        .right-col { flex: 1.2; border: 8px solid #000000; background: #ffffff; padding-top: 12px; padding-left: 40px; padding-right: 40px; position: relative; }
+        .step { display: flex; gap: 20px; margin-top: 12px; align-items: flex-start; }
+        .step:first-child { margin-top: 0; }
+        .check-box { width: 32px; height: 32px; border: 3px solid #c85a3f; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #c85a3f; }
+        .step-text { font-size: 20px; line-height: 1.4; }
+        .step-text strong { display: block; font-size: 22px; margin-bottom: 4px; }
+        .step-text span { font-size: 16px; color: #49665a; }
+        .status-tag { position: absolute; top: -20px; right: 40px; background: #000000; color: #ffffff; padding: 8px 16px; font-weight: 900; font-size: 14px; text-transform: uppercase; }
+        /* compact left helper block */
+        .left-info { margin-top: 24px; padding-top: 12px; border-top: 2px solid #c85a3f; }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="header">
+            <div class="kicker">Teste Prático 01</div>
+            <h1 class="title">Acesso, mesas e QR Codes</h1>
+        </div>
+        <div class="content">
+            <div class="left-col">
+                <p style="font-size: 20px; line-height: 1.6; color: #49665a;">
+                    A primeira fase da validação operacional foca na infraestrutura de acesso e na identificação física das mesas do restaurante.
+                </p>
+                <div class="left-info">
+                    <p style="font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 0.1em;">Requisitos:</p>
+                    <p style="font-size: 18px; margin-top: 10px;">• Acesso à internet<br>• 1 Smartphone Android/iOS<br>• Credenciais de Admin e Garçom</p>
+                </div>
+            </div>
+            <div class="right-col">
+                <div class="status-tag">Roteiro de Execução</div>
+                <div class="step">
+                    <div class="check-box">1</div>
+                    <div class="step-text">
+                        <strong>Login Administrativo</strong>
+                        <span>Entrar no painel /painel e confirmar acesso total às definições e catálogo.</span>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="check-box">2</div>
+                    <div class="step-text">
+                        <strong>Login de Garçom</strong>
+                        <span>Confirmar o redireccionamento automático para o painel operacional específico.</span>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="check-box">3</div>
+                    <div class="step-text">
+                        <strong>Criação de Mesa Real</strong>
+                        <span>Criar uma mesa no sistema e gerar o QR Code permanente correspondente.</span>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="check-box">4</div>
+                    <div class="step-text">
+                        <strong>Validação de QR Code</strong>
+                        <span>Escanear com telemóvel e confirmar o reconhecimento imediato da mesa.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

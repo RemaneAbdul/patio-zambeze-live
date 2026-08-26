@@ -1322,3 +1322,13 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Executar testes e build antes do commit.
 - [x] Criar ou confirmar commit coerente e enviar a branch main para o GitHub sem force push.
 - [x] Confirmar working tree limpa e remoto sincronizado.
+
+## Correcção do filtro de garçom em Admin → Impressões
+- [x] Auditar a origem real dos garçons, a relação por ID entre garçom, atendimento, pedido e recibo e os filtros existentes.
+- [x] Corrigir o filtro para listar garçons reais, permitir pesquisa e aplicar o ID do garçom sem nomes fixos.
+- [x] Preservar recibos históricos de garçons desactivados e tratar recibos sem atendente conforme os dados existentes.
+- [x] Garantir combinação com data, mesa, estado e pesquisa, contador, limpar filtros e actualização após criar novo garçom/recibo.
+- [x] Manter permissões: Admin vê todos os recibos autorizados; Garçom não ganha acesso a recibos de terceiros.
+- [x] Adicionar regressões para filtragem, histórico, combinações e isolamento entre garçons.
+- [x] Executar testes, TypeScript, build e verificação visual desktop/tablet/mobile.
+- [x] Guardar checkpoint da correcção concluída.

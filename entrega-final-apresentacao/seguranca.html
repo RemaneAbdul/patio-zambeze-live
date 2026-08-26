@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <title>Segurança e Dados</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .slide-container { width: 1280px; min-height: 720px; background: #f7f2e9; border-top: 12px solid #183a32; position: relative; font-family: Arial, sans-serif; color: #183a32; }
+        .content-wrapper { padding: 60px 64px 0; }
+        .kicker { color: #c85a3f; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 12px; }
+        .title { font-family: Georgia, serif; font-size: 48px; font-weight: 400; line-height: 1.1; margin-bottom: 24px; max-width: 900px; }
+        .security-layers { display: flex; flex-direction: column; gap: 10px; }
+        .layer { display: flex; align-items: center; border: 2px solid #183a32; background: #ffffff; min-height: 78px; }
+        .layer-icon { width: 64px; height: 100%; display: flex; align-items: center; justify-content: center; background: #183a32; color: #f7f2e9; font-size: 20px; }
+        .layer-content { padding: 10px 18px; flex: 1; }
+        .layer-title { font-weight: 900; font-size: 18px; text-transform: uppercase; margin-bottom: 4px; }
+        .layer-desc { font-size: 15px; color: #49665a; line-height: 1.4; }
+        .accent-layer { border-color: #c85a3f; }
+        .accent-layer .layer-icon { background: #c85a3f; }
+        .footer-note { margin-top: 24px; border-top: 2px solid #c85a3f; padding-top: 12px; font-weight: 700; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="content-wrapper">
+            <div class="kicker">03 · Segurança e Integridade</div>
+            <h1 class="title">Segurança e dados seguem regras de acesso restritas</h1>
+            
+            <div class="security-layers">
+                <div class="layer">
+                    <div class="layer-icon">🔰</div>
+                    <div class="layer-content">
+                        <div class="layer-title">RLS (Row Level Security) Activo</div>
+                        <div class="layer-desc">Protecção ao nível da base de dados nas tabelas de sessões, selecções e itens.</div>
+                    </div>
+                </div>
+                
+                <div class="layer accent-layer">
+                    <div class="layer-icon">🔒</div>
+                    <div class="layer-content">
+                        <div class="layer-title">Funções SECURITY DEFINER Restringidas</div>
+                        <div class="layer-desc">Acesso bloqueado para utilizadores anónimos; restrito a utilizadores autenticados e sistema.</div>
+                    </div>
+                </div>
+                
+                <div class="layer">
+                    <div class="layer-icon">🛡️</div>
+                    <div class="layer-content">
+                        <div class="layer-title">Isolamento de Operações</div>
+                        <div class="layer-desc">Garçons operam exclusivamente os recibos e mesas sob sua responsabilidade directa.</div>
+                    </div>
+                </div>
+                
+                <div class="layer accent-layer">
+                    <div class="layer-icon">📋</div>
+                    <div class="layer-content">
+                        <div class="layer-title">Audit Logs e Rastreabilidade</div>
+                        <div class="layer-desc">Registo detalhado de autenticação, criação de pedidos e alterações administrativas.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-note">
+                Conclusão: A arquitectura garante que os dados do restaurante estão protegidos contra acessos não autorizados.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

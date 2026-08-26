@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <title>Critérios de Entrega</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .slide-container { width: 1280px; min-height: 720px; background: #f7f2e9; border-top: 12px solid #183a32; position: relative; font-family: Arial, sans-serif; color: #183a32; }
+        .content-wrapper { padding: 60px 80px 0; }
+        .kicker { color: #c85a3f; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 16px; }
+        .title { font-family: Georgia, serif; font-size: 48px; font-weight: 400; line-height: 1.1; margin-bottom: 40px; max-width: 900px; }
+        .criteria-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .criterion-box { border: 2px solid #183a32; background: #ffffff; padding: 20px; min-height: 190px; display: flex; flex-direction: column; }
+        .criterion-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .status-indicator { width: 24px; height: 24px; background: #c85a3f; display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 900; font-size: 14px; }
+        .criterion-title { font-weight: 900; font-size: 20px; text-transform: uppercase; }
+        .criterion-desc { font-size: 16px; color: #49665a; line-height: 1.5; }
+        .footer-note { margin-top: 40px; border-top: 2px solid #c85a3f; padding-top: 20px; font-weight: 700; font-size: 18px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="content-wrapper">
+            <div class="kicker">08 · Critérios de Aprovação</div>
+            <h1 class="title">Critérios para declarar a entrega operacional</h1>
+            
+            <div class="criteria-grid">
+                <div class="criterion-box">
+                    <div class="criterion-header">
+                        <div class="status-indicator">✓</div>
+                        <div class="criterion-title">Validação Técnica</div>
+                    </div>
+                    <div class="criterion-desc">Todos os testes práticos em produção devem passar sem erros de consola, falhas de API ou páginas em branco.</div>
+                </div>
+                
+                <div class="criterion-box">
+                    <div class="criterion-header">
+                        <div class="status-indicator">✓</div>
+                        <div class="criterion-title">Isolamento de Dados</div>
+                    </div>
+                    <div class="criterion-desc">Confirmação de que cada garçom acede apenas às mesas e recibos autorizados, sem fuga de informação.</div>
+                </div>
+                
+                <div class="criterion-box">
+                    <div class="criterion-header">
+                        <div class="status-indicator">✓</div>
+                        <div class="criterion-title">Persistência Real</div>
+                    </div>
+                    <div class="criterion-desc">Imagens, pedidos e recibos devem permanecer correctos e visíveis após recarregar a página ou novo login.</div>
+                </div>
+                
+                <div class="criterion-box">
+                    <div class="criterion-header">
+                        <div class="status-indicator">✓</div>
+                        <div class="criterion-title">Aprovação Administrativa</div>
+                    </div>
+                    <div class="criterion-desc">O administrador deve validar a gestão de categorias, pratos, mesas, garçons e o histórico de auditoria.</div>
+                </div>
+            </div>
+
+            <div class="footer-note">
+                O sistema será considerado "Pronto para Operação" após a validação positiva de todos estes pontos.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

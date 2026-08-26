@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste Prático 2</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .slide-container { width: 1280px; min-height: 720px; background: #f7f2e9; color: #183a32; font-family: 'Manrope', sans-serif; border-top: 12px solid #c85a3f; position: relative; }
+        .header { padding-top: 60px; padding-left: 80px; }
+        .eyebrow { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; color: #c85a3f; }
+        .title { font-family: 'DM Serif Display', Georgia, serif; font-size: 54px; margin-top: 15px; line-height: 1.1; max-width: 900px; }
+        .test-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; padding-top: 60px; padding-left: 80px; padding-right: 80px; }
+        .test-card { border: 2px solid #183a32; background: #ffffff; min-height: 320px; padding-top: 30px; padding-left: 25px; padding-right: 25px; }
+        .step-num { font-family: 'DM Serif Display', serif; font-size: 32px; color: #c85a3f; border-bottom: 2px solid #c85a3f; display: inline-block; margin-bottom: 20px; }
+        .card-title { font-size: 20px; font-weight: 800; margin-bottom: 15px; text-transform: uppercase; }
+        .card-list { list-style: none; }
+        .card-list li { font-size: 15px; line-height: 1.6; margin-top: 12px; position: relative; padding-left: 20px; }
+        .card-list li::before { content: "□"; position: absolute; left: 0; color: #c85a3f; font-weight: 900; }
+        .footer-note { position: absolute; bottom: 60px; left: 80px; right: 80px; border-top: 1px solid #183a32; padding-top: 20px; font-size: 14px; font-weight: 600; color: #49665a; }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="header">
+            <p class="eyebrow">Roteiro de Testes · Fase 02</p>
+            <h1 class="title">Teste prático 2: menu, imagem e pedido</h1>
+        </div>
+        
+        <div class="test-grid">
+            <div class="test-card">
+                <div class="step-num">01</div>
+                <h2 class="card-title">Gestão de Imagem</h2>
+                <ul class="card-list">
+                    <li>Carregar foto da galeria ou tirar foto direta no telemóvel.</li>
+                    <li>Validar pré-visualização e barra de progresso de envio.</li>
+                    <li>Confirmar mensagem de sucesso após o processamento.</li>
+                </ul>
+            </div>
+            
+            <div class="test-card">
+                <div class="step-num 02">02</div>
+                <h2 class="card-title">Sincronização</h2>
+                <ul class="card-list">
+                    <li>Actualizar a página e verificar se a imagem persiste no Admin.</li>
+                    <li>Abrir o Menu Cliente e confirmar a visibilidade do prato.</li>
+                    <li>Validar a imagem no fluxo de "Novo Pedido" do Garçom.</li>
+                </ul>
+            </div>
+            
+            <div class="test-card">
+                <div class="step-num">03</div>
+                <h2 class="card-title">Fluxo de Pedido</h2>
+                <ul class="card-list">
+                    <li>Realizar pedido como Cliente (via QR Code).</li>
+                    <li>Realizar pedido manual como Garçom no painel.</li>
+                    <li>Validar quantidades, observações e cálculo do total.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            Nota: O indicador de progresso deve bloquear o botão "Guardar" para evitar submissões duplicadas durante o upload.
+        </div>
+    </div>
+</body>
+</html>

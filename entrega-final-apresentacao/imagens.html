@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <title>Fluxo de Imagens</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .slide-container { width: 1280px; min-height: 720px; background: #f7f2e9; color: #183a32; font-family: 'Manrope', sans-serif; border: 8px solid #000000; position: relative; overflow: hidden; }
+        .header-section { padding-top: 60px; padding-left: 80px; }
+        .eyebrow { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; color: #FF4500; margin-bottom: 10px; }
+        .title { font-size: 48px; font-weight: 900; line-height: 1.1; max-width: 800px; text-transform: uppercase; }
+        .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding-top: 60px; padding-left: 80px; padding-right: 80px; }
+        .feature-block { border: 4px solid #000000; padding-top: 30px; padding-left: 30px; padding-right: 30px; min-height: 320px; background: #FFFFFF; }
+        .feature-block h3 { font-size: 24px; font-weight: 900; text-transform: uppercase; margin-bottom: 20px; border-bottom: 4px solid #000000; padding-bottom: 10px; display: inline-block; }
+        .feature-list { list-style: none; }
+        .feature-list li { font-size: 18px; line-height: 1.6; margin-bottom: 15px; display: flex; align-items: flex-start; }
+        .feature-list li::before { content: "■"; color: #FF4500; margin-right: 12px; font-size: 14px; margin-top: 4px; }
+        .status-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #000000; color: #FFFFFF; display: flex; align-items: center; padding-left: 80px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
+        .accent-box { position: absolute; top: 60px; right: 80px; width: 120px; height: 120px; border: 4px solid #000000; background: #0055FF; }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="accent-box"></div>
+        <div class="header-section">
+            <div class="eyebrow">Módulo de Media · Actualização</div>
+            <h1 class="title">O fluxo de imagens recebeu as correcções finais</h1>
+        </div>
+        
+        <div class="content-grid">
+            <div class="feature-block">
+                <h3>Compatibilidade Total</h3>
+                <ul class="feature-list">
+                    <li>Suporte nativo para JPG, PNG e WEBP em todos os dispositivos.</li>
+                    <li>Correcção de ficheiros da galeria com metadados MIME ausentes.</li>
+                    <li>Integração directa com a câmara do telemóvel para fotos em tempo real.</li>
+                </ul>
+            </div>
+            
+            <div class="feature-block">
+                <h3>Persistência e UX</h3>
+                <ul class="feature-list">
+                    <li>Novo indicador de progresso e bloqueio de submissão duplicada.</li>
+                    <li>Pré-visualização imediata antes da gravação na base de dados.</li>
+                    <li>Sincronização garantida entre Admin, Cliente e Garçom.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            Estado: Implementado e Validado em Produção
+        </div>
+    </div>
+</body>
+</html>

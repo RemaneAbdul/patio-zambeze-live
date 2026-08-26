@@ -26,4 +26,25 @@ describe("receipt ownership authorization", () => {
     expect(archiveSource).toContain("Apenas equipa autorizada");
     expect(archiveSource).not.toContain("receipt.waiter.id === user.id");
   });
+
+  it("loads receipt waiter options from real users and preserves historical IDs", () => {
+    expect(dbSource).toContain("export async function listReceiptWaiterOptions()");
+    expect(dbSource).toContain("tableSelections.viewedByWaiterId");
+    expect(dbSource).toContain('eq(users.role, "garcom")');
+    expect(dbSource).toContain("hasReceiptHistory");
+    expect(routerSource).toContain("receiptWaiters: adminProcedure");
+  });
+
+  it("filters the admin archive by waiter ID and supports unassigned receipts", () => {
+    expect(archiveSource).toContain("receiptWaiters.useQuery");
+    expect(archiveSource).toContain('String(receipt.waiter?.id ?? \"\") === waiterFilter');
+    expect(archiveSource).toContain('waiterFilter === \"unassigned\" ? !receipt.waiter');
+    expect(archiveSource).toContain("filteredReceipts.length");
+    expect(archiveSource).toContain("normalize(\"NFD\")");
+  });
+
+  it("refreshes the admin receipt waiter filter after waiter changes", () => {
+    const waitersSource = fs.readFileSync(path.resolve(import.meta.dirname, "../client/src/pages/WaitersPanel.tsx"), "utf8");
+    expect(waitersSource).toContain("utils.tableHistory.receiptWaiters.invalidate()");
+  });
 });

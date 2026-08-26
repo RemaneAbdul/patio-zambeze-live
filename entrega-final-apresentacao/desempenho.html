@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <title>Desempenho - Pátio Zambeze</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .slide-container { 
+            width: 1280px; 
+            min-height: 720px; 
+            background: #f7f2e9; 
+            color: #183a32; 
+            font-family: Arial, sans-serif;
+            border-top: 12px solid #183a32;
+            padding: 58px 72px 0;
+        }
+        .kicker { 
+            color: #c85a3f; 
+            font-size: 13px; 
+            letter-spacing: 3px; 
+            text-transform: uppercase; 
+            font-weight: 700; 
+        }
+        .title { 
+            font: 50px Georgia, serif; 
+            margin: 18px 0 54px; 
+            max-width: 900px; 
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 20px;
+        }
+        .metric-card {
+            border: 2px solid #183a32;
+            padding: 32px;
+            background: #fffaf2;
+        }
+        .metric-card.highlight {
+            background: #183a32;
+            color: #f7f2e9;
+        }
+        .metric-value {
+            font: 64px Georgia, serif;
+            color: #c85a3f;
+            margin-bottom: 10px;
+        }
+        .metric-card.highlight .metric-value {
+            color: #e3a38e;
+        }
+        .metric-label {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .tech-list {
+            margin-top: 48px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        .tech-item {
+            border-top: 4px solid #c85a3f;
+            padding-top: 16px;
+        }
+        .tech-item h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+        .tech-item p {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #49665a;
+        }
+        .footer-note {
+            margin-top: 60px;
+            font-size: 15px;
+            font-style: italic;
+            color: #c85a3f;
+            border-left: 3px solid #c85a3f;
+            padding-left: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="kicker">05 · Otimização Técnica</div>
+        <h1 class="title">O desempenho foi melhorado sem mudar a experiência principal</h1>
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value">~1.37 MB</div>
+                <div class="metric-label">Bundle Inicial Anterior</div>
+                <p>Tamanho total carregado no primeiro acesso antes das otimizações.</p>
+            </div>
+            <div class="metric-card highlight">
+                <div class="metric-value">976 kB</div>
+                <div class="metric-label">Bundle Inicial Atual</div>
+                <p>Redução significativa para um carregamento mais rápido em redes móveis.</p>
+            </div>
+        </div>
+
+        <div class="tech-list">
+            <div class="tech-item">
+                <h3>Code Splitting</h3>
+                <p>Rotas internas carregadas apenas quando necessário via React.lazy e Suspense.</p>
+            </div>
+            <div class="tech-item">
+                <h3>Imports Dinâmicos</h3>
+                <p>Bibliotecas pesadas de PDF e captura de ecrã carregadas sob demanda.</p>
+            </div>
+            <div class="tech-item">
+                <h3>Carregamento Assíncrono</h3>
+                <p>Priorização do conteúdo visual do menu sobre scripts administrativos.</p>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            Nota: O aviso de tamanho de chunk restante é não bloqueante e não afeta a estabilidade operacional.
+        </div>
+    </div>
+</body>
+</html>

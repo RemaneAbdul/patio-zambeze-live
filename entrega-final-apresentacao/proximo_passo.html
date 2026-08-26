@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <title>Próximo Passo - Pátio Zambeze</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .slide-container { width: 1280px; min-height: 720px; background: #f7f2e9; color: #183a32; font-family: Arial, sans-serif; border-top: 12px solid #c85a3f; padding: 60px 80px 0; position: relative; }
+        .kicker { color: #c85a3f; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 16px; }
+        .title { font-family: Georgia, serif; font-size: 48px; line-height: 1.1; margin-bottom: 50px; max-width: 900px; }
+        .action-plan { display: flex; flex-direction: column; gap: 20px; max-width: 800px; }
+        .action-step { display: flex; align-items: flex-start; gap: 24px; border-left: 4px solid #183a32; padding-left: 32px; padding-bottom: 10px; position: relative; }
+        .action-step::before { content: ""; position: absolute; left: -12px; top: 0; width: 20px; height: 20px; background: #c85a3f; border: 4px solid #f7f2e9; border-radius: 50%; }
+        .action-step:last-child { border-left-color: transparent; }
+        .step-content h3 { font-size: 22px; font-weight: 900; text-transform: uppercase; margin-bottom: 8px; color: #183a32; }
+        .step-content p { font-size: 17px; line-height: 1.5; color: #49665a; }
+        .closing-box { position: absolute; bottom: 60px; right: 80px; width: 320px; border: 2px solid #183a32; background: #183a32; color: #f7f2e9; padding: 30px; text-align: center; }
+        .closing-box h4 { font-family: Georgia, serif; font-size: 24px; margin-bottom: 10px; color: #e3a38e; }
+        .closing-box p { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="kicker">11 · Conclusão Operacional</div>
+        <h1 class="title">Próximo passo: validação presencial controlada</h1>
+        
+        <div class="action-plan">
+            <div class="action-step">
+                <div class="step-content">
+                    <h3>01. Preparação da Sessão</h3>
+                    <p>Reservar uma sessão curta com o administrador, um garçom e dois telemóveis (Android e iPhone) ligados ao domínio de produção.</p>
+                </div>
+            </div>
+            
+            <div class="action-step">
+                <div class="step-content">
+                    <h3>02. Execução do Roteiro</h3>
+                    <p>Seguir rigorosamente os testes práticos descritos nos slides 6, 7 e 8, utilizando dados reais de pratos e mesas do restaurante.</p>
+                </div>
+            </div>
+            
+            <div class="action-step">
+                <div class="step-content">
+                    <h3>03. Registo de Resultados</h3>
+                    <p>Anotar cada resultado: passou, falhou ou requer ajuste. Corrigir apenas problemas técnicos reproduzíveis encontrados em produção.</p>
+                </div>
+            </div>
+            
+            <div class="action-step">
+                <div class="step-content">
+                    <h3>04. Declaração de Entrega</h3>
+                    <p>Após a aprovação do responsável pelo restaurante, declarar o sistema operacional e iniciar a utilização oficial com os clientes.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="closing-box">
+            <h4>Pátio Zambeze</h4>
+            <p>Pronto para Operação</p>
+        </div>
+    </div>
+</body>
+</html>

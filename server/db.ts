@@ -152,6 +152,24 @@ export async function listGarcons() {
     .from(garcons).innerJoin(users, eq(garcons.legacyUserId, users.id)).orderBy(garcons.fullName);
 }
 
+export async function listReceiptWaiterOptions() {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const [historicalSessionWaiters, historicalReceiptWaiters] = await Promise.all([
+    db.select({ id: tableSessions.waiterId }).from(tableSessions).where(isNotNull(tableSessions.waiterId)),
+    db.select({ id: tableSelections.viewedByWaiterId }).from(tableSelections).where(isNotNull(tableSelections.viewedByWaiterId)),
+  ]);
+  const historicalIds = Array.from(new Set([
+    ...historicalSessionWaiters.map(({ id }) => id),
+    ...historicalReceiptWaiters.map(({ id }) => id),
+  ].filter((id): id is number => id !== null)));
+  const waiterRows = await db.select({ id: users.id, name: users.name, email: users.email, waiterCode: users.waiterCode, waiterActive: users.waiterActive, role: users.role })
+    .from(users)
+    .where(or(eq(users.role, "garcom"), historicalIds.length ? inArray(users.id, historicalIds) : sql`FALSE`))
+    .orderBy(asc(users.name), asc(users.id));
+  return waiterRows.map((waiter) => ({ ...waiter, active: waiter.waiterActive === 1, hasReceiptHistory: historicalIds.includes(waiter.id) }));
+}
+
 export async function createGarcon(input: { fullName: string; username: string; email: string; phone?: string; password: string; active: boolean; restaurantId?: string }) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
@@ -406,7 +424,7 @@ export async function getUserByOpenId(openId: string) {
 // TODO: add feature queries here as your schema grows.
 
 
-import { and, asc, desc, eq, gte, inArray, isNull, isNotNull, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNull, isNotNull, lt, or, sql } from "drizzle-orm";
 import { menuCategories, menuProducts, tableQrCodes, tableSelectionItems, tableSelections, tableSessions, InsertTableSelectionItem } from "../drizzle/schema";
 
 let lastSessionCleanupAt = 0;

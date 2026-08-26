@@ -1,0 +1,144 @@
+{
+  "project_info": {
+    "title": "Pátio Zambeze",
+    "created": 1787736232.986,
+    "last_updated": 1787736419.359,
+    "total_slides": 12
+  },
+  "slides": [
+    {
+      "id": "cover",
+      "state": "edited",
+      "pageNum": 1
+    },
+    {
+      "id": "estado_tecnico",
+      "state": "edited",
+      "pageNum": 2
+    },
+    {
+      "id": "funcionalidades",
+      "state": "edited",
+      "pageNum": 3
+    },
+    {
+      "id": "seguranca",
+      "state": "edited",
+      "pageNum": 4
+    },
+    {
+      "id": "imagens",
+      "state": "edited",
+      "pageNum": 5
+    },
+    {
+      "id": "desempenho",
+      "state": "edited",
+      "pageNum": 6
+    },
+    {
+      "id": "teste_qr",
+      "state": "edited",
+      "pageNum": 7
+    },
+    {
+      "id": "teste_pedido",
+      "state": "edited",
+      "pageNum": 8
+    },
+    {
+      "id": "teste_recibos",
+      "state": "edited",
+      "pageNum": 9
+    },
+    {
+      "id": "criterios",
+      "state": "edited",
+      "pageNum": 10
+    },
+    {
+      "id": "pendencias",
+      "state": "edited",
+      "pageNum": 11
+    },
+    {
+      "id": "proximo_passo",
+      "state": "edited",
+      "pageNum": 12
+    }
+  ],
+  "outline": [
+    {
+      "id": "cover",
+      "title": "Pátio Zambeze",
+      "summary": "Estado da entrega e plano de validação prática. Apresentação de fecho operacional, Agosto de 2026.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "estado_tecnico",
+      "title": "O projecto está tecnicamente pronto para validação final",
+      "summary": "Build, testes, TypeScript, publicação e principal pendência de validação prática.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "funcionalidades",
+      "title": "As funcionalidades críticas já estão implementadas",
+      "summary": "Menu público, painéis por função, pedidos e recibos.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "seguranca",
+      "title": "Segurança e dados seguem regras de acesso restritas",
+      "summary": "RLS, funções protegidas, permissões de garçons e Audit Logs.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "imagens",
+      "title": "O fluxo de imagens recebeu as correcções finais",
+      "summary": "Galeria, câmara, pré-visualização, envio persistente e sincronização do catálogo.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "desempenho",
+      "title": "O desempenho foi melhorado sem mudar a experiência principal",
+      "summary": "Code splitting, imports dinâmicos e estado do bundle inicial.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "teste_qr",
+      "title": "Teste prático 1: acesso, mesas e QR Codes",
+      "summary": "Roteiro de validação de login, mesas reais e identificação por QR Code.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "teste_pedido",
+      "title": "Teste prático 2: menu, imagem e pedido",
+      "summary": "Roteiro de imagem, catálogo, pedido cliente e pedido manual.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "teste_recibos",
+      "title": "Teste prático 3: estados, recibos e permissões",
+      "summary": "Roteiro de estados, recibos, impressão, PDF, partilha e segunda via.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "criterios",
+      "title": "Critérios para declarar a entrega operacional",
+      "summary": "Condições de aprovação para declarar o sistema pronto para operação.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "pendencias",
+      "title": "Pendências conhecidas e decisão recomendada",
+      "summary": "HIBP no Supabase Free, aviso de chunk e ordem recomendada de validação.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "proximo_passo",
+      "title": "Próximo passo: validação presencial controlada",
+      "summary": "Sessão de validação com responsável, administrador, garçom e dispositivos reais.",
+      "image_plan": "Use a suitable image if needed"
+    }
+  ]
+}

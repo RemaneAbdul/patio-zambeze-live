@@ -28,14 +28,14 @@ export default function WaitersPanel() {
   const assignments = trpc.staff.currentAssignments.useQuery(undefined, { enabled: isAdmin, retry: false });
   const history = trpc.staff.serviceHistory.useQuery({ userId: selectedWaiterId ?? 0 }, { enabled: isAdmin && selectedWaiterId !== null, retry: false });
   const utils = trpc.useUtils();
-  const addWaiter = trpc.staff.add.useMutation({ onSuccess: async () => { setForm(null); await utils.staff.list.invalidate(); } });
+  const addWaiter = trpc.staff.add.useMutation({ onSuccess: async () => { setForm(null); await Promise.all([utils.staff.list.invalidate(), utils.tableHistory.receiptWaiters.invalidate()]); } });
   const createAdmin = trpc.staff.createAdmin.useMutation({ onSuccess: async () => { setAdminForm(null); setAdminSuccess(true); await utils.staff.admins.invalidate(); } });
   const updateAdmin = trpc.staff.updateAdmin.useMutation({ onSuccess: async () => { setAdminEditForm(null); setAdminActionSuccess("Administrador actualizado com sucesso."); await utils.staff.admins.invalidate(); } });
   const setAdminActive = trpc.staff.setAdminActive.useMutation({ onSuccess: async (result) => { setAdminActionSuccess(`Administrador ${result.waiterActive === 1 ? "activado" : "desactivado"} com sucesso.`); await utils.staff.admins.invalidate(); } });
   const deleteAdmin = trpc.staff.deleteAdmin.useMutation({ onSuccess: async () => { setAdminActionSuccess("Administrador apagado. O histórico foi preservado."); await utils.staff.admins.invalidate(); } });
-  const updateWaiter = trpc.staff.update.useMutation({ onSuccess: async () => { setForm(null); await Promise.all([utils.staff.list.invalidate(), utils.staff.currentAssignments.invalidate()]); } });
-  const setActive = trpc.staff.setActive.useMutation({ onSuccess: async () => { await Promise.all([utils.staff.list.invalidate(), utils.staff.currentAssignments.invalidate()]); } });
-  const deleteWaiter = trpc.staff.delete.useMutation({ onSuccess: async () => { setSelectedWaiterId(null); setForm(null); await Promise.all([utils.staff.list.invalidate(), utils.staff.currentAssignments.invalidate()]); } });
+  const updateWaiter = trpc.staff.update.useMutation({ onSuccess: async () => { setForm(null); await Promise.all([utils.staff.list.invalidate(), utils.staff.currentAssignments.invalidate(), utils.tableHistory.receiptWaiters.invalidate()]); } });
+  const setActive = trpc.staff.setActive.useMutation({ onSuccess: async () => { await Promise.all([utils.staff.list.invalidate(), utils.staff.currentAssignments.invalidate(), utils.tableHistory.receiptWaiters.invalidate()]); } });
+  const deleteWaiter = trpc.staff.delete.useMutation({ onSuccess: async () => { setSelectedWaiterId(null); setForm(null); await Promise.all([utils.staff.list.invalidate(), utils.staff.currentAssignments.invalidate(), utils.tableHistory.receiptWaiters.invalidate()]); } });
   const assignmentsByWaiter = useMemo(() => {
     const map = new Map<number, typeof assignments.data>();
     for (const entry of assignments.data ?? []) { const current = map.get(entry.waiter.id) ?? []; current.push(entry); map.set(entry.waiter.id, current); }

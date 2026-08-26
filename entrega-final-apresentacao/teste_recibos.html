@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste Prático 3</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .slide-container { width: 1280px; min-height: 720px; background: #f7f2e9; color: #183a32; font-family: Arial, sans-serif; border-top: 12px solid #183a32; padding: 58px 72px 0; position: relative; }
+        .kicker { color: #c85a3f; font-size: 13px; letter-spacing: 3px; text-transform: uppercase; font-weight: 700; }
+        .title { font: 50px Georgia, serif; margin: 18px 0 48px; max-width: 900px; }
+        .test-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .test-block { border: 2px solid #183a32; background: #fffaf2; padding: 28px; min-height: 200px; }
+        .test-block h3 { font-size: 20px; font-weight: 700; margin-bottom: 16px; color: #c85a3f; text-transform: uppercase; border-bottom: 1px solid #c85a3f; padding-bottom: 8px; display: inline-block; }
+        .test-list { list-style: none; }
+        .test-list li { font-size: 15px; line-height: 1.5; margin-bottom: 10px; padding-left: 20px; position: relative; }
+        .test-list li::before { content: "→"; position: absolute; left: 0; color: #c85a3f; font-weight: 700; }
+        /* Reduced top spacing to eliminate small overflow */
+        .footer-note { margin-top: 34px; border-top: 2px solid #c85a3f; padding-top: 20px; font-size: 16px; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="kicker">Teste Prático 03</div>
+        <h1 class="title">Estados, recibos e permissões</h1>
+        
+        <div class="test-grid">
+            <div class="test-block">
+                <h3>Ciclo do Pedido</h3>
+                <ul class="test-list">
+                    <li>Alterar estado: Pendente → Preparação → Pronto → Entregue.</li>
+                    <li>Confirmar que o cliente visualiza a actualização em tempo real.</li>
+                    <li>Validar a animação de sucesso ao "Marcar como visto".</li>
+                </ul>
+            </div>
+            
+            <div class="test-block">
+                <h3>Dados do Recibo</h3>
+                <ul class="test-list">
+                    <li>Verificar se o nome do garçom aparece após o fecho da mesa.</li>
+                    <li>Validar a hora exacta da marcação no cabeçalho do recibo.</li>
+                    <li>Confirmar que o segundo pedido gera um recibo independente.</li>
+                </ul>
+            </div>
+            
+            <div class="test-block">
+                <h3>Formatos e Saída</h3>
+                <ul class="test-list">
+                    <li>Testar "Imprimir Recibo" e validar visualização térmica.</li>
+                    <li>Testar "Baixar PDF" em Android e iPhone (sem páginas em branco).</li>
+                    <li>Validar a funcionalidade de "Segunda Via" no histórico.</li>
+                </ul>
+            </div>
+            
+            <div class="test-block">
+                <h3>Segurança de Acesso</h3>
+                <ul class="test-list">
+                    <li>Confirmar que o Garçom A não vê os recibos do Garçom B.</li>
+                    <li>Validar que o Admin mantém acesso a todos os registos.</li>
+                    <li>Garantir que o cliente não acede a painéis administrativos.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            Objectivo: Garantir que a operação é fluida, segura e livre de erros de impressão ou acesso.
+        </div>
+    </div>
+</body>
+</html>
