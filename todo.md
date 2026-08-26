@@ -1354,3 +1354,13 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Executar testes e build antes do commit.
 - [x] Criar commit profissional e enviar para GitHub sem force push.
 - [x] Confirmar branch sincronizada, commit enviado e working tree limpa.
+
+## Notas do pedido e pesquisa assistida no Menu Cliente
+- [x] Auditar o suporte actual a notas no contrato, backend, recibo e painel do garçom.
+- [x] Adicionar campo de instruções especiais no fluxo do cliente e persistir a nota no pedido submetido.
+- [x] Exibir a nota de forma segura no acompanhamento/recibo/painel operacional quando aplicável.
+- [x] Adicionar sugestões de pesquisa baseadas no catálogo real e destaque do texto correspondente nos resultados.
+- [x] Garantir acessibilidade, teclado, mobile e limpeza segura das sugestões.
+- [x] Adicionar regressões para notas, sugestões, destaque e submissão sem alterar o fluxo existente.
+- [x] Validar TypeScript, testes, build e interface desktop/mobile.
+- [x] Guardar checkpoint da implementação concluída.

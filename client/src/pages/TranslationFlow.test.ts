@@ -5,6 +5,7 @@ import path from "node:path";
 const productsSource = fs.readFileSync(path.resolve(import.meta.dirname, "ProductsPanel.tsx"), "utf8");
 const homeSource = fs.readFileSync(path.resolve(import.meta.dirname, "Home.tsx"), "utf8");
 const translationSource = fs.readFileSync(path.resolve(import.meta.dirname, "../../../server/menuTranslation.ts"), "utf8");
+const receiptSource = fs.readFileSync(path.resolve(import.meta.dirname, "../components/ThermalReceipt.tsx"), "utf8");
 
 describe("Portuguese-first catalog translation", () => {
   it("removes manual English fields from the admin form and payload", () => {
@@ -32,6 +33,24 @@ describe("Portuguese-first catalog translation", () => {
     expect(homeSource).toContain('onClick={() => setShowSelection(true)}');
     expect(homeSource).not.toContain('selection: "Minha Seleção"');
     expect(homeSource).not.toContain('selection: "My Selection"');
+  });
+
+  it("allows customer notes before submitting and carries notes into the receipt history", () => {
+    expect(homeSource).toContain('const [orderNotes, setOrderNotes] = useState("")');
+    expect(homeSource).toContain('notes: orderNotes.trim() || undefined');
+    expect(homeSource).toContain('notesLabel: "Instruções especiais"');
+    expect(homeSource).toContain('notesLabel: "Special instructions"');
+    expect(homeSource).toContain('maxLength={1000}');
+    expect(homeSource).toContain('notes: entry.notes');
+    expect(receiptSource).toContain('receipt-selection-notes');
+  });
+
+  it("provides real catalog suggestions and highlights matching search text", () => {
+    expect(homeSource).toContain("searchSuggestions");
+    expect(homeSource).toContain('role="combobox"');
+    expect(homeSource).toContain('role="listbox"');
+    expect(homeSource).toContain('highlightMatch(productName(product))');
+    expect(homeSource).toContain('<mark');
   });
 
   it("uses a server-side content hash cache and does not expose manual database mutations", () => {

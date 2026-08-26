@@ -125,6 +125,7 @@ export const appRouter = router({
       tableNumber: z.string().min(1).max(64).default("01"),
       tableId: z.string().min(1).max(128).optional(),
       subtotal: z.number().nonnegative(),
+      notes: z.string().trim().max(1000).optional(),
       items: z.array(
         z.object({
           productId: z.number().int().positive().optional(),

@@ -86,6 +86,7 @@ integration("tableHistory persistence", () => {
         sessionToken: tokenA,
         tableNumber: integrationTableNumber,
         subtotal: 600,
+        notes: "Sem cebola, por favor",
         items: [{ productName: "Frango Grelhado", quantity: 2, unitPrice: 300 }],
       });
       const historyA = await getTableHistory(tokenA);
@@ -109,6 +110,7 @@ integration("tableHistory persistence", () => {
       expect(created.selectionNumber).toBe(1);
       expect(historyA).toHaveLength(1);
       expect(historyA[0]?.subtotal).toBe(600);
+      expect(historyA[0]?.notes).toBe("Sem cebola, por favor");
       expect(historyA[0]?.items).toEqual([expect.objectContaining({ productName: "Frango Grelhado", quantity: 2, unitPrice: 300, subtotal: 600 })]);
       expect(historyB).toHaveLength(0);
       expect(typeof historyA[0]?.createdAt).toBe("object");
