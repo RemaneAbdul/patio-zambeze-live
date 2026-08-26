@@ -1364,3 +1364,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar regressões para notas, sugestões, destaque e submissão sem alterar o fluxo existente.
 - [x] Validar TypeScript, testes, build e interface desktop/mobile.
 - [x] Guardar checkpoint da implementação concluída.
+
+## Actualização final do GitHub — anexos 33/34
+- [x] Verificar branch, remotos, estado local e diferenças.
+- [x] Rever alterações e confirmar ausência de segredos.
+- [x] Executar testes e build antes do commit.
+- [x] Criar ou confirmar commit solicitado e enviar para GitHub sem force push.
+- [x] Confirmar commit remoto, branch sincronizada e alterações pendentes.
