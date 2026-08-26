@@ -1378,3 +1378,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Configurar divisão adicional do bundle para reduzir o chunk JavaScript superior a 500 kB.
 - [x] Adicionar regressões e validar TypeScript, testes, build e impressão responsiva.
 - [x] Guardar checkpoint das melhorias concluídas.
+
+## Actualização final do GitHub — anexo 35
+- [x] Verificar branch, remotos, estado local e diferenças.
+- [x] Rever alterações e confirmar ausência de segredos.
+- [x] Executar testes e build antes do commit.
+- [x] Criar ou confirmar o commit solicitado e enviar para GitHub sem force push.
+- [x] Confirmar commit remoto, branch sincronizada e alterações pendentes.
