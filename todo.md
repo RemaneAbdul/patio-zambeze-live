@@ -1332,3 +1332,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar regressões para filtragem, histórico, combinações e isolamento entre garçons.
 - [x] Executar testes, TypeScript, build e verificação visual desktop/tablet/mobile.
 - [x] Guardar checkpoint da correcção concluída.
+
+## Texto do botão do Menu Cliente
+- [x] Alterar “Minha seleção” para “Fazer pedido” sem mudar a função ou o layout.
+- [x] Actualizar a tradução inglesa correspondente para “Place order”, quando aplicável.
+- [x] Confirmar que não existem ocorrências inadequadas do texto antigo.
+- [x] Testar o fluxo do botão e a apresentação em desktop, tablet e telemóvel.
+- [x] Guardar checkpoint da alteração textual concluída.

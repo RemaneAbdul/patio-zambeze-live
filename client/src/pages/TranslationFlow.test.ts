@@ -26,6 +26,14 @@ describe("Portuguese-first catalog translation", () => {
     expect(homeSource).toContain("translationsQuery.data?.categories[String(source.id)]");
   });
 
+  it("uses the order label in both languages without changing the action", () => {
+    expect(homeSource).toContain('selection: "Fazer pedido"');
+    expect(homeSource).toContain('selection: "Place order"');
+    expect(homeSource).toContain('onClick={() => setShowSelection(true)}');
+    expect(homeSource).not.toContain('selection: "Minha Seleção"');
+    expect(homeSource).not.toContain('selection: "My Selection"');
+  });
+
   it("uses a server-side content hash cache and does not expose manual database mutations", () => {
     expect(translationSource).toContain('createHash("sha256")');
     expect(translationSource).toContain("cache.get(cacheKey)");
