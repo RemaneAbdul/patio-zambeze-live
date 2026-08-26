@@ -1347,3 +1347,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar regressões para pesquisa por mesa, nome, código e filtros combinados.
 - [x] Validar TypeScript, testes, build e interface responsiva.
 - [x] Guardar checkpoint da correcção concluída.
+
+## Actualização final para GitHub
+- [x] Verificar branch, remotos, estado local e diferenças.
+- [x] Rever alterações staged e confirmar ausência de segredos.
+- [x] Executar testes e build antes do commit.
+- [x] Criar commit profissional e enviar para GitHub sem force push.
+- [x] Confirmar branch sincronizada, commit enviado e working tree limpa.
