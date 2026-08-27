@@ -1464,8 +1464,8 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Auditar branch actual, remotos, working tree e alterações pendentes.
 - [x] Rever todo o diff e excluir credenciais, tokens, chaves e ficheiros temporários.
 - [x] Executar testes completos, TypeScript e build de produção.
-- [ ] Rever staged diff e quantidade de ficheiros antes do commit.
-- [ ] Criar commit profissional sem apagar trabalho existente.
-- [ ] Enviar a branch actual ao GitHub sem force push.
-- [ ] Confirmar hash remoto, working tree e estado do deployment Vercel.
-- [ ] Guardar checkpoint e entregar relatório final.
+- [x] Rever staged diff e quantidade de ficheiros antes do commit.
+- [x] Criar commit profissional sem apagar trabalho existente.
+- [x] Enviar a branch actual ao GitHub sem force push.
+- [x] Confirmar hash remoto, working tree e estado do deployment Vercel. GitHub e Vercel confirmados no commit `66f42c5`; deployment de produção READY.
+- [x] Guardar checkpoint e entregar relatório final.
