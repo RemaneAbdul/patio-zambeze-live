@@ -1432,3 +1432,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Confirmar testes, TypeScript e build da versão actual.
 - [x] Confirmar push GitHub e deployment Vercel READY no mesmo commit.
 - [x] Guardar checkpoint final e entregar o relatório de sincronização.
+
+## Navegação interna natural do Menu Cliente — anexo 40
+- [x] Mapear estados de menu, detalhe, seleção, confirmação e histórico sem alterar rotas do painel.
+- [x] Integrar histórico do navegador e botão “Continuar a consultar” sem perder mesa, sessão ou pedido.
+- [x] Impedir reenvio acidental ao usar voltar/avançar ou reabrir o menu.
+- [x] Adicionar regressões unitárias e estruturais para hash, popstate e preservação dos parâmetros da mesa.
+- [x] Executar testes, TypeScript, build e validação visual mobile/desktop.
+- [x] Guardar checkpoint e sincronizar a versão publicada no Vercel.

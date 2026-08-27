@@ -32,14 +32,14 @@ describe("Portuguese-first catalog translation", () => {
   it("uses the order label in both languages without changing the action", () => {
     expect(homeSource).toContain('selection: "Fazer pedido"');
     expect(homeSource).toContain('selection: "Place order"');
-    expect(homeSource).toContain('onClick={() => setShowSelection(true)}');
+    expect(homeSource).toContain('onClick={() => setClientViewInHistory({ view: "selection" })}');
     expect(homeSource).not.toContain('selection: "Minha Seleção"');
     expect(homeSource).not.toContain('selection: "My Selection"');
   });
 
   it("renames the history action without changing its behavior", () => {
     expect(homeSource).toContain('lang === "pt" ? "Visualizar Pedido" : "View Order"');
-    expect(homeSource).toContain('onClick={() => setShowHistory(true)}');
+    expect(homeSource).toContain('onClick={() => setClientViewInHistory({ view: "history" })}');
     expect(homeSource).toContain("className={`history-bar");
     expect(homeSource).not.toContain('lang === "pt" ? "Histórico da Mesa" : "Table history"');
   });
@@ -52,6 +52,17 @@ describe("Portuguese-first catalog translation", () => {
     expect(homeSource).toContain('maxLength={1000}');
     expect(homeSource).toContain('notes: entry.notes');
     expect(receiptSource).toContain('receipt-selection-notes');
+  });
+
+  it("uses browser history for internal customer-menu navigation", () => {
+    expect(homeSource).toContain("parseClientNavigation(window.location.hash)");
+    expect(homeSource).toContain("window.addEventListener(\"popstate\"");
+    expect(homeSource).toContain("clientNavigationHash(next)");
+    expect(homeSource).toContain("window.history.back()");
+    expect(homeSource).toContain("window.history.go(-currentDepth)");
+    expect(homeSource).toContain("tableNumber");
+    expect(homeSource).toContain("tableId");
+    expect(homeSource).toContain("sessionToken");
   });
 
   it("provides real catalog suggestions and highlights matching search text", () => {
