@@ -1459,3 +1459,13 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar testes para fechar/reabrir, carrinho, pedido existente, sessão encerrada e troca de dispositivo/mesa.
 - [x] Executar testes, TypeScript, build e validação mobile/desktop.
 - [x] Guardar checkpoint e sincronizar a versão publicada no Vercel.
+
+## Actualização GitHub e Vercel — anexo 43
+- [x] Auditar branch actual, remotos, working tree e alterações pendentes.
+- [x] Rever todo o diff e excluir credenciais, tokens, chaves e ficheiros temporários.
+- [x] Executar testes completos, TypeScript e build de produção.
+- [ ] Rever staged diff e quantidade de ficheiros antes do commit.
+- [ ] Criar commit profissional sem apagar trabalho existente.
+- [ ] Enviar a branch actual ao GitHub sem force push.
+- [ ] Confirmar hash remoto, working tree e estado do deployment Vercel.
+- [ ] Guardar checkpoint e entregar relatório final.
