@@ -1411,8 +1411,8 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Guardar checkpoint e sincronizar a publicação após a validação.
 
 ## Confirmação de sincronização GitHub e Vercel — anexo 38
-- [ ] Auditar estado local, branch, remotos e versão publicada.
-- [ ] Rever alterações e confirmar ausência de segredos.
-- [ ] Executar testes completos e build de produção.
-- [ ] Confirmar GitHub actualizado e deployment Vercel READY no mesmo commit.
-- [ ] Guardar checkpoint final e entregar estado de sincronização.
+- [x] Auditar estado local, branch, remotos e versão publicada.
+- [x] Rever alterações e confirmar ausência de segredos.
+- [x] Executar testes completos e build de produção.
+- [x] Confirmar GitHub actualizado e deployment Vercel READY no mesmo commit.
+- [x] Guardar checkpoint final e entregar estado de sincronização.
