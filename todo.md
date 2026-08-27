@@ -1398,6 +1398,6 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Auditar branch, remotos, working tree e alterações actuais.
 - [x] Rever diff e staged files, excluindo segredos, credenciais e temporários.
 - [x] Executar testes completos e build de produção.
-- [ ] Criar commit coerente apenas se existirem alterações pendentes.
-- [ ] Enviar a branch actual para o GitHub sem force push.
-- [ ] Confirmar hash remoto, working tree limpa e novo deployment Vercel.
+- [x] Criar commit coerente apenas se existirem alterações pendentes.
+- [x] Enviar a branch actual para o GitHub sem force push.
+- [x] Confirmar hash remoto, working tree limpa e novo deployment Vercel. GitHub/Vercel confirmados no commit `094dd52`; o push manual para o remoto interno `origin` foi recusado por autenticação não interactiva e será persistido pelo checkpoint WebDev.
