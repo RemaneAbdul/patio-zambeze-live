@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
 import { printRenderedReceipt, receiptHasContent, receiptPaperClass, receiptPrintPortalHasSingleReceipt } from "./receiptPrint";
 
 describe("receipt print validation", () => {
@@ -111,5 +113,15 @@ describe("receipt print validation", () => {
     afterPrint?.();
     expect(body.dataset.receiptPrinting).toBeUndefined();
     expect(states).toEqual(["preparing", "printing", "idle"]);
+  });
+
+  it("defines mobile-only address hiding and named thermal pages", () => {
+    const css = fs.readFileSync(path.resolve(import.meta.dirname, "../index.css"), "utf8");
+    expect(css).toContain("@media screen and (max-width: 600px)");
+    expect(css).toContain(".receipt-print .receipt-header-contact > span:last-child { display: none; }");
+    expect(css).toContain("@page receipt58mm { size: 58mm auto; margin: 0; }");
+    expect(css).toContain("@page receipt80mm { size: 80mm auto; margin: 0; }");
+    expect(css).toContain("page: receipt58mm");
+    expect(css).toContain("page: receipt80mm");
   });
 });

@@ -1040,3 +1040,19 @@ body[data-receipt-printing="true"] > .receipt-print-source { position: fixed !im
   @media (max-width: 900px) { .manual-order-form { grid-template-columns: 1fr; } .manual-order-current { position: static; } }
   @media (max-width: 520px) { .manual-order-form { gap: 14px; } .manual-order-catalog, .manual-order-current { padding: 14px; } .manual-order-search-row { grid-template-columns: 1fr; } .manual-order-search-row .manual-catalog-search-button { width: 100%; } .manual-product-card { align-items: stretch; flex-direction: column; } .manual-product-card button { width: 100%; } .manual-current-item-info { align-items: flex-start; flex-direction: column; gap: 3px; } .manual-current-item-actions { flex-wrap: wrap; } .manual-remove-item { margin-left: 0; } }
 }
+
+/* Ajustes finais para visualização mobile e bobinas térmicas. */
+.receipt-print { box-sizing: border-box; }
+@media screen and (max-width: 600px) {
+  .receipt-print .receipt-header-contact > span:last-child { display: none; }
+}
+@page receipt58mm { size: 58mm auto; margin: 0; }
+@page receipt80mm { size: 80mm auto; margin: 0; }
+@media print {
+  body[data-receipt-printing="true"] > .receipt-print-source.receipt-58mm { page: receipt58mm; }
+  body[data-receipt-printing="true"] > .receipt-print-source.receipt-80mm { page: receipt80mm; }
+  body[data-receipt-printing="true"] > .receipt-print-source.receipt-58mm,
+  body[data-receipt-printing="true"] > .receipt-print-source.receipt-58mm .receipt-print { width: 58mm !important; max-width: 58mm !important; }
+  body[data-receipt-printing="true"] > .receipt-print-source.receipt-80mm,
+  body[data-receipt-printing="true"] > .receipt-print-source.receipt-80mm .receipt-print { width: 80mm !important; max-width: 80mm !important; }
+}

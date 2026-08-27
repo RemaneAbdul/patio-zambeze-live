@@ -1416,3 +1416,12 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Executar testes completos e build de produção.
 - [x] Confirmar GitHub actualizado e deployment Vercel READY no mesmo commit.
 - [x] Guardar checkpoint final e entregar estado de sincronização.
+
+## Correcção mobile e impressão térmica — anexo 02
+- [x] Auditar o componente do recibo, CSS e fluxo de impressão actual.
+- [x] Ocultar o endereço apenas na visualização mobile, preservando os dados guardados.
+- [x] Ajustar impressão para 58 mm e 80 mm, sem A4, com largura controlada e altura automática.
+- [x] Garantir notas, itens, totais e conteúdo do recibo sem cortes ou sobreposição.
+- [x] Adicionar regressões para mobile, 58 mm, 80 mm e isolamento do dashboard.
+- [x] Executar testes, TypeScript, build e validação visual.
+- [ ] Guardar checkpoint e sincronizar a versão publicada no Vercel.
