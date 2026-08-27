@@ -67,7 +67,7 @@ describe("Portuguese-first catalog translation", () => {
     expect(stylesSource).not.toContain(".receipt-modal .sm\\\\:p-8");
     expect(viteSource).toContain("manualChunks(id)");
     expect(viteSource).toContain('return "vendor-react"');
-    expect(viteSource).toContain("packageName.replace");
+    expect(viteSource).toContain("return undefined;");
   });
 
   it("uses a server-side content hash cache and does not expose manual database mutations", () => {

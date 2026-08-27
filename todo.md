@@ -1385,3 +1385,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Executar testes e build antes do commit.
 - [x] Criar ou confirmar o commit solicitado e enviar para GitHub sem force push.
 - [x] Confirmar commit remoto, branch sincronizada e alterações pendentes.
+
+## Correcção urgente — página em branco no Vercel
+- [x] Reproduzir a página em branco no domínio publicado e recolher logs/consola.
+- [x] Identificar causa em runtime, assets, rotas ou configuração de build.
+- [x] Aplicar correcção sem alterar funcionalidades existentes.
+- [x] Validar produção, build, rotas e responsividade.
+- [x] Guardar checkpoint da correcção concluída.
