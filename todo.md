@@ -1480,3 +1480,12 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar testes de concorrência, isolamento, encerramento, recuperação e não duplicação.
 - [x] Executar TypeScript, Vitest, build e validação mobile/desktop.
 - [x] Guardar checkpoint e sincronizar a publicação no GitHub/Vercel.
+
+## Actualização final GitHub — anexo 45
+- [x] Verificar branch actual, remotos, working tree e ficheiros alterados.
+- [x] Rever diff completo e confirmar ausência de credenciais, tokens e ficheiros temporários.
+- [x] Executar testes completos, TypeScript e build de produção.
+- [ ] Rever o staged diff e criar commit coerente sem apagar trabalho existente.
+- [ ] Enviar a branch actual para GitHub sem force push.
+- [ ] Confirmar hash remoto, working tree limpa e deployment Vercel quando aplicável.
+- [ ] Entregar relatório final com branch, commit, hash, ficheiros, build, testes e pendências.
