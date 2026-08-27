@@ -37,6 +37,13 @@ describe("Portuguese-first catalog translation", () => {
     expect(homeSource).not.toContain('selection: "My Selection"');
   });
 
+  it("renames the history action without changing its behavior", () => {
+    expect(homeSource).toContain('lang === "pt" ? "Visualizar Pedido" : "View Order"');
+    expect(homeSource).toContain('onClick={() => setShowHistory(true)}');
+    expect(homeSource).toContain("className={`history-bar");
+    expect(homeSource).not.toContain('lang === "pt" ? "Histórico da Mesa" : "Table history"');
+  });
+
   it("allows customer notes before submitting and carries notes into the receipt history", () => {
     expect(homeSource).toContain('const [orderNotes, setOrderNotes] = useState("")');
     expect(homeSource).toContain('notes: orderNotes.trim() || undefined');

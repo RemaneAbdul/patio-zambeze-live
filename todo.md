@@ -1392,3 +1392,4 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Aplicar correcção sem alterar funcionalidades existentes.
 - [x] Validar produção, build, rotas e responsividade.
 - [x] Guardar checkpoint da correcção concluída.
+- [x] Alterar exclusivamente o rótulo do botão “Histórico da Mesa” para “Visualizar Pedido”, preservando função, ícone, design, posicionamento e responsividade
