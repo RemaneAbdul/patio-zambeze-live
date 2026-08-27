@@ -1424,4 +1424,4 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Garantir notas, itens, totais e conteúdo do recibo sem cortes ou sobreposição.
 - [x] Adicionar regressões para mobile, 58 mm, 80 mm e isolamento do dashboard.
 - [x] Executar testes, TypeScript, build e validação visual.
-- [ ] Guardar checkpoint e sincronizar a versão publicada no Vercel.
+- [x] Guardar checkpoint e sincronizar a versão publicada no Vercel. GitHub e Vercel confirmados no commit `e3a2ebb`; deployment de produção READY.
