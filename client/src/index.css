@@ -317,6 +317,8 @@
   .waiter-selection-meta, .waiter-item-row, .waiter-subtotal, .waiter-total { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
   .waiter-selection-meta { color: #C85A3F; font: 700 12px var(--font-sans); }
   .waiter-selection-meta span { color: rgb(24 58 50 / 52%); font-weight: 500; }
+  .waiter-selection-notes { margin: 10px 0; color: #183a32; font-size: 13px; line-height: 1.45; }
+  .waiter-selection-notes strong { color: #C85A3F; }
   .waiter-item-row { margin-top: 13px; color: rgb(24 58 50 / 75%); font: 13px var(--font-sans); }
   .waiter-item-row small { display: block; margin-top: 3px; color: rgb(24 58 50 / 50%); font-size: 11px; }
   .waiter-item-row strong, .waiter-subtotal strong, .waiter-total strong { color: #183A32; }

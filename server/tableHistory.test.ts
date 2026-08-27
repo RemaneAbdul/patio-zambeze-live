@@ -89,7 +89,7 @@ integration("tableHistory persistence", () => {
         notes: "Sem cebola, por favor",
         items: [{ productName: "Frango Grelhado", quantity: 2, unitPrice: 300 }],
       });
-      const historyA = await getTableHistory(tokenA);
+      const historyA = await getTableHistory(tokenA, integrationTableNumber);
       const historyB = await getTableHistory(tokenB, "02");
       const staffCaller = appRouter.createCaller({
         ...ctx,

@@ -29,6 +29,14 @@ describe("daily summary and viewed confirmation", () => {
   });
 });
 
+describe("special instructions visibility", () => {
+  it("shows the persisted order note to authorized staff without changing the receipt flow", () => {
+    expect(source).toContain('selection.notes && <p className="waiter-selection-notes"><strong>Nota:</strong> {selection.notes}</p>');
+    expect(source).toContain("notes: selection.notes");
+    expect(source).toContain("canUseWaiterPanel(user?.role, user?.waiterCode, user?.waiterActive)");
+  });
+});
+
 describe("selection item removal guard", () => {
   it("disables removal of the final item and keeps the server guard", () => {
     expect(source).toContain("selection.items.length <= 1");

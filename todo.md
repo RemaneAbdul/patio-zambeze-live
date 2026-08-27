@@ -1401,3 +1401,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Criar commit coerente apenas se existirem alterações pendentes.
 - [x] Enviar a branch actual para o GitHub sem force push.
 - [x] Confirmar hash remoto, working tree limpa e novo deployment Vercel. GitHub/Vercel confirmados no commit `094dd52`; o push manual para o remoto interno `origin` foi recusado por autenticação não interactiva e será persistido pelo checkpoint WebDev.
+
+## Instruções especiais visíveis para utilizadores autorizados — anexo 37
+- [x] Auditar a persistência das instruções especiais no Supabase e a associação por pedido/item.
+- [x] Confirmar que cliente, garçom, administrador e utilizadores autorizados recuperam a mesma nota sem misturar pedidos.
+- [x] Corrigir apenas a apresentação autorizada das notas no acompanhamento operacional, preservando recibo e layout existentes.
+- [x] Adicionar regressões para persistência, recarregamento, isolamento entre pedidos/itens e permissões.
+- [x] Executar TypeScript, Vitest, build e validação responsiva.
+- [ ] Guardar checkpoint e sincronizar a publicação após a validação.
