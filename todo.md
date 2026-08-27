@@ -1450,3 +1450,12 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Enviar a branch actual para o GitHub sem force push.
 - [x] Confirmar working tree, hash remoto e deployment Vercel. GitHub e Vercel confirmados no commit `17d59d4`; deployment de produção READY.
 - [x] Entregar relatório final com estado, limitações e próximos passos.
+
+## Persistência segura do Menu Cliente e preservação da mesa — anexo 42
+- [x] Auditar persistência actual de restaurante, mesa, sessão, navegação e carrinho.
+- [x] Validar restauração apenas de sessões activas e mesas pertencentes ao restaurante correcto.
+- [x] Persistir e restaurar carrinho por mesa/sessão/dispositivo sem misturar contextos.
+- [x] Garantir que reabrir o menu não cria sessão, pedido, recibo ou itens duplicados.
+- [x] Adicionar testes para fechar/reabrir, carrinho, pedido existente, sessão encerrada e troca de dispositivo/mesa.
+- [x] Executar testes, TypeScript, build e validação mobile/desktop.
+- [x] Guardar checkpoint e sincronizar a versão publicada no Vercel.

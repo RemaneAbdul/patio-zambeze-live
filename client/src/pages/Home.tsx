@@ -10,6 +10,7 @@ import { parseTableRoute } from "@/lib/tableRoute";
 import { formatHistoryTime } from "@/lib/historyTime";
 import { canExportReceipt, receiptFilenameFor, receiptSelectorFor } from "@/lib/receiptActions";
 import { clientNavigationHash, clientNavigationState, isClientNavigationState, parseClientNavigation, type ClientNavigation } from "@/lib/clientNavigation";
+import { clientContextStorageKey, getPersistedSessionToken, parsePersistedClientContext, serializeClientContext } from "@/lib/clientPersistence";
 import { Accessibility, AlertCircle, ArrowUp, Bell, BellOff, CheckCircle2, ChevronDown, ChevronLeft, Heart, Info, Languages, LoaderCircle, MapPin, Moon, Search, SlidersHorizontal, Sparkles, Sun, X } from "lucide-react";
 import REMAFooter from "@/components/REMAFooter";
 
@@ -33,6 +34,9 @@ export default function Home() {
   const tableRoute = useMemo(() => parseTableRoute(window.location.search), []);
   const tableNumber = tableRoute.tableNumber;
   const tableId = tableRoute.tableId;
+  const restaurantId = "default";
+  const tableContextKey = tableId || tableNumber;
+  const clientContextKey = clientContextStorageKey(restaurantId, tableContextKey);
   const initialClientNavigation = useMemo(() => parseClientNavigation(window.location.hash), []);
   const [clientNavigation, setClientNavigation] = useState<ClientNavigation>(initialClientNavigation);
   const setClientViewInHistory = (next: ClientNavigation, replace = false) => {
@@ -99,13 +103,16 @@ export default function Home() {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("patio-zambeze-dark-mode") === "true");
   const [statusAlertsEnabled, setStatusAlertsEnabled] = useState(() => localStorage.getItem("patio-zambeze-status-alerts") !== "false");
   const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const contextRestoredRef = useRef<string | null>(null);
   useEffect(() => {
-    const storageKey = sessionStorageKey(tableId || tableNumber);
-    const cookieKey = sessionCookieKey(tableId || tableNumber);
+    const storageKey = sessionStorageKey(tableContextKey);
+    const cookieKey = sessionCookieKey(tableContextKey);
     const resolveToken = () => {
       const cookieMatch = document.cookie.split("; ").find((part) => part.startsWith(`${cookieKey}=`));
       const cookieToken = cookieMatch?.slice(cookieKey.length + 1);
-      const existing = cookieToken || localStorage.getItem(storageKey);
+      const persistedRaw = localStorage.getItem(clientContextKey);
+      const persistedToken = getPersistedSessionToken(persistedRaw, { restaurantId, tableKey: tableContextKey });
+      const existing = cookieToken || localStorage.getItem(storageKey) || persistedToken;
       const token = existing || `${crypto.randomUUID()}${crypto.randomUUID()}`;
       localStorage.setItem(storageKey, token);
       document.cookie = `${cookieKey}=${token}; Path=/; Max-Age=31536000; SameSite=Lax`;
@@ -116,7 +123,7 @@ export default function Home() {
     } else {
       resolveToken();
     }
-  }, [tableId, tableNumber]);
+  }, [clientContextKey, restaurantId, tableContextKey, tableId, tableNumber]);
   const copy = lang === "pt" ? { menu: "Menu digital", open: "Aberto hoje · 08:00–22:00", search: "Pesquisar no menu...", choices: "Escolhas da casa", recommended: "Recomendados", share: "Feito para partilhar", house: "O menu da casa", filter: "Filtrar por preço", favorites: "Meus favoritos", order: "Ordenar por", clear: "Limpar filtros", start: "Para começar", items: "itens", details: "Ver detalhes", select: "+ Selecionar", selected: "Selecionado", waiter: "Para fazer o pedido, chame o garçom.", about: "Sobre o restaurante", address: "Endereço", phone: "Telefone", whatsapp: "WhatsApp", social: "Redes sociais", preparation: "Preparação", continue: "Continuar a consultar", selection: "Fazer pedido", draft: "Histórico da mesa", estimated: "TOTAL ESTIMADO", showWaiter: "Confirmar ao Garçom", emptySelection: "A sua seleção está vazia.", notesLabel: "Instruções especiais", notesOptional: "(opcional)", notesPlaceholder: "Ex.: sem cebola, pouco sal…", unit: "por unidade", subtotal: "Subtotal", remove: "Remover" } : { menu: "Digital menu", open: "Open today · 08:00–22:00", search: "Search the menu...", choices: "House choices", recommended: "Recommended", share: "Made to share", house: "The house menu", filter: "Filter by price", favorites: "My favourites", order: "Sort by", clear: "Clear filters", start: "To start", items: "items", details: "View details", select: "+ Select", selected: "Selected", waiter: "To order, please call the waiter.", about: "About the restaurant", address: "Address", phone: "Phone", whatsapp: "WhatsApp", social: "Social media", preparation: "Preparation", continue: "Continue browsing", selection: "Place order", draft: "Table history", estimated: "ESTIMATED TOTAL", showWaiter: "Confirm to Waiter", emptySelection: "Your selection is empty.", notesLabel: "Special instructions", notesOptional: "(optional)", notesPlaceholder: "E.g. no onion, less salt…", unit: "per unit", subtotal: "Subtotal", remove: "Remove" };
   const [showSelection, setShowSelection] = useState(false);
   const [selectionNotice, setSelectionNotice] = useState(false);
@@ -127,13 +134,25 @@ export default function Home() {
   useEffect(() => { try { setStatusNotifications(JSON.parse(localStorage.getItem(notificationStorageKey) || "[]")); } catch { setStatusNotifications([]); } }, [notificationStorageKey]);
   const historyQuery = trpc.tableHistory.list.useQuery(historyInput, { enabled: Boolean(sessionToken), refetchInterval: sessionToken ? 5000 : false });
   const sessionInfoQuery = trpc.tableHistory.sessionInfo.useQuery(historyInput, { enabled: Boolean(sessionToken), refetchInterval: sessionToken ? 5000 : false });
-  const historyMutation = trpc.tableHistory.addSelection.useMutation({ onSuccess: (result) => { if (result.sessionToken && result.sessionToken !== sessionToken) {       persistSessionToken(tableId || tableNumber, result.sessionToken); setSessionToken(result.sessionToken); } void historyQuery.refetch(); } });
+  const historyMutation = trpc.tableHistory.addSelection.useMutation({ onSuccess: (result) => { if (result.sessionToken && result.sessionToken !== sessionToken) {       persistSessionToken(tableContextKey, result.sessionToken); setSessionToken(result.sessionToken); } void historyQuery.refetch(); } });
   useEffect(() => {
-    if (historyQuery.error?.message !== "SESSION_CLOSED" || !sessionToken) return;
+    const closed = historyQuery.error?.message === "SESSION_CLOSED" || sessionInfoQuery.error?.message === "SESSION_CLOSED";
+    if (!closed || !sessionToken) return;
+    localStorage.removeItem(clientContextKey);
+    localStorage.removeItem(`patio-zambeze-cart:v1:${restaurantId}:${encodeURIComponent(tableContextKey)}`);
+    contextRestoredRef.current = null;
     const nextToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
-    persistSessionToken(tableId || tableNumber, nextToken);
+    persistSessionToken(tableContextKey, nextToken);
     setSessionToken(nextToken);
-  }, [historyQuery.error, sessionToken, tableNumber]);
+  }, [clientContextKey, historyQuery.error, restaurantId, sessionInfoQuery.error, sessionToken, tableContextKey]);
+  useEffect(() => {
+    if (sessionInfoQuery.error?.message !== "TABLE_NOT_FOUND" || !tableId) return;
+    localStorage.removeItem(clientContextKey);
+    localStorage.removeItem(`patio-zambeze-cart:v1:${restaurantId}:${encodeURIComponent(tableContextKey)}`);
+    setSessionToken(null);
+    setSelection({});
+    setOrderNotes("");
+  }, [clientContextKey, restaurantId, sessionInfoQuery.error, tableContextKey, tableId]);
   const invalidQrCode = Boolean(tableId && sessionInfoQuery.error?.message === "TABLE_NOT_FOUND");
   const identifiedTableNumber = sessionInfoQuery.data?.session.tableNumber || tableNumber;
   const qrFeedback = tableId ? sessionInfoQuery.isLoading ? { kind: "loading" as const, text: lang === "pt" ? "A reconhecer o QR Code…" : "Recognizing QR Code…" } : invalidQrCode ? { kind: "error" as const, text: lang === "pt" ? "QR Code inválido ou mesa não encontrada." : "Invalid QR Code or table not found." } : sessionInfoQuery.data ? { kind: "success" as const, text: lang === "pt" ? `QR Code reconhecido · Mesa ${identifiedTableNumber}` : `QR Code recognized · Table ${identifiedTableNumber}` } : null : null;
@@ -177,6 +196,27 @@ export default function Home() {
   const [pendingConfirmation, setPendingConfirmation] = useState(false);
   const [orderNotes, setOrderNotes] = useState("");
   const [showHistory, setShowHistory] = useState(false);
+  const validProductNames = useMemo(() => new Set(catalogProducts.map((product) => product.name)), [catalogProducts]);
+  useEffect(() => {
+    if (!sessionToken || !activeMenuQuery.isSuccess || !sessionInfoQuery.data || sessionInfoQuery.data.session.status !== "open" || contextRestoredRef.current === clientContextKey) return;
+    const persisted = parsePersistedClientContext(localStorage.getItem(clientContextKey), { restaurantId, tableKey: tableContextKey, validProductNames });
+    if (persisted?.sessionToken === sessionToken) {
+      setSelection(persisted.selection);
+      setOrderNotes(persisted.orderNotes);
+      if (!window.location.hash && persisted.navigation.view !== "menu") {
+        const restoredUrl = `${window.location.pathname}${window.location.search}${clientNavigationHash(persisted.navigation)}`;
+        window.history.replaceState(clientNavigationState(persisted.navigation, 0), "", restoredUrl);
+        setClientNavigation(persisted.navigation);
+      }
+    }
+    contextRestoredRef.current = clientContextKey;
+  }, [activeMenuQuery.isSuccess, clientContextKey, restaurantId, sessionInfoQuery.data, sessionToken, tableContextKey, validProductNames]);
+  useEffect(() => {
+    if (!sessionToken || contextRestoredRef.current !== clientContextKey || !activeMenuQuery.isSuccess) return;
+    try {
+      localStorage.setItem(clientContextKey, serializeClientContext({ restaurantId, tableKey: tableContextKey, sessionToken, selection, orderNotes: orderNotes.slice(0, 1000), navigation: clientNavigation, savedAt: Date.now() }));
+    } catch { /* O armazenamento local pode estar bloqueado pelo navegador. */ }
+  }, [activeMenuQuery.isSuccess, clientContextKey, clientNavigation, orderNotes, restaurantId, selection, sessionToken, tableContextKey]);
   useEffect(() => {
     const product = clientNavigation.view === "product" && clientNavigation.productKey
       ? catalogProducts.find((item) => item.name === clientNavigation.productKey || String(item.id) === clientNavigation.productKey) ?? null

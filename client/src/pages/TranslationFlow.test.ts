@@ -65,6 +65,15 @@ describe("Portuguese-first catalog translation", () => {
     expect(homeSource).toContain("sessionToken");
   });
 
+  it("restores only a valid table context and clears invalid sessions", () => {
+    expect(homeSource).toContain("clientContextStorageKey(restaurantId, tableContextKey)");
+    expect(homeSource).toContain("parsePersistedClientContext(localStorage.getItem(clientContextKey)");
+    expect(homeSource).toContain('sessionInfoQuery.data.session.status !== "open"');
+    expect(homeSource).toContain('sessionInfoQuery.error?.message === "TABLE_NOT_FOUND"');
+    expect(homeSource).toContain('localStorage.removeItem(clientContextKey)');
+    expect(homeSource).toContain("sessionToken");
+  });
+
   it("provides real catalog suggestions and highlights matching search text", () => {
     expect(homeSource).toContain("searchSuggestions");
     expect(homeSource).toContain('role="combobox"');
