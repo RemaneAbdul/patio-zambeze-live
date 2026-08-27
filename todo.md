@@ -1408,4 +1408,4 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Corrigir apenas a apresentação autorizada das notas no acompanhamento operacional, preservando recibo e layout existentes.
 - [x] Adicionar regressões para persistência, recarregamento, isolamento entre pedidos/itens e permissões.
 - [x] Executar TypeScript, Vitest, build e validação responsiva.
-- [ ] Guardar checkpoint e sincronizar a publicação após a validação.
+- [x] Guardar checkpoint e sincronizar a publicação após a validação.
