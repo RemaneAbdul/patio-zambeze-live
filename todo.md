@@ -1425,3 +1425,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar regressões para mobile, 58 mm, 80 mm e isolamento do dashboard.
 - [x] Executar testes, TypeScript, build e validação visual.
 - [x] Guardar checkpoint e sincronizar a versão publicada no Vercel. GitHub e Vercel confirmados no commit `e3a2ebb`; deployment de produção READY.
+
+## Auditoria final GitHub e Vercel — anexo 39
+- [x] Verificar branch, remotos, estado local e commit publicado.
+- [x] Rever diff e confirmar ausência de ficheiros sensíveis.
+- [x] Confirmar testes, TypeScript e build da versão actual.
+- [x] Confirmar push GitHub e deployment Vercel READY no mesmo commit.
+- [x] Guardar checkpoint final e entregar o relatório de sincronização.
