@@ -1393,3 +1393,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Validar produção, build, rotas e responsividade.
 - [x] Guardar checkpoint da correcção concluída.
 - [x] Alterar exclusivamente o rótulo do botão “Histórico da Mesa” para “Visualizar Pedido”, preservando função, ícone, design, posicionamento e responsividade
+
+## Sincronização GitHub e Vercel — anexo 36
+- [x] Auditar branch, remotos, working tree e alterações actuais.
+- [x] Rever diff e staged files, excluindo segredos, credenciais e temporários.
+- [x] Executar testes completos e build de produção.
+- [ ] Criar commit coerente apenas se existirem alterações pendentes.
+- [ ] Enviar a branch actual para o GitHub sem force push.
+- [ ] Confirmar hash remoto, working tree limpa e novo deployment Vercel.
