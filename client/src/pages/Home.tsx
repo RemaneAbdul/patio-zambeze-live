@@ -134,6 +134,12 @@ export default function Home() {
   useEffect(() => { try { setStatusNotifications(JSON.parse(localStorage.getItem(notificationStorageKey) || "[]")); } catch { setStatusNotifications([]); } }, [notificationStorageKey]);
   const historyQuery = trpc.tableHistory.list.useQuery(historyInput, { enabled: Boolean(sessionToken), refetchInterval: sessionToken ? 5000 : false });
   const sessionInfoQuery = trpc.tableHistory.sessionInfo.useQuery(historyInput, { enabled: Boolean(sessionToken), refetchInterval: sessionToken ? 5000 : false });
+  useEffect(() => {
+    const effectiveToken = sessionInfoQuery.data?.session.sessionToken;
+    if (!effectiveToken || effectiveToken === sessionToken) return;
+    persistSessionToken(tableContextKey, effectiveToken);
+    setSessionToken(effectiveToken);
+  }, [sessionInfoQuery.data?.session.sessionToken, sessionToken, tableContextKey]);
   const historyMutation = trpc.tableHistory.addSelection.useMutation({ onSuccess: (result) => { if (result.sessionToken && result.sessionToken !== sessionToken) {       persistSessionToken(tableContextKey, result.sessionToken); setSessionToken(result.sessionToken); } void historyQuery.refetch(); } });
   useEffect(() => {
     const closed = historyQuery.error?.message === "SESSION_CLOSED" || sessionInfoQuery.error?.message === "SESSION_CLOSED";

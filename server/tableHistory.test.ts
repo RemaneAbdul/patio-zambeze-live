@@ -67,7 +67,7 @@ describe("tableHistory validation", () => {
 
 const integration = process.env.SUPABASE_DATABASE_URL ? describe : describe.skip;
 integration("tableHistory persistence", () => {
-  it("persists a selection, isolates sessions and exposes a read-only history view", async () => {
+  it("persists a selection, reuses the active table session and exposes a read-only history view", async () => {
     const tokenA = `vitest-${crypto.randomUUID()}${crypto.randomUUID()}`;
     const tokenB = `vitest-${crypto.randomUUID()}${crypto.randomUUID()}`;
     const integrationTableNumber = `T-${crypto.randomUUID().slice(0, 8)}`;
@@ -142,12 +142,12 @@ integration("tableHistory persistence", () => {
       const closedHistory = await getTableHistoryForStaff(tokenA);
       expect(closedHistory?.session.status).toBe("closed");
       expect(closedHistory?.selections).toHaveLength(2);
-      const replacement = await createTableSelection({ sessionToken: tokenA, tableNumber: "04", subtotal: 80, items: [{ productName: "Coca-Cola", quantity: 1, unitPrice: 80 }] });
+      const replacement = await createTableSelection({ sessionToken: tokenA, tableNumber: integrationTableNumber, subtotal: 80, items: [{ productName: "Coca-Cola", quantity: 1, unitPrice: 80 }] });
       replacementToken = replacement.sessionToken;
       expect(replacementToken).not.toBe(tokenA);
       expect(replacement.selectionNumber).toBe(1);
       const newHistory = await getTableHistoryForStaff(replacementToken);
-      expect(newHistory?.session.tableNumber).toBe("04");
+      expect(newHistory?.session.tableNumber).toBe(integrationTableNumber);
       expect(newHistory?.selections).toHaveLength(1);
       expect(newHistory?.selections[0]?.items[0]?.productName).toBe("Coca-Cola");
       expect((await getTableHistoryForStaff(tokenA))?.selections).toHaveLength(2);
@@ -161,6 +161,43 @@ integration("tableHistory persistence", () => {
         for (const selection of selections) await db.delete(tableSelectionItems).where(eq(tableSelectionItems.selectionId, selection.id));
         await db.delete(tableSelections).where(eq(tableSelections.sessionId, sessionId));
         await db.delete(tableSessions).where(eq(tableSessions.id, sessionId));
+      }
+    }
+  }, 30_000);
+
+  it("recovers the active table session across devices and starts clean after explicit close", async () => {
+    const tokenA = `vitest-device-a-${crypto.randomUUID()}${crypto.randomUUID()}`;
+    const tokenB = `vitest-device-b-${crypto.randomUUID()}${crypto.randomUUID()}`;
+    const tableNumber = `T-${crypto.randomUUID().slice(0, 8)}`;
+    const db = await getDb();
+    if (!db) throw new Error("SUPABASE_DATABASE_URL is required for this integration test");
+    try {
+      const first = await ensureTableSession(tokenA, tableNumber);
+      const sameActiveSession = await ensureTableSession(tokenB, tableNumber);
+      expect(sameActiveSession.id).toBe(first.id);
+      expect(sameActiveSession.sessionToken).toBe(tokenA);
+      await createTableSelection({ sessionToken: tokenA, tableNumber, subtotal: 400, items: [{ productName: "Frango", quantity: 1, unitPrice: 300 }, { productName: "Sumo", quantity: 1, unitPrice: 100 }] });
+      const recovered = await getTableHistory(tokenB, tableNumber);
+      expect(recovered).toHaveLength(1);
+      expect(recovered[0]?.subtotal).toBe(400);
+      expect(recovered[0]?.items).toHaveLength(2);
+      await expect(closeTableSessionByStaff(tokenA, 0, true)).resolves.toMatchObject({ success: true });
+      const nextSession = await ensureTableSession(tokenB, tableNumber);
+      expect(nextSession.id).not.toBe(first.id);
+      expect(nextSession.sessionToken).not.toBe(tokenA);
+      expect(await getTableHistory(tokenB, tableNumber)).toHaveLength(0);
+      expect(await getTableHistoryForStaff(tokenA, undefined, true)).toMatchObject({ session: { status: "closed" }, selections: expect.any(Array) });
+    } finally {
+      const sessionRows = await Promise.all([
+        db.select({ id: tableSessions.id }).from(tableSessions).where(eq(tableSessions.sessionToken, tokenA)).limit(1),
+        db.select({ id: tableSessions.id }).from(tableSessions).where(eq(tableSessions.sessionToken, tokenB)).limit(1),
+      ]);
+      const sessions = sessionRows.flat();
+      for (const session of sessions) {
+        const selections = await db.select({ id: tableSelections.id }).from(tableSelections).where(eq(tableSelections.sessionId, session.id));
+        for (const selection of selections) await db.delete(tableSelectionItems).where(eq(tableSelectionItems.selectionId, selection.id));
+        await db.delete(tableSelections).where(eq(tableSelections.sessionId, session.id));
+        await db.delete(tableSessions).where(eq(tableSessions.id, session.id));
       }
     }
   }, 30_000);

@@ -1469,3 +1469,14 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Enviar a branch actual ao GitHub sem force push.
 - [x] Confirmar hash remoto, working tree e estado do deployment Vercel. GitHub e Vercel confirmados no commit `66f42c5`; deployment de produção READY.
 - [x] Guardar checkpoint e entregar relatório final.
+
+## Sessão activa por mesa e recuperação multi-dispositivo — anexo 44
+- [x] Auditar contratos actuais de restaurante, mesa, QR, sessão, selecção, itens, recibos e permissões.
+- [x] Garantir uma única sessão activa por mesa e recuperação pelo QR Code em qualquer dispositivo.
+- [x] Manter pedidos e recibos no backend após perda de conexão, fecho do navegador ou troca de telemóvel.
+- [x] Preservar pedidos/recibos separados dentro da mesma sessão e impedir mistura após “Marcar como visto”.
+- [x] Implementar/validar “Encerrar a Mesa” com confirmação e autorização de Garçom/Admin no backend.
+- [x] Preservar histórico e criar nova sessão limpa depois do encerramento explícito.
+- [x] Adicionar testes de concorrência, isolamento, encerramento, recuperação e não duplicação.
+- [x] Executar TypeScript, Vitest, build e validação mobile/desktop.
+- [x] Guardar checkpoint e sincronizar a publicação no GitHub/Vercel.

@@ -445,12 +445,30 @@ export async function ensureTableSession(sessionToken: string, tableNumber = "01
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   await cleanupAbandonedTableSessions(db);
-  const existing = await db.select().from(tableSessions).where(eq(tableSessions.sessionToken, sessionToken)).limit(1);
-  if (existing[0]?.status === "closed") throw new Error("SESSION_CLOSED");
-  await db.insert(tableSessions).values({ sessionToken, tableNumber }).onConflictDoUpdate({ target: tableSessions.sessionToken, set: { lastActivityAt: new Date(), status: "open", tableNumber } });
-  const rows = await db.select().from(tableSessions).where(eq(tableSessions.sessionToken, sessionToken)).limit(1);
-  if (!rows[0]) throw new Error("Could not create table session");
-  return rows[0];
+
+  return db.transaction(async (tx) => {
+    // The QR/table is the source of truth. Serialise session resolution per table
+    // so two devices scanning the same QR cannot create competing open sessions.
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`table-session:${tableNumber}`}))`);
+    const now = new Date();
+    const active = await tx.select().from(tableSessions)
+      .where(and(eq(tableSessions.tableNumber, tableNumber), eq(tableSessions.status, "open")))
+      .orderBy(desc(tableSessions.lastActivityAt), desc(tableSessions.id))
+      .limit(1);
+    if (active[0]) {
+      await tx.update(tableSessions).set({ lastActivityAt: now, updatedAt: now }).where(eq(tableSessions.id, active[0].id));
+      return { ...active[0], lastActivityAt: now, updatedAt: now };
+    }
+
+    const existing = await tx.select().from(tableSessions).where(eq(tableSessions.sessionToken, sessionToken)).limit(1);
+    // A closed token must never be reopened. A new client token is used for the
+    // next occupation, while all old selections remain attached to history.
+    const effectiveToken = existing[0] ? `${crypto.randomUUID()}${crypto.randomUUID()}` : sessionToken;
+    await tx.insert(tableSessions).values({ sessionToken: effectiveToken, tableNumber, status: "open", lastActivityAt: now, updatedAt: now });
+    const rows = await tx.select().from(tableSessions).where(eq(tableSessions.sessionToken, effectiveToken)).limit(1);
+    if (!rows[0]) throw new Error("Could not create table session");
+    return rows[0];
+  });
 }
 
 async function resolveTableReference(db: Awaited<ReturnType<typeof getDb>>, tableReference: string, requireQr = false) {
@@ -771,10 +789,12 @@ export async function createTableSelection(input: {
   let session;
   try {
     session = await ensureTableSession(effectiveToken, table.tableNumber);
+    effectiveToken = session.sessionToken;
   } catch (error) {
     if (error instanceof Error && error.message === "SESSION_CLOSED") {
       effectiveToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
       session = await ensureTableSession(effectiveToken, table.tableNumber);
+      effectiveToken = session.sessionToken;
     } else {
       throw error;
     }

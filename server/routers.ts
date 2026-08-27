@@ -135,7 +135,7 @@ export const appRouter = router({
           unitPrice: z.number().nonnegative(),
         }),
       ).min(1),
-    })).mutation(({ input, ctx }) => auditMutation(ctx, "ORDER_CREATED", "table_selection", undefined, () => createTableSelection(input))),
+    })).mutation(({ input, ctx }) => auditMutation(ctx, "ORDER_CREATED", "table_selection", undefined, () => createTableSelection({ ...input, mergeOpenOrder: false }))),
   }),
 });
 
