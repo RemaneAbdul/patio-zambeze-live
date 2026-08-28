@@ -2,6 +2,7 @@
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { trpc } from "@/lib/trpc";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -20,6 +21,18 @@ const PrintsPanel = lazy(() =>
 const SettingsPanel = lazy(() =>
   import("./pages/InternalSettingsPanel").then(({ SettingsPanel: panel }) => ({ default: panel })),
 );
+
+function TranslationWarmup() {
+  trpc.menu.translations.useQuery(undefined, {
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
+    retry: false,
+  });
+  return null;
+}
 
 function PanelLoading() {
   return (
@@ -66,6 +79,7 @@ export default function App() {
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
+          <TranslationWarmup />
           <Suspense fallback={<PanelLoading />}>
             <Router />
           </Suspense>
