@@ -10,6 +10,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import WaiterLogin from "./pages/WaiterLogin";
 import PasswordReset from "./pages/PasswordReset";
+import "./menu-fixes.css";
 
 const WaiterPanel = lazy(() => import("./pages/WaiterPanel"));
 const QrCodesPanel = lazy(() => import("./pages/QrCodesPanel"));
@@ -48,7 +49,6 @@ function PanelLoading() {
 }
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path="/menu" component={Home} />
