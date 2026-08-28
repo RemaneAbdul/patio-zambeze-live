@@ -28,7 +28,7 @@ function checkRateLimit(key: string) {
 export async function generateWaiterCode() {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  for (let attempt = 0; attempt < 20; attempt += 1) {
+  for (let attempt = 0; attempt < 50; attempt += 1) {
     const code = randomInt(100000, 1000000).toString();
     const existing = await db.select({ id: users.id }).from(users).where(eq(users.waiterCode, code)).limit(1);
     if (!existing[0]) return code;
@@ -43,7 +43,7 @@ export async function assignNewWaiterCode(userId: number) {
   if (!waiter || waiter.role !== "garcom") throw new Error("WAITER_NOT_FOUND");
   const waiterCode = await generateWaiterCode();
   const [updated] = await db.update(users).set({ waiterCode, updatedAt: new Date() }).where(and(eq(users.id, userId), eq(users.role, "garcom"))).returning({ id: users.id, waiterCode: users.waiterCode });
-  if (!updated) throw new Error("WAITER_CODE_UPDATE_FAILED");
+  if (!updated?.waiterCode) throw new Error("WAITER_CODE_UPDATE_FAILED");
   return updated;
 }
 
