@@ -1,5 +1,5 @@
 /* Pátio Solar: o QR Code abre diretamente o menu; nenhuma camada de login, pedido ou checkout. */
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { trpc } from "@/lib/trpc";
@@ -32,6 +32,34 @@ function TranslationWarmup() {
     refetchInterval: false,
     retry: false,
   });
+
+  useEffect(() => {
+    const tableKey = new URLSearchParams(window.location.search).get("tableId") || new URLSearchParams(window.location.search).get("mesa") || "default";
+    const storageKey = `patio-zambeze-language:${tableKey}`;
+    const saveLanguageChoice = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) return;
+      const value = target.textContent?.trim().toLowerCase();
+      if (value === "pt" || value === "en") localStorage.setItem(storageKey, value);
+    };
+    document.addEventListener("click", saveLanguageChoice, true);
+
+    // Home keeps its current language in React state. Restore the saved choice
+    // after the menu mounts, without changing the menu/session architecture.
+    const restoreTimer = window.setTimeout(() => {
+      const saved = localStorage.getItem(storageKey);
+      if (saved !== "pt" && saved !== "en") return;
+      const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>(".language-switch button"));
+      const target = buttons.find((button) => button.textContent?.trim().toLowerCase() === saved);
+      if (target && !target.classList.contains("language-active")) target.click();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(restoreTimer);
+      document.removeEventListener("click", saveLanguageChoice, true);
+    };
+  }, []);
+
   return null;
 }
 
