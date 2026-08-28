@@ -3,13 +3,17 @@ export type FloatingBarStateInput = {
   pendingUnits: number;
   showHistory: boolean;
   showSelection: boolean;
+  showConfirmation?: boolean;
 };
 
 export function getFloatingBarVisibility(input: FloatingBarStateInput) {
-  const panelOpen = input.showHistory || input.showSelection;
+  const panelOpen = input.showHistory || input.showSelection || Boolean(input.showConfirmation);
+  const hasHistory = input.historyCount > 0;
+  const hasSelection = input.pendingUnits > 0;
+
   return {
-    showHistoryBar: !panelOpen && input.historyCount > 0,
-    showSelectionBar: !panelOpen && input.pendingUnits > 0,
-    historyAboveSelection: !panelOpen && input.historyCount > 0 && input.pendingUnits > 0,
+    showHistoryBar: !panelOpen && hasHistory,
+    showSelectionBar: !panelOpen && hasSelection,
+    historyAboveSelection: !panelOpen && hasHistory && hasSelection,
   };
 }
