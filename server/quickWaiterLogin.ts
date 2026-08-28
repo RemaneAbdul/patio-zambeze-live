@@ -47,6 +47,16 @@ export async function assignNewWaiterCode(userId: number) {
   return updated;
 }
 
+/** Convert existing legacy GAR-XXXXXX codes to secure random six-digit codes. */
+export async function ensureNumericWaiterCodes() {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const rows = await db.select({ id: users.id, waiterCode: users.waiterCode }).from(users).where(eq(users.role, "garcom"));
+  for (const row of rows) {
+    if (!/^\d{6}$/.test(row.waiterCode ?? "")) await assignNewWaiterCode(row.id);
+  }
+}
+
 export async function quickWaiterLogin(code: string, rateLimitKey: string) {
   if (!checkRateLimit(rateLimitKey)) throw new Error("WAITER_LOGIN_RATE_LIMITED");
   const normalized = normalizeCode(code);
@@ -54,13 +64,8 @@ export async function quickWaiterLogin(code: string, rateLimitKey: string) {
 
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const [row] = await db.select({
-    user: users,
-    garcon: garcons,
-  }).from(users).innerJoin(garcons, eq(garcons.legacyUserId, users.id))
-    .where(and(eq(users.waiterCode, normalized), eq(users.role, "garcom"), eq(users.waiterActive, 1), eq(garcons.status, "ATIVO")))
-    .limit(1);
-
+  const [row] = await db.select({ user: users, garcon: garcons }).from(users).innerJoin(garcons, eq(garcons.legacyUserId, users.id))
+    .where(and(eq(users.waiterCode, normalized), eq(users.role, "garcom"), eq(users.waiterActive, 1), eq(garcons.status, "ATIVO"))).limit(1);
   if (!row) throw new Error("WAITER_CODE_INVALID");
 
   const sessionToken = await sdk.createSessionToken(row.user.openId, { name: row.user.name ?? row.garcon.fullName });
