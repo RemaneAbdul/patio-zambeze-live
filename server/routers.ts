@@ -23,6 +23,34 @@ function mapAccessCodeError(error: unknown): never {
   throw error instanceof Error ? error : new Error(String(error));
 }
 
+function mapWaiterPersistError(error: unknown): never {
+  const message = error instanceof Error ? error.message : String(error);
+  if (message === "WAITER_CODE_ALREADY_IN_USE" || message === "WAITER_CODE_MUST_BE_6_DIGITS" || message === "WAITER_CODE_SAVE_FAILED") {
+    mapAccessCodeError(error);
+  }
+  if (
+    message === "WAITER_EMAIL_ALREADY_EXISTS" ||
+    message === "WAITER_EMAIL_OR_USER_ALREADY_EXISTS" ||
+    /already been registered|already exists|User already registered|duplicate key.*email/i.test(message)
+  ) {
+    throw new Error("Este email já está registado. Use outro email ou apague o garçom existente.");
+  }
+  if (message === "WAITER_USERNAME_ALREADY_EXISTS" || /duplicate key.*username/i.test(message)) {
+    throw new Error("Este nome de utilizador já está em uso. Escolha outro.");
+  }
+  if (
+    message.startsWith("SUPABASE_WAITER_CREATE_FAILED:") ||
+    message.startsWith("SUPABASE_WAITER_UPDATE_FAILED:") ||
+    /supabase|auth\.admin|service.?role|configuration is missing/i.test(message)
+  ) {
+    throw new Error("Falha ao sincronizar com o Supabase. Verifique as configurações e se o email é válido.");
+  }
+  if (message === "WAITER_NOT_FOUND") throw new Error("Garçom não encontrado.");
+  if (message === "Database is not available") throw new Error("Base de dados indisponível. Tente novamente dentro de momentos.");
+  console.error("[staff] waiter persist failed:", message);
+  throw new Error("Não foi possível guardar o garçom. Verifique os dados e o código de acesso.");
+}
+
 async function persistMenuImage(imageUrl?: string) {
   if (!imageUrl || !imageUrl.startsWith("data:")) return imageUrl;
   const match = imageUrl.match(/^data:(image\/(?:jpeg|jpg|png|webp|avif));base64,([A-Za-z0-9+/=]+)$/);
@@ -85,37 +113,36 @@ export const appRouter = router({
       }))
       .mutation(async ({ input, ctx }) => {
         return auditMutation(ctx, "WAITER_CREATED", "garcon", undefined, async () => {
-          // Validate uniqueness before creating any external accounts.
-          let normalizedCode: string;
           try {
-            normalizedCode = await assertAccessCodeAvailable(input.accessCode);
+            await assertAccessCodeAvailable(input.accessCode);
           } catch (error) {
             mapAccessCodeError(error);
           }
 
-          // Supabase Auth still requires a password internally. Generate a strong
-          // random one server-side — never exposed to admin or waiter UI.
+          // Supabase Auth requires a password internally. Generated server-side only.
           const internalPassword = randomBytes(32).toString("base64url");
 
-          const created = await createGarcon({
-            fullName: input.fullName,
-            username: input.username,
-            email: input.email,
-            phone: input.phone,
-            password: internalPassword,
-            active: input.active,
-            restaurantId: MENU_RESTAURANT_ID,
-          });
+          let created;
+          try {
+            created = await createGarcon({
+              fullName: input.fullName,
+              username: input.username,
+              email: input.email,
+              phone: input.phone,
+              password: internalPassword,
+              active: input.active,
+              restaurantId: MENU_RESTAURANT_ID,
+            });
+          } catch (error) {
+            mapWaiterPersistError(error);
+          }
 
           try {
-            const codeResult = await updateWaiterAccessCode({ waiterId: created.id, code: normalizedCode });
+            const codeResult = await updateWaiterAccessCode({ waiterId: created.id, code: input.accessCode });
             return { ...created, waiterCode: codeResult.waiterCode };
           } catch (error) {
-            // Best-effort cleanup if code assignment fails after profile create.
-            try {
-              await deleteGarcon(created.id);
-            } catch {}
-            mapAccessCodeError(error);
+            try { await deleteGarcon(created.id); } catch {}
+            mapWaiterPersistError(error);
           }
         }, result => ({ waiter_code: (result as { waiterCode?: string }).waiterCode }));
       }),
@@ -136,16 +163,26 @@ export const appRouter = router({
       }))
       .mutation(async ({ input, ctx }) => {
         return auditMutation(ctx, "WAITER_UPDATED", "garcon", input.id, async () => {
-          const { accessCode, ...rest } = input;
-          const updated = await updateGarcon(rest);
-          let savedCode: string;
+          let updated;
           try {
-            const codeResult = await updateWaiterAccessCode({ waiterId: input.id, code: accessCode });
-            savedCode = codeResult.waiterCode;
+            updated = await updateGarcon({
+              id: input.id,
+              fullName: input.fullName,
+              username: input.username,
+              email: input.email,
+              phone: input.phone,
+              password: input.password,
+              active: input.active,
+            });
           } catch (error) {
-            mapAccessCodeError(error);
+            mapWaiterPersistError(error);
           }
-          return { ...updated, waiterCode: savedCode };
+          try {
+            const codeResult = await updateWaiterAccessCode({ waiterId: input.id, code: input.accessCode });
+            return { ...updated, waiterCode: codeResult.waiterCode };
+          } catch (error) {
+            mapWaiterPersistError(error);
+          }
         }, result => ({ waiter_code: (result as { waiterCode?: string }).waiterCode }));
       }),
     setActive: adminProcedure.input(z.object({ id: z.string().uuid(), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, input.active ? "WAITER_ACTIVATED" : "WAITER_DEACTIVATED", "garcon", input.id, async () => { const current = (await listGarcons()).find(({ garcon }) => garcon.id === input.id); if (!current) throw new Error("WAITER_NOT_FOUND"); return updateGarcon({ id: input.id, fullName: current.garcon.fullName, username: current.garcon.username, email: current.garcon.email, phone: current.garcon.phone ?? undefined, active: input.active }); })),
