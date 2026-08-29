@@ -44,10 +44,11 @@ export async function updateWaiterAccessCode(input: { waiterId: string; code: st
 
   const normalized = await assertAccessCodeAvailable(input.code, waiter.legacyUserId);
 
+  // Match only by user id so the code is always persisted even if role drifted.
   const [updated] = await db
     .update(users)
     .set({ waiterCode: normalized, role: "garcom", updatedAt: new Date() })
-    .where(and(eq(users.id, waiter.legacyUserId), eq(users.role, "garcom")))
+    .where(eq(users.id, waiter.legacyUserId))
     .returning({ id: users.id, waiterCode: users.waiterCode });
 
   if (!updated || updated.waiterCode !== normalized) throw new Error("WAITER_CODE_SAVE_FAILED");
