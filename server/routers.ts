@@ -60,7 +60,6 @@ export const appRouter = router({
         if (message === "WAITER_ACCOUNT_DISABLED") {
           throw new Error("Esta conta está desativada. Contacte o administrador.");
         }
-        // Never expose procedure names or internal details to the client.
         throw new Error("Código de acesso incorreto.");
       }
     }),
@@ -131,7 +130,7 @@ export const appRouter = router({
     viewedReceipt: staffProcedure.input(z.object({ selectionId: z.number().int().positive() })).query(({ input, ctx }) => getViewedReceiptForStaff(input.selectionId, ctx.user.id, ctx.user.role === "admin")),
     dailySummary: adminProcedure.input(z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) })).query(({ input }) => getDailyStaffSummary(input.date, MENU_RESTAURANT_ID)),
     generateQrCode: adminProcedure.input(z.object({ tableNumber: z.string().min(1).max(64) })).mutation(({ input, ctx }) => auditMutation(ctx, "QR_CODE_CREATED", "table_qr_code", input.tableNumber, () => upsertTableQrCode(input.tableNumber))),
-    assumeTable: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) }).mutation(({ input, ctx }) => auditMutation(ctx, "TABLE_ASSIGNED", "table_session", input.sessionToken, () => assumeTableSession(input.sessionToken, ctx.user.id), result => ({ table_id: input.sessionToken, previous_waiter_id: result?.previousAttendingWaiterId ?? null, new_waiter_id: result?.newAttendingWaiterId ?? ctx.user.id }))),
+    assumeTable: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "TABLE_ASSIGNED", "table_session", input.sessionToken, () => assumeTableSession(input.sessionToken, ctx.user.id), result => ({ table_id: input.sessionToken, previous_waiter_id: result?.previousAttendingWaiterId ?? null, new_waiter_id: result?.newAttendingWaiterId ?? ctx.user.id }))),
     markViewed: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "MARK_AS_SEEN", "table_session", input.sessionToken, () => markTableViewedByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin"), result => ({ receipt_ids: result.selectionIds, viewed_at: result.viewedAt, waiter_id: result.waiterId }))),
     releaseTable: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "TABLE_RELEASED", "table_session", input.sessionToken, () => releaseTableSessionByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin"), result => ({ table_id: input.sessionToken, previous_waiter_id: result.previousWaiterId, new_waiter_id: result.newWaiterId }))),
     closeSession: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "RECEIPT_CLOSED", "table_session", input.sessionToken, () => closeTableSessionByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin"))),
