@@ -79,25 +79,27 @@ export const appRouter = router({
         email: z.string().email().max(320),
         phone: z.string().max(32).optional(),
         password: z.string().min(6).max(128).optional(),
-        accessCode: z.string().regex(/^\d{6}$/).optional(),
+        // Required on edit from the admin panel: the credential used by quick login.
+        accessCode: z.string().regex(/^\d{6}$/, "O código deve conter 6 dígitos."),
         active: z.boolean(),
       }))
       .mutation(async ({ input, ctx }) => {
         return auditMutation(ctx, "WAITER_UPDATED", "garcon", input.id, async () => {
           const { accessCode, ...rest } = input;
           const updated = await updateGarcon(rest);
-          if (accessCode) {
-            try {
-              await updateWaiterAccessCode({ waiterId: input.id, code: accessCode });
-            } catch (error) {
-              const message = error instanceof Error ? error.message : "";
-              if (message === "WAITER_CODE_ALREADY_IN_USE") throw new Error("Este código já está em uso. Escolha outro.");
-              if (message === "WAITER_CODE_MUST_BE_6_DIGITS") throw new Error("O código deve conter 6 dígitos.");
-              throw error;
-            }
+          let savedCode: string;
+          try {
+            const codeResult = await updateWaiterAccessCode({ waiterId: input.id, code: accessCode });
+            savedCode = codeResult.waiterCode;
+          } catch (error) {
+            const message = error instanceof Error ? error.message : "";
+            if (message === "WAITER_CODE_ALREADY_IN_USE") throw new Error("Este código já está em uso. Escolha outro.");
+            if (message === "WAITER_CODE_MUST_BE_6_DIGITS") throw new Error("O código deve conter 6 dígitos.");
+            if (message === "WAITER_CODE_SAVE_FAILED") throw new Error("Não foi possível guardar o código de acesso. Tente novamente.");
+            throw error;
           }
-          return updated;
-        });
+          return { ...updated, waiterCode: savedCode };
+        }, result => ({ waiter_code: (result as { waiterCode?: string }).waiterCode }));
       }),
     setActive: adminProcedure.input(z.object({ id: z.string().uuid(), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, input.active ? "WAITER_ACTIVATED" : "WAITER_DEACTIVATED", "garcon", input.id, async () => { const current = (await listGarcons()).find(({ garcon }) => garcon.id === input.id); if (!current) throw new Error("WAITER_NOT_FOUND"); return updateGarcon({ id: input.id, fullName: current.garcon.fullName, username: current.garcon.username, email: current.garcon.email, phone: current.garcon.phone ?? undefined, active: input.active }); })),
     delete: adminProcedure.input(z.object({ id: z.string().uuid() })).mutation(({ input, ctx }) => auditMutation(ctx, "WAITER_DELETED", "garcon", input.id, () => deleteGarcon(input.id))),
