@@ -64,11 +64,30 @@ export async function quickWaiterLogin(code: string, rateLimitKey: string) {
 
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const [row] = await db.select({ user: users, garcon: garcons }).from(users).innerJoin(garcons, eq(garcons.legacyUserId, users.id))
-    .where(and(eq(users.waiterCode, normalized), eq(users.role, "garcom"), eq(users.waiterActive, 1), eq(garcons.status, "ATIVO"))).limit(1);
-  if (!row) throw new Error("WAITER_CODE_INVALID");
 
-  const sessionToken = await sdk.createSessionToken(row.user.openId, { name: row.user.name ?? row.garcon.fullName });
+  // Look up by code first (without active filter) to distinguish invalid vs deactivated.
+  const [anyMatch] = await db
+    .select({ user: users, garcon: garcons })
+    .from(users)
+    .innerJoin(garcons, eq(garcons.legacyUserId, users.id))
+    .where(and(eq(users.waiterCode, normalized), eq(users.role, "garcom")))
+    .limit(1);
+
+  if (!anyMatch) throw new Error("WAITER_CODE_INVALID");
+
+  const isActive = anyMatch.user.waiterActive === 1 && anyMatch.garcon.status === "ATIVO";
+  if (!isActive) throw new Error("WAITER_ACCOUNT_DISABLED");
+
+  const sessionToken = await sdk.createSessionToken(anyMatch.user.openId, {
+    name: anyMatch.user.name ?? anyMatch.garcon.fullName,
+  });
   attempts.delete(rateLimitKey);
-  return { sessionToken, waiter: { id: row.user.id, name: row.user.name ?? row.garcon.fullName, role: "garcom" as const } };
+  return {
+    sessionToken,
+    waiter: {
+      id: anyMatch.user.id,
+      name: anyMatch.user.name ?? anyMatch.garcon.fullName,
+      role: "garcom" as const,
+    },
+  };
 }
