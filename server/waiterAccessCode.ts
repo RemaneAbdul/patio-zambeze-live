@@ -8,6 +8,7 @@ export function normalizeAccessCode(code: string) {
   return code.replace(/\D/g, "").trim();
 }
 
+/** Throws WAITER_CODE_MUST_BE_6_DIGITS or WAITER_CODE_ALREADY_IN_USE. Returns normalized code. */
 export async function assertAccessCodeAvailable(code: string, excludeLegacyUserId?: number) {
   const normalized = normalizeAccessCode(code);
   if (!CODE_PATTERN.test(normalized)) throw new Error("WAITER_CODE_MUST_BE_6_DIGITS");
@@ -15,9 +16,10 @@ export async function assertAccessCodeAvailable(code: string, excludeLegacyUserI
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
 
-  const conditions = excludeLegacyUserId != null
-    ? and(eq(users.waiterCode, normalized), ne(users.id, excludeLegacyUserId))
-    : eq(users.waiterCode, normalized);
+  const conditions =
+    excludeLegacyUserId != null
+      ? and(eq(users.waiterCode, normalized), ne(users.id, excludeLegacyUserId))
+      : eq(users.waiterCode, normalized);
 
   const [existing] = await db.select({ id: users.id }).from(users).where(conditions).limit(1);
   if (existing) throw new Error("WAITER_CODE_ALREADY_IN_USE");
@@ -26,20 +28,9 @@ export async function assertAccessCodeAvailable(code: string, excludeLegacyUserI
 
 /**
  * Changes the credential used by quick waiter login.
- * The code is stored on the linked users row (the row queried by quickWaiterLogin),
- * not merely in UI state. A read-back verification prevents reporting success when
- * the database value did not actually change.
+ * Stored on users.waiterCode (the field queried by quickWaiterLogin).
  */
 export async function updateWaiterAccessCode(input: { waiterId: string; code: string }) {
-  const code = await assertAccessCodeAvailable(
-    input.code,
-    // exclude current waiter after lookup
-    undefined,
-  ).catch(async (err) => {
-    // re-run with exclude after we know legacyUserId
-    throw err;
-  });
-
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
 
