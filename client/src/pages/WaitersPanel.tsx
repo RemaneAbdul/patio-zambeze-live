@@ -8,10 +8,10 @@ import { useMemo, useState } from "react";
 
 const dateTime = (value: string | Date | null | undefined) => value ? new Date(value).toLocaleString("pt-PT", { dateStyle: "short", timeStyle: "short" }) : "—";
 const money = (value: number) => `${value.toFixed(2)} MT`;
-type FormState = { id?: string; fullName: string; username: string; email: string; phone: string; password: string; accessCode: string; originalAccessCode: string; active: boolean };
+type FormState = { id?: string; fullName: string; username: string; email: string; phone: string; accessCode: string; originalAccessCode: string; active: boolean };
 type AdminFormState = { fullName: string; email: string; password: string };
 type AdminEditFormState = { id: number; fullName: string; email: string; password: string };
-const emptyForm: FormState = { fullName: "", username: "", email: "", phone: "", password: "", accessCode: "", originalAccessCode: "", active: true };
+const emptyForm: FormState = { fullName: "", username: "", email: "", phone: "", accessCode: "", originalAccessCode: "", active: true };
 const emptyAdminForm: AdminFormState = { fullName: "", email: "", password: "" };
 
 function digitsOnlyCode(value: string | null | undefined) {
@@ -20,8 +20,9 @@ function digitsOnlyCode(value: string | null | undefined) {
 
 function mapWaiterSaveError(error: unknown): string {
   const message = error instanceof Error ? error.message : typeof error === "object" && error && "message" in error ? String((error as { message: unknown }).message) : "";
-  if (/já está em uso|ALREADY_IN_USE/i.test(message)) return "Este código já está em uso. Escolha outro.";
-  if (/6 dígitos|6 digitos|MUST_BE_6/i.test(message)) return "O código deve conter 6 dígitos.";
+  if (/já está em utilização|já está em uso|ALREADY_IN_USE/i.test(message)) return "Este código de acesso já está em utilização. Escolha outro código.";
+  if (/exatamente 6 dígitos|6 dígitos|6 digitos|MUST_BE_6/i.test(message)) return "O código de acesso deve conter exatamente 6 dígitos.";
+  if (/apenas números|only numbers/i.test(message)) return "O código de acesso deve conter apenas números.";
   if (/SAVE_FAILED|não foi possível guardar o código/i.test(message)) return "Não foi possível guardar o código de acesso. Tente novamente.";
   return "Não foi possível guardar o garçom. Verifique os dados e o código de acesso.";
 }
@@ -79,7 +80,6 @@ export default function WaitersPanel() {
       username: garcon.username,
       email: garcon.email,
       phone: garcon.phone ?? "",
-      password: "",
       accessCode: code,
       originalAccessCode: code,
       active,
@@ -91,27 +91,33 @@ export default function WaitersPanel() {
     if (!form) return;
     setFormError("");
 
-    if (form.id) {
-      const code = digitsOnlyCode(form.accessCode);
-      if (!/^\d{6}$/.test(code)) {
-        setFormError("O código deve conter 6 dígitos.");
-        return;
-      }
+    const code = digitsOnlyCode(form.accessCode);
+    if (code.length === 0) {
+      setFormError("O código de acesso deve conter exatamente 6 dígitos.");
+      return;
+    }
+    if (!/^\d+$/.test(form.accessCode.replace(/\s/g, "")) && form.accessCode.length > 0) {
+      setFormError("O código de acesso deve conter apenas números.");
+      return;
+    }
+    if (!/^\d{6}$/.test(code)) {
+      setFormError("O código de acesso deve conter exatamente 6 dígitos.");
+      return;
+    }
 
+    if (form.id) {
       const codeChanged = code !== form.originalAccessCode;
       if (codeChanged) {
         const confirmed = window.confirm("O código de acesso deste garçom será alterado. O código anterior deixará de funcionar.");
         if (!confirmed) return;
       }
 
-      // Always send accessCode on edit so the backend persists the credential used by quick login.
       updateWaiter.mutate({
         id: form.id,
         fullName: form.fullName,
         username: form.username,
         email: form.email,
         phone: form.phone || undefined,
-        password: form.password || undefined,
         accessCode: code,
         active: form.active,
       });
@@ -121,7 +127,7 @@ export default function WaitersPanel() {
         username: form.username,
         email: form.email,
         phone: form.phone || undefined,
-        password: form.password,
+        accessCode: code,
         active: form.active,
       });
     }
@@ -130,12 +136,30 @@ export default function WaitersPanel() {
   const submitAdminForm = (event: React.FormEvent) => { event.preventDefault(); if (!adminForm) return; setAdminSuccess(false); createAdmin.mutate(adminForm); };
   const submitAdminEditForm = (event: React.FormEvent) => { event.preventDefault(); if (!adminEditForm) return; updateAdmin.mutate({ ...adminEditForm, password: adminEditForm.password.trim() || undefined }); };
 
+  const accessCodeField = form ? (
+    <label className="space-y-1 text-sm">
+      Código de acesso
+      <span className="ml-1 text-xs text-muted-foreground">(6 dígitos)</span>
+      <input
+        required
+        inputMode="numeric"
+        pattern="[0-9]{6}"
+        maxLength={6}
+        autoComplete="one-time-code"
+        value={form.accessCode}
+        onChange={(e) => setForm({ ...form, accessCode: e.target.value.replace(/\D/g, "").slice(0, 6) })}
+        className="w-full rounded-md border border-border bg-background p-2 text-center text-lg font-semibold tracking-[0.35em]"
+        placeholder="000000"
+      />
+    </label>
+  ) : null;
+
   return <DashboardLayout>
     <div className="internal-info-shell space-y-8">
       <header className="waiter-header"><div><p className="eyebrow">Administração · equipa</p><h1 className="waiter-title">Garçons</h1><p className="waiter-subtitle">Cadastre, active, desactive e acompanhe a equipa. O histórico nunca é apagado.</p></div><ShieldCheck className="h-10 w-10 text-[#C85A3F]" aria-hidden="true" /></header>
 
-      <section className="space-y-4" aria-labelledby="add-waiter-title"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 id="add-waiter-title" className="text-xl font-semibold text-foreground">Adicionar Garçom</h2><p className="text-sm text-muted-foreground">Crie uma conta operacional com autenticação segura. Um código rápido de 6 dígitos será gerado automaticamente.</p></div><Button onClick={() => { setFormError(""); setForm(emptyForm); }}><Plus className="mr-1 h-4 w-4" /> Adicionar Garçom</Button></div>
-        {form && <form onSubmit={submitForm} className="rounded-lg border border-border bg-card p-4 text-card-foreground space-y-4" aria-label="Formulário de garçom"><div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1 text-sm">Nome completo<input required value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} className="w-full rounded-md border border-border bg-background p-2" /></label><label className="space-y-1 text-sm">Nome de utilizador<input required pattern="[a-z0-9._-]+" minLength={3} value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} className="w-full rounded-md border border-border bg-background p-2" /></label><label className="space-y-1 text-sm">Email<input required type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full rounded-md border border-border bg-background p-2" /></label><label className="space-y-1 text-sm">Telefone<input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="w-full rounded-md border border-border bg-background p-2" /></label>{!form.id ? <label className="space-y-1 text-sm">Palavra-passe<input required type="password" minLength={6} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className="w-full rounded-md border border-border bg-background p-2" /></label> : <label className="space-y-1 text-sm">Código de acesso<span className="ml-1 text-xs text-muted-foreground">(6 dígitos)</span><input required inputMode="numeric" pattern="[0-9]{6}" maxLength={6} autoComplete="one-time-code" value={form.accessCode} onChange={e => setForm({ ...form, accessCode: e.target.value.replace(/\D/g, "").slice(0, 6) })} className="w-full rounded-md border border-border bg-background p-2 text-center text-lg font-semibold tracking-[0.35em]" placeholder="000000" /></label>}<label className="flex items-center gap-2 self-end text-sm"><input type="checkbox" checked={form.active} onChange={e => setForm({ ...form, active: e.target.checked })} /> Activo</label></div>{form.id && form.accessCode.length > 0 && form.accessCode.length !== 6 && <p className="text-sm text-destructive">O código deve conter 6 dígitos.</p>}<div className="flex flex-wrap gap-2"><Button type="submit" disabled={pending || (Boolean(form.id) && form.accessCode.length !== 6)}>{pending ? "A guardar…" : form.id ? "Guardar alterações" : "Criar Garçom"}</Button><Button type="button" variant="outline" onClick={() => { setForm(null); setFormError(""); }}>Cancelar</Button></div>{(formError || addWaiter.error || updateWaiter.error) && <p className="waiter-alert" role="alert">{formError || mapWaiterSaveError(addWaiter.error || updateWaiter.error)}</p>}</form>}
+      <section className="space-y-4" aria-labelledby="add-waiter-title"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 id="add-waiter-title" className="text-xl font-semibold text-foreground">Adicionar Garçom</h2><p className="text-sm text-muted-foreground">Crie a conta com um código de acesso numérico de 6 dígitos. Não é necessária palavra-passe.</p></div><Button onClick={() => { setFormError(""); setForm(emptyForm); }}><Plus className="mr-1 h-4 w-4" /> Adicionar Garçom</Button></div>
+        {form && <form onSubmit={submitForm} className="rounded-lg border border-border bg-card p-4 text-card-foreground space-y-4" aria-label="Formulário de garçom"><div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1 text-sm">Nome completo<input required value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} className="w-full rounded-md border border-border bg-background p-2" /></label><label className="space-y-1 text-sm">Nome de utilizador<input required pattern="[a-z0-9._-]+" minLength={3} value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} className="w-full rounded-md border border-border bg-background p-2" /></label><label className="space-y-1 text-sm">Email<input required type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full rounded-md border border-border bg-background p-2" /></label><label className="space-y-1 text-sm">Telefone<input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="w-full rounded-md border border-border bg-background p-2" /></label>{accessCodeField}<label className="flex items-center gap-2 self-end text-sm"><input type="checkbox" checked={form.active} onChange={e => setForm({ ...form, active: e.target.checked })} /> Activo</label></div>{form.accessCode.length > 0 && form.accessCode.length !== 6 && <p className="text-sm text-destructive">O código de acesso deve conter exatamente 6 dígitos.</p>}<div className="flex flex-wrap gap-2"><Button type="submit" disabled={pending || form.accessCode.length !== 6}>{pending ? "A guardar…" : form.id ? "Guardar alterações" : "Criar Garçom"}</Button><Button type="button" variant="outline" onClick={() => { setForm(null); setFormError(""); }}>Cancelar</Button></div>{(formError || addWaiter.error || updateWaiter.error) && <p className="waiter-alert" role="alert">{formError || mapWaiterSaveError(addWaiter.error || updateWaiter.error)}</p>}</form>}
       </section>
 
       <section className="space-y-4" aria-labelledby="create-admin-title"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 id="create-admin-title" className="text-xl font-semibold text-foreground">Criar Administrador</h2><p className="text-sm text-muted-foreground">Adicione outro administrador com as mesmas permissões do painel actual.</p></div><Button onClick={() => { setAdminSuccess(false); setAdminActionSuccess(""); setAdminForm(emptyAdminForm); }}> <ShieldCheck className="mr-1 h-4 w-4" /> Criar Administrador</Button></div>{adminForm && <form onSubmit={submitAdminForm} className="rounded-lg border border-border bg-card p-4 text-card-foreground space-y-4" aria-label="Formulário de administrador"><div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1 text-sm">Nome completo<input required value={adminForm.fullName} onChange={e => setAdminForm({ ...adminForm, fullName: e.target.value })} className="w-full rounded-md border border-border bg-background p-2" /></label><label className="space-y-1 text-sm">Email<input required type="email" value={adminForm.email} onChange={e => setAdminForm({ ...adminForm, email: e.target.value })} className="w-full rounded-md border border-border bg-background p-2" /></label><label className="space-y-1 text-sm">Palavra-passe<input required type="password" minLength={6} value={adminForm.password} onChange={e => setAdminForm({ ...adminForm, password: e.target.value })} className="w-full rounded-md border border-border bg-background p-2" /></label><label className="space-y-1 text-sm">Perfil<input readOnly value="Administrador" className="w-full rounded-md border border-border bg-muted p-2 text-muted-foreground" /></label></div><div className="flex flex-wrap gap-2"><Button type="submit" disabled={createAdmin.isPending}>{createAdmin.isPending ? "A criar…" : "Criar Administrador"}</Button><Button type="button" variant="outline" onClick={() => setAdminForm(null)}>Cancelar</Button></div>{createAdmin.error && <p className="waiter-alert" role="alert">{createAdmin.error.message.includes("ADMIN_EMAIL_ALREADY_EXISTS") ? "Este email já está cadastrado." : "Não foi possível criar o administrador. Verifique se os dados são válidos."}</p>}{adminSuccess && <p className="waiter-success" role="status">Administrador criado com sucesso.</p>}</form>}{adminActionSuccess && <p className="waiter-success" role="status">{adminActionSuccess}</p>}{adminEditForm && <form onSubmit={submitAdminEditForm} className="rounded-lg border border-border bg-card p-4 text-card-foreground space-y-4" aria-label="Editar administrador"><div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1 text-sm">Nome completo<input required value={adminEditForm.fullName} onChange={e => setAdminEditForm({ ...adminEditForm, fullName: e.target.value })} className="w-full rounded-md border border-border bg-background p-2" /></label><label className="space-y-1 text-sm">Email<input required type="email" value={adminEditForm.email} onChange={e => setAdminEditForm({ ...adminEditForm, email: e.target.value })} className="w-full rounded-md border border-border bg-background p-2" /></label><label className="space-y-1 text-sm">Nova palavra-passe<span className="ml-1 text-xs text-muted-foreground">(opcional)</span><input type="password" minLength={8} autoComplete="new-password" value={adminEditForm.password} onChange={e => setAdminEditForm({ ...adminEditForm, password: e.target.value })} placeholder="Deixe vazio para manter" className="w-full rounded-md border border-border bg-background p-2" /></label><label className="space-y-1 text-sm">Perfil<input readOnly value="Administrador" className="w-full rounded-md border border-border bg-muted p-2 text-muted-foreground" /></label></div><div className="flex flex-wrap gap-2"><Button type="submit" disabled={updateAdmin.isPending}>{updateAdmin.isPending ? "A guardar…" : "Guardar alterações"}</Button><Button type="button" variant="outline" onClick={() => setAdminEditForm(null)}>Cancelar</Button></div>{updateAdmin.error && <p className="waiter-alert" role="alert">Não foi possível actualizar este administrador. Verifique o email.</p>}</form>}<div className="rounded-lg border border-border bg-card p-4 text-card-foreground"><div className="mb-3 flex items-center justify-between gap-3"><h3 className="font-semibold">Administradores existentes</h3><span className="rounded-full border border-border px-3 py-1 text-xs">{admins.data?.length ?? 0} contas</span></div>{admins.isLoading ? <p className="text-sm text-muted-foreground">A carregar administradores…</p> : admins.error ? <p className="waiter-alert" role="alert">Não foi possível carregar os administradores.</p> : <div className="grid gap-4 lg:grid-cols-2">{(admins.data ?? []).map(admin => { const active = admin.waiterActive === 1; const currentEmail = user?.email?.trim().toLowerCase(); const adminEmail = admin.email?.trim().toLowerCase(); const isSelf = admin.id === user?.id || Boolean(currentEmail && adminEmail && currentEmail === adminEmail); const canManage = admin.openId.startsWith("supabase:"); return <article key={admin.id} className="waiter-table-card space-y-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="eyebrow"><ShieldCheck className="mr-1 inline h-4 w-4" /> Administrador</p><h4 className="truncate text-lg font-semibold text-foreground">{admin.name || "Sem nome"}</h4><p className="truncate text-sm text-muted-foreground">{admin.email || "Sem email"}</p></div><span className={`waiter-status shrink-0 ${active ? "waiter-status-viewed" : "waiter-status-empty"}`}>{active ? <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" /> : <XCircle className="mr-1 inline h-3.5 w-3.5" />}{active ? "ACTIVO" : "INACTIVO"}</span></div><div className="flex flex-wrap gap-2"><Button variant="outline" disabled={!canManage} onClick={() => setAdminEditForm({ id: admin.id, fullName: admin.name ?? "", email: admin.email ?? "", password: "" })}><Edit3 className="mr-2 h-4 w-4" /> Editar</Button><Button variant={active ? "outline" : "default"} disabled={setAdminActive.isPending || isSelf || !canManage} onClick={() => { if (!isSelf && window.confirm(`Tem certeza que deseja ${active ? "desactivar" : "activar"} esta conta de administrador?`)) setAdminActive.mutate({ id: admin.id, active: !active }); }}><Power className="mr-2 h-4 w-4" />{setAdminActive.isPending ? "A actualizar…" : active ? "Desactivar" : "Activar"}</Button><Button variant="ghost" disabled={deleteAdmin.isPending || isSelf || !canManage} className="text-destructive hover:text-destructive" onClick={() => { if (!isSelf && window.confirm(`Tem certeza que deseja apagar permanentemente a conta de ${admin.name || admin.email || "este administrador"}? O histórico será preservado.`)) deleteAdmin.mutate({ id: admin.id }); }}><Trash2 className="mr-2 h-4 w-4" />{deleteAdmin.isPending ? "A apagar…" : "Apagar"}</Button></div>{isSelf && <p className="text-xs text-muted-foreground">A sua própria conta não pode ser desactivada ou apagada.</p>}{!canManage && <p className="text-xs text-muted-foreground">Conta legada sem identidade Supabase gerível.</p>}{(setAdminActive.error || deleteAdmin.error) && <p className="waiter-alert" role="alert">Não foi possível concluir a operação.</p>}</article>; })}</div>}</div></section>
