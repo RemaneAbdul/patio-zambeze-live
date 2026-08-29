@@ -4,16 +4,24 @@ import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, protectedProcedure, publicProcedure, router, staffProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { translateActiveMenu } from "./menuTranslation";
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { storagePut } from "./storage";
 import { getSupabaseUserFromAccessToken } from "./supabaseAuth";
-import { quickWaiterLogin, assignNewWaiterCode, ensureNumericWaiterCodes } from "./quickWaiterLogin";
-import { updateWaiterAccessCode } from "./waiterAccessCode";
+import { quickWaiterLogin, ensureNumericWaiterCodes } from "./quickWaiterLogin";
+import { assertAccessCodeAvailable, updateWaiterAccessCode } from "./waiterAccessCode";
 import { assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, updateMenuCategory, deleteMenuCategory, createMenuProduct, createTableSelection, getStaffTables, recordAuditLog, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, getWaiterServiceHistory, listMenuCategories, listMenuProducts, listWaiterCurrentAssignments, listTableQrCodes, listViewedReceipts, listReceiptWaiterOptions, getViewedReceiptForStaff, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode, listGarcons, createGarcon, createAdminUser, updateAdminUser, setAdminActive, deleteAdminUser, updateGarcon, deleteGarcon, getGarconProfileByLegacyUserId, getUserByOpenId, getAdminById, listAdminUsers, getDailyStaffSummary, createManualTableSelection, MENU_RESTAURANT_ID } from "./db";
 
 const allowedMenuImageUrl = /^(https?:\/\/|\/|data:image\/(jpeg|jpg|png|webp|avif);base64,)/;
 export const menuImageUrlSchema = z.union([z.literal(""), z.string().max(8_000_000).refine((value) => allowedMenuImageUrl.test(value), "Formato de imagem inválido")]).optional();
 export const selectionStatusSchema = z.enum(["PENDING", "PREPARING", "READY", "DELIVERED", "COMPLETED"]);
+
+function mapAccessCodeError(error: unknown): never {
+  const message = error instanceof Error ? error.message : "";
+  if (message === "WAITER_CODE_ALREADY_IN_USE") throw new Error("Este código de acesso já está em utilização. Escolha outro código.");
+  if (message === "WAITER_CODE_MUST_BE_6_DIGITS") throw new Error("O código de acesso deve conter exatamente 6 dígitos.");
+  if (message === "WAITER_CODE_SAVE_FAILED") throw new Error("Não foi possível guardar o código de acesso. Tente novamente.");
+  throw error instanceof Error ? error : new Error(String(error));
+}
 
 async function persistMenuImage(imageUrl?: string) {
   if (!imageUrl || !imageUrl.startsWith("data:")) return imageUrl;
@@ -66,7 +74,51 @@ export const appRouter = router({
     list: adminProcedure.query(async () => { await ensureNumericWaiterCodes(); return listGarcons(); }),
     admins: adminProcedure.query(() => listAdminUsers()),
     candidates: adminProcedure.query(() => []),
-    add: adminProcedure.input(z.object({ fullName: z.string().trim().min(1).max(160), username: z.string().trim().min(3).max(64).regex(/^[a-z0-9._-]+$/), email: z.string().email().max(320), phone: z.string().max(32).optional(), password: z.string().min(6).max(128), active: z.boolean().default(true) })).mutation(async ({ input, ctx }) => auditMutation(ctx, "WAITER_CREATED", "garcon", undefined, async () => { const created = await createGarcon({ ...input, restaurantId: MENU_RESTAURANT_ID }); return { ...created, quickCode: await assignNewWaiterCode(created.legacyUser.id) }; })),
+    add: adminProcedure
+      .input(z.object({
+        fullName: z.string().trim().min(1).max(160),
+        username: z.string().trim().min(3).max(64).regex(/^[a-z0-9._-]+$/),
+        email: z.string().email().max(320),
+        phone: z.string().max(32).optional(),
+        accessCode: z.string().regex(/^\d{6}$/, "O código de acesso deve conter exatamente 6 dígitos."),
+        active: z.boolean().default(true),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        return auditMutation(ctx, "WAITER_CREATED", "garcon", undefined, async () => {
+          // Validate uniqueness before creating any external accounts.
+          let normalizedCode: string;
+          try {
+            normalizedCode = await assertAccessCodeAvailable(input.accessCode);
+          } catch (error) {
+            mapAccessCodeError(error);
+          }
+
+          // Supabase Auth still requires a password internally. Generate a strong
+          // random one server-side — never exposed to admin or waiter UI.
+          const internalPassword = randomBytes(32).toString("base64url");
+
+          const created = await createGarcon({
+            fullName: input.fullName,
+            username: input.username,
+            email: input.email,
+            phone: input.phone,
+            password: internalPassword,
+            active: input.active,
+            restaurantId: MENU_RESTAURANT_ID,
+          });
+
+          try {
+            const codeResult = await updateWaiterAccessCode({ waiterId: created.id, code: normalizedCode });
+            return { ...created, waiterCode: codeResult.waiterCode };
+          } catch (error) {
+            // Best-effort cleanup if code assignment fails after profile create.
+            try {
+              await deleteGarcon(created.id);
+            } catch {}
+            mapAccessCodeError(error);
+          }
+        }, result => ({ waiter_code: (result as { waiterCode?: string }).waiterCode }));
+      }),
     createAdmin: adminProcedure.input(z.object({ fullName: z.string().trim().min(1).max(160), email: z.string().email().max(320), password: z.string().min(6).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "CREATE_ADMIN", "admin", undefined, () => createAdminUser(input), result => ({ affectedUserId: result.id }))),
     updateAdmin: adminProcedure.input(z.object({ id: z.number().int().positive(), fullName: z.string().trim().min(1).max(160), email: z.string().email().max(320), password: z.string().min(8).max(128).optional() })).mutation(({ input, ctx }) => auditMutation(ctx, "UPDATE_ADMIN", "admin", input.id, () => updateAdminUser(input), result => ({ affectedUserId: result.id }))),
     setAdminActive: adminProcedure.input(z.object({ id: z.number().int().positive(), active: z.boolean() })).mutation(async ({ input, ctx }) => { const target = await getAdminById(input.id); const sameIdentity = input.id === ctx.user.id || (!!ctx.user.email && target.admin.email?.toLowerCase() === ctx.user.email.toLowerCase()); if (sameIdentity && !input.active) throw new Error("ADMIN_CANNOT_DEACTIVATE_SELF"); return auditMutation(ctx, input.active ? "ACTIVATE_ADMIN" : "DEACTIVATE_ADMIN", "admin", input.id, () => setAdminActive(input.id, input.active), result => ({ affectedUserId: result.id })); }),
@@ -79,8 +131,7 @@ export const appRouter = router({
         email: z.string().email().max(320),
         phone: z.string().max(32).optional(),
         password: z.string().min(6).max(128).optional(),
-        // Required on edit from the admin panel: the credential used by quick login.
-        accessCode: z.string().regex(/^\d{6}$/, "O código deve conter 6 dígitos."),
+        accessCode: z.string().regex(/^\d{6}$/, "O código de acesso deve conter exatamente 6 dígitos."),
         active: z.boolean(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -92,11 +143,7 @@ export const appRouter = router({
             const codeResult = await updateWaiterAccessCode({ waiterId: input.id, code: accessCode });
             savedCode = codeResult.waiterCode;
           } catch (error) {
-            const message = error instanceof Error ? error.message : "";
-            if (message === "WAITER_CODE_ALREADY_IN_USE") throw new Error("Este código já está em uso. Escolha outro.");
-            if (message === "WAITER_CODE_MUST_BE_6_DIGITS") throw new Error("O código deve conter 6 dígitos.");
-            if (message === "WAITER_CODE_SAVE_FAILED") throw new Error("Não foi possível guardar o código de acesso. Tente novamente.");
-            throw error;
+            mapAccessCodeError(error);
           }
           return { ...updated, waiterCode: savedCode };
         }, result => ({ waiter_code: (result as { waiterCode?: string }).waiterCode }));
