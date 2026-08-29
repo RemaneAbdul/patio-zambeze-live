@@ -20,10 +20,24 @@ function digitsOnlyCode(value: string | null | undefined) {
 
 function mapWaiterSaveError(error: unknown): string {
   const message = error instanceof Error ? error.message : typeof error === "object" && error && "message" in error ? String((error as { message: unknown }).message) : "";
-  if (/já está em utilização|já está em uso|ALREADY_IN_USE/i.test(message)) return "Este código de acesso já está em utilização. Escolha outro código.";
+  if (!message) return "Não foi possível guardar o garçom. Verifique os dados e o código de acesso.";
+  if (/já está em utilização|já está em uso|ALREADY_IN_USE/i.test(message) && /código/i.test(message)) {
+    return "Este código de acesso já está em utilização. Escolha outro código.";
+  }
+  if (/email já está registado|EMAIL_ALREADY|já está registado/i.test(message)) {
+    return "Este email já está registado. Use outro email ou apague o garçom existente.";
+  }
+  if (/nome de utilizador já está em uso|USERNAME_ALREADY/i.test(message)) {
+    return "Este nome de utilizador já está em uso. Escolha outro.";
+  }
+  if (/sincronizar com o Supabase|SUPABASE_|configurações/i.test(message)) {
+    return "Falha ao sincronizar com o Supabase. Verifique as configurações e se o email é válido.";
+  }
   if (/exatamente 6 dígitos|6 dígitos|6 digitos|MUST_BE_6/i.test(message)) return "O código de acesso deve conter exatamente 6 dígitos.";
   if (/apenas números|only numbers/i.test(message)) return "O código de acesso deve conter apenas números.";
   if (/SAVE_FAILED|não foi possível guardar o código/i.test(message)) return "Não foi possível guardar o código de acesso. Tente novamente.";
+  if (/Base de dados indisponível|Database is not available/i.test(message)) return "Base de dados indisponível. Tente novamente dentro de momentos.";
+  if (/^(Este |O código|Falha |Não foi|Garçom|Base de)/.test(message)) return message;
   return "Não foi possível guardar o garçom. Verifique os dados e o código de acesso.";
 }
 
