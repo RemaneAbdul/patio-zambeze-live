@@ -1,18 +1,64 @@
+import { createHmac } from "node:crypto";
 import { createClient, type SupabaseClient, type User as SupabaseUser } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.SUPABASE_URL ?? "";
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY ?? serviceRoleKey;
 
 let adminClient: SupabaseClient | null = null;
+let authClient: SupabaseClient | null = null;
 
 function getAdminClient() {
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error("Supabase Auth server configuration is missing");
   }
   adminClient ??= createClient(supabaseUrl, serviceRoleKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
+    auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
   });
   return adminClient;
+}
+
+function getAuthClient() {
+  if (!supabaseUrl || !publishableKey) {
+    throw new Error("Supabase Auth client configuration is missing");
+  }
+  authClient ??= createClient(supabaseUrl, publishableKey, {
+    auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+  });
+  return authClient;
+}
+
+/**
+ * Derives the private Supabase Auth password used internally for waiter code login.
+ * The waiter never sees or enters this password. The six-digit access code remains
+ * the only credential exposed by the application.
+ */
+export function deriveWaiterAuthPassword(authUserId: string, accessCode: string) {
+  if (!serviceRoleKey) throw new Error("Supabase Auth server configuration is missing");
+  return createHmac("sha256", serviceRoleKey)
+    .update(`patio-zambeze:waiter:${authUserId}:${accessCode}`)
+    .digest("hex");
+}
+
+export async function setSupabaseWaiterAccessCode(authUserId: string, accessCode: string) {
+  const password = deriveWaiterAuthPassword(authUserId, accessCode);
+  const { data, error } = await getAdminClient().auth.admin.updateUserById(authUserId, { password });
+  if (error) throw new Error(`SUPABASE_WAITER_ACCESS_CODE_UPDATE_FAILED:${error.message}`);
+  if (!data.user) throw new Error("SUPABASE_WAITER_ACCESS_CODE_UPDATE_FAILED:USER_MISSING");
+  return data.user;
+}
+
+export async function signInSupabaseWaiterByCode(input: { authUserId: string; email: string; accessCode: string }) {
+  const password = deriveWaiterAuthPassword(input.authUserId, input.accessCode);
+  const { data, error } = await getAuthClient().auth.signInWithPassword({
+    email: input.email.trim().toLowerCase(),
+    password,
+  });
+  if (error || !data.user || !data.session) {
+    throw new Error("SUPABASE_WAITER_LOGIN_FAILED");
+  }
+  if (data.user.id !== input.authUserId) throw new Error("SUPABASE_WAITER_IDENTITY_MISMATCH");
+  return data;
 }
 
 export async function getSupabaseUserFromAccessToken(accessToken: string): Promise<SupabaseUser | null> {
