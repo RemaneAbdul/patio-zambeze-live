@@ -4,7 +4,6 @@ import { garcons, users } from "../drizzle/schema";
 import { getDb } from "./db";
 import { sdk } from "./_core/sdk";
 
-const CODE_LENGTH = 6;
 const WINDOW_MS = 30_000;
 const MAX_ATTEMPTS = 5;
 const attempts = new Map<string, { count: number; resetAt: number }>();
@@ -56,7 +55,7 @@ export async function assignNewWaiterCode(userId: number) {
   const waiterCode = await generateWaiterCode();
   const [updated] = await db.update(users)
     .set({ waiterCode, updatedAt: new Date() })
-    .where(and(eq(users.id, userId), eq(users.role, "garcom")))
+    .where(eq(users.id, userId))
     .returning({ id: users.id, waiterCode: users.waiterCode });
   if (!updated || updated.id !== userId || updated.waiterCode !== waiterCode) {
     throw new Error("WAITER_CODE_UPDATE_FAILED");
@@ -66,13 +65,24 @@ export async function assignNewWaiterCode(userId: number) {
   return { id: userId, waiterCode: verified.waiterCode };
 }
 
-/** Convert existing legacy GAR-XXXXXX codes to secure random six-digit codes. */
+/**
+ * One-shot migration helper for legacy codes of the form GAR-XXXXXX (or any
+ * non six-digit value). MUST NOT run on every list request in a way that can
+ * race with an admin code change. Only migrates codes that are clearly not
+ * already a valid six-digit credential — never regenerates a valid code.
+ */
 export async function ensureNumericWaiterCodes() {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const rows = await db.select({ id: users.id, waiterCode: users.waiterCode }).from(users).where(eq(users.role, "garcom"));
   for (const row of rows) {
-    if (!/^\d{6}$/.test(row.waiterCode ?? "")) await assignNewWaiterCode(row.id);
+    const code = row.waiterCode ?? "";
+    // Preserve any already-valid six-digit access code unchanged.
+    if (/^\d{6}$/.test(code)) continue;
+    // Only migrate obvious legacy patterns (GAR-…) or empty/null codes.
+    if (code === "" || /^GAR-/i.test(code) || !/^\d+$/.test(code)) {
+      await assignNewWaiterCode(row.id);
+    }
   }
 }
 
@@ -84,8 +94,7 @@ export async function quickWaiterLogin(code: string, rateLimitKey: string) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
 
-  // The six-digit code stored in PostgreSQL is the single source of truth.
-  // No email, frontend state, mock value, or secondary Auth password is used.
+  // PostgreSQL users.waiterCode is the single source of truth.
   const [match] = await db
     .select({ user: users, garcon: garcons })
     .from(users)
@@ -98,10 +107,6 @@ export async function quickWaiterLogin(code: string, rateLimitKey: string) {
   const isActive = match.user.waiterActive === 1 && match.garcon.status === "ATIVO";
   if (!isActive) throw new Error("WAITER_ACCOUNT_DISABLED");
 
-  // Supabase Auth remains the identity/account system, while the application's
-  // quick-login credential is verified directly against the persisted waiterCode.
-  // This prevents an Auth password synchronization failure from rolling back a
-  // successfully persisted code change.
   const sessionToken = await sdk.createSessionToken(match.user.openId, {
     name: match.user.name ?? match.garcon.fullName,
   });
