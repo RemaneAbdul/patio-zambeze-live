@@ -1,6 +1,7 @@
 import { and, eq, ne } from "drizzle-orm";
 import { getDb } from "./db";
 import { garcons, users } from "../drizzle/schema";
+import { setSupabaseWaiterAccessCode } from "./supabaseAuth";
 
 const CODE_PATTERN = /^\d{6}$/;
 
@@ -28,23 +29,31 @@ export async function assertAccessCodeAvailable(code: string, excludeLegacyUserI
 
 /**
  * Changes the credential used by quick waiter login.
- * Stored on users.waiterCode (the field queried by quickWaiterLogin).
+ * The six-digit code is stored on users.waiterCode and the corresponding
+ * private Supabase Auth password is updated server-side from the same code.
+ * The password is never exposed to the admin UI or the waiter.
  */
 export async function updateWaiterAccessCode(input: { waiterId: string; code: string }) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
 
   const [waiter] = await db
-    .select({ id: garcons.id, legacyUserId: garcons.legacyUserId })
+    .select({
+      id: garcons.id,
+      legacyUserId: garcons.legacyUserId,
+      authUserId: garcons.authUserId,
+      email: garcons.email,
+      currentCode: users.waiterCode,
+    })
     .from(garcons)
+    .innerJoin(users, eq(garcons.legacyUserId, users.id))
     .where(eq(garcons.id, input.waiterId))
     .limit(1);
 
-  if (!waiter || !waiter.legacyUserId) throw new Error("WAITER_NOT_FOUND");
+  if (!waiter || !waiter.legacyUserId || !waiter.authUserId) throw new Error("WAITER_NOT_FOUND");
 
   const normalized = await assertAccessCodeAvailable(input.code, waiter.legacyUserId);
 
-  // Match only by user id so the code is always persisted even if role drifted.
   const [updated] = await db
     .update(users)
     .set({ waiterCode: normalized, role: "garcom", updatedAt: new Date() })
@@ -52,6 +61,23 @@ export async function updateWaiterAccessCode(input: { waiterId: string; code: st
     .returning({ id: users.id, waiterCode: users.waiterCode });
 
   if (!updated || updated.waiterCode !== normalized) throw new Error("WAITER_CODE_SAVE_FAILED");
+
+  try {
+    await setSupabaseWaiterAccessCode(waiter.authUserId, normalized);
+  } catch (error) {
+    // Keep the database and Supabase Auth credential in sync if Auth rejects the update.
+    if (waiter.currentCode) {
+      await db.update(users)
+        .set({ waiterCode: waiter.currentCode, updatedAt: new Date() })
+        .where(eq(users.id, waiter.legacyUserId));
+    } else {
+      await db.update(users)
+        .set({ waiterCode: null, updatedAt: new Date() })
+        .where(eq(users.id, waiter.legacyUserId));
+    }
+    console.error("[Auth] Failed to synchronize waiter access code", error);
+    throw new Error("WAITER_CODE_SAVE_FAILED");
+  }
 
   const [verified] = await db
     .select({ waiterCode: users.waiterCode })
