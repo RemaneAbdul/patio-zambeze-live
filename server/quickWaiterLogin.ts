@@ -3,7 +3,6 @@ import { and, eq } from "drizzle-orm";
 import { garcons, users } from "../drizzle/schema";
 import { getDb } from "./db";
 import { sdk } from "./_core/sdk";
-import { setSupabaseWaiterAccessCode, signInSupabaseWaiterByCode } from "./supabaseAuth";
 
 const CODE_LENGTH = 6;
 const WINDOW_MS = 30_000;
@@ -11,7 +10,7 @@ const MAX_ATTEMPTS = 5;
 const attempts = new Map<string, { count: number; resetAt: number }>();
 
 function normalizeCode(code: string) {
-  return code.replace(/\D/g, "").slice(0, CODE_LENGTH);
+  return typeof code === "string" ? code : "";
 }
 
 function checkRateLimit(key: string) {
@@ -48,25 +47,23 @@ export async function assignNewWaiterCode(userId: number) {
   if (!waiter || waiter.role !== "garcom") throw new Error("WAITER_NOT_FOUND");
 
   const waiterProfile = await db
-    .select({ id: garcons.id, authUserId: garcons.authUserId })
+    .select({ id: garcons.id })
     .from(garcons)
     .where(eq(garcons.legacyUserId, userId))
     .limit(1);
   if (!waiterProfile[0]) throw new Error("WAITER_NOT_FOUND");
 
   const waiterCode = await generateWaiterCode();
-  await db.update(users).set({ waiterCode, updatedAt: new Date() }).where(and(eq(users.id, userId), eq(users.role, "garcom")));
-  try {
-    await setSupabaseWaiterAccessCode(waiterProfile[0].authUserId, waiterCode);
-  } catch (error) {
-    if (waiter.waiterCode) {
-      await db.update(users).set({ waiterCode: waiter.waiterCode, updatedAt: new Date() }).where(eq(users.id, userId));
-    } else {
-      await db.update(users).set({ waiterCode: null, updatedAt: new Date() }).where(eq(users.id, userId));
-    }
+  const [updated] = await db.update(users)
+    .set({ waiterCode, updatedAt: new Date() })
+    .where(and(eq(users.id, userId), eq(users.role, "garcom")))
+    .returning({ id: users.id, waiterCode: users.waiterCode });
+  if (!updated || updated.id !== userId || updated.waiterCode !== waiterCode) {
     throw new Error("WAITER_CODE_UPDATE_FAILED");
   }
-  return { id: userId, waiterCode };
+  const [verified] = await db.select({ id: users.id, waiterCode: users.waiterCode }).from(users).where(eq(users.id, userId)).limit(1);
+  if (!verified || verified.waiterCode !== waiterCode) throw new Error("WAITER_CODE_UPDATE_FAILED");
+  return { id: userId, waiterCode: verified.waiterCode };
 }
 
 /** Convert existing legacy GAR-XXXXXX codes to secure random six-digit codes. */
@@ -82,56 +79,38 @@ export async function ensureNumericWaiterCodes() {
 export async function quickWaiterLogin(code: string, rateLimitKey: string) {
   if (!checkRateLimit(rateLimitKey)) throw new Error("WAITER_LOGIN_RATE_LIMITED");
   const normalized = normalizeCode(code);
-  if (normalized.length !== CODE_LENGTH) throw new Error("WAITER_CODE_INVALID");
+  if (!/^\d{6}$/.test(normalized)) throw new Error("WAITER_CODE_INVALID");
 
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
 
-  // Look up by code first (without active filter) to distinguish invalid vs deactivated.
-  const [anyMatch] = await db
+  // The six-digit code stored in PostgreSQL is the single source of truth.
+  // No email, frontend state, mock value, or secondary Auth password is used.
+  const [match] = await db
     .select({ user: users, garcon: garcons })
     .from(users)
     .innerJoin(garcons, eq(garcons.legacyUserId, users.id))
     .where(and(eq(users.waiterCode, normalized), eq(users.role, "garcom")))
     .limit(1);
 
-  if (!anyMatch) throw new Error("WAITER_CODE_INVALID");
+  if (!match) throw new Error("WAITER_CODE_INVALID");
 
-  const isActive = anyMatch.user.waiterActive === 1 && anyMatch.garcon.status === "ATIVO";
+  const isActive = match.user.waiterActive === 1 && match.garcon.status === "ATIVO";
   if (!isActive) throw new Error("WAITER_ACCOUNT_DISABLED");
 
-  // Supabase Auth is the source of authentication for the waiter identity.
-  // The app still creates its existing session cookie for backwards compatibility.
-  try {
-    await signInSupabaseWaiterByCode({
-      authUserId: anyMatch.garcon.authUserId,
-      email: anyMatch.garcon.email,
-      accessCode: normalized,
-    });
-  } catch {
-    // Migrate older waiter Auth identities that were created before code-based
-    // credentials were synchronized, then retry once with the same six-digit code.
-    try {
-      await setSupabaseWaiterAccessCode(anyMatch.garcon.authUserId, normalized);
-      await signInSupabaseWaiterByCode({
-        authUserId: anyMatch.garcon.authUserId,
-        email: anyMatch.garcon.email,
-        accessCode: normalized,
-      });
-    } catch {
-      throw new Error("WAITER_CODE_INVALID");
-    }
-  }
-
-  const sessionToken = await sdk.createSessionToken(anyMatch.user.openId, {
-    name: anyMatch.user.name ?? anyMatch.garcon.fullName,
+  // Supabase Auth remains the identity/account system, while the application's
+  // quick-login credential is verified directly against the persisted waiterCode.
+  // This prevents an Auth password synchronization failure from rolling back a
+  // successfully persisted code change.
+  const sessionToken = await sdk.createSessionToken(match.user.openId, {
+    name: match.user.name ?? match.garcon.fullName,
   });
   attempts.delete(rateLimitKey);
   return {
     sessionToken,
     waiter: {
-      id: anyMatch.user.id,
-      name: anyMatch.user.name ?? anyMatch.garcon.fullName,
+      id: match.user.id,
+      name: match.user.name ?? match.garcon.fullName,
       role: "garcom" as const,
     },
   };
