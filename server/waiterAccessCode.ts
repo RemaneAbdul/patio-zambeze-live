@@ -1,7 +1,6 @@
 import { and, eq, ne } from "drizzle-orm";
 import { getDb } from "./db";
 import { garcons, users } from "../drizzle/schema";
-import { setSupabaseWaiterAccessCode } from "./supabaseAuth";
 
 const CODE_PATTERN = /^\d{6}$/;
 
@@ -11,7 +10,6 @@ export function normalizeAccessCode(code: string) {
 
 export async function assertAccessCodeAvailable(code: string, excludeLegacyUserId?: number) {
   const normalized = normalizeAccessCode(code);
-  if (normalized.length !== 6) throw new Error("WAITER_CODE_MUST_BE_6_DIGITS");
   if (!/^\d+$/.test(normalized)) throw new Error("WAITER_CODE_MUST_BE_NUMERIC");
   if (!CODE_PATTERN.test(normalized)) throw new Error("WAITER_CODE_MUST_BE_6_DIGITS");
 
@@ -27,9 +25,10 @@ export async function assertAccessCodeAvailable(code: string, excludeLegacyUserI
 }
 
 /**
- * Persists the waiter access code as a single source of truth in users.waiterCode
- * and synchronizes the private Supabase Auth credential. The database write is
- * verified by reading the exact users row back by its primary key.
+ * The database column users.waiterCode is the single source of truth for the
+ * six-digit waiter credential. Authentication does not depend on a second
+ * password value in Supabase Auth, so changing the code cannot be rolled back
+ * by an unrelated Auth synchronization failure.
  */
 export async function updateWaiterAccessCode(input: { waiterId: string; code: string }) {
   const db = await getDb();
@@ -39,7 +38,6 @@ export async function updateWaiterAccessCode(input: { waiterId: string; code: st
     .select({
       id: garcons.id,
       legacyUserId: garcons.legacyUserId,
-      authUserId: garcons.authUserId,
       currentCode: users.waiterCode,
     })
     .from(garcons)
@@ -47,17 +45,16 @@ export async function updateWaiterAccessCode(input: { waiterId: string; code: st
     .where(eq(garcons.id, input.waiterId))
     .limit(1);
 
-  if (!waiter || !waiter.legacyUserId || !waiter.authUserId) throw new Error("WAITER_NOT_FOUND");
+  if (!waiter || !waiter.legacyUserId) throw new Error("WAITER_NOT_FOUND");
 
   const normalized = await assertAccessCodeAvailable(input.code, waiter.legacyUserId);
-  const previousCode = waiter.currentCode ?? null;
 
   let updated: { id: number; waiterCode: string | null } | undefined;
   try {
     [updated] = await db
       .update(users)
       .set({ waiterCode: normalized, role: "garcom", updatedAt: new Date() })
-      .where(eq(users.id, waiter.legacyUserId))
+      .where(and(eq(users.id, waiter.legacyUserId), eq(users.role, "garcom")))
       .returning({ id: users.id, waiterCode: users.waiterCode });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -70,6 +67,7 @@ export async function updateWaiterAccessCode(input: { waiterId: string; code: st
     throw new Error("WAITER_CODE_SAVE_FAILED");
   }
 
+  // Zero affected rows is never success.
   if (!updated || updated.id !== waiter.legacyUserId || updated.waiterCode !== normalized) {
     console.error("[waiter-code] database update affected unexpected row", {
       waiterId: input.waiterId,
@@ -80,7 +78,8 @@ export async function updateWaiterAccessCode(input: { waiterId: string; code: st
     throw new Error("WAITER_CODE_SAVE_FAILED");
   }
 
-  // Confirm the persisted value from the database, using the exact primary key.
+  // Read the exact row again from PostgreSQL. The returned value, not the
+  // submitted frontend value, is the only value returned as successful.
   const [verified] = await db
     .select({ id: users.id, waiterCode: users.waiterCode })
     .from(users)
@@ -96,40 +95,5 @@ export async function updateWaiterAccessCode(input: { waiterId: string; code: st
     throw new Error("WAITER_CODE_SAVE_FAILED");
   }
 
-  try {
-    await setSupabaseWaiterAccessCode(waiter.authUserId, normalized);
-  } catch (error) {
-    // Auth must never leave a different credential from the database. Roll back
-    // only after the database has first been proven to contain the new value.
-    try {
-      await db
-        .update(users)
-        .set({ waiterCode: previousCode, updatedAt: new Date() })
-        .where(eq(users.id, waiter.legacyUserId));
-    } catch (rollbackError) {
-      console.error("[waiter-code] database rollback failed after Auth error", rollbackError);
-    }
-    console.error("[waiter-code] Supabase Auth synchronization failed", error);
-    throw new Error("WAITER_CODE_SAVE_FAILED");
-  }
-
-  // Final verification after Auth synchronization. No in-memory value is used.
-  const [finalRow] = await db
-    .select({ id: users.id, waiterCode: users.waiterCode })
-    .from(users)
-    .where(eq(users.id, waiter.legacyUserId))
-    .limit(1);
-  if (!finalRow || finalRow.id !== waiter.legacyUserId || finalRow.waiterCode !== normalized) {
-    try {
-      await db
-        .update(users)
-        .set({ waiterCode: previousCode, updatedAt: new Date() })
-        .where(eq(users.id, waiter.legacyUserId));
-    } catch (rollbackError) {
-      console.error("[waiter-code] database rollback failed after final verification", rollbackError);
-    }
-    throw new Error("WAITER_CODE_SAVE_FAILED");
-  }
-
-  return { waiterId: waiter.id, waiterCode: finalRow.waiterCode };
+  return { waiterId: waiter.id, waiterCode: verified.waiterCode };
 }
