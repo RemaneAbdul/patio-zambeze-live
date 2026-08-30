@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { garcons, users } from "../drizzle/schema";
 import { getDb } from "./db";
 import { sdk } from "./_core/sdk";
+import { setSupabaseWaiterAccessCode, signInSupabaseWaiterByCode } from "./supabaseAuth";
 
 const CODE_LENGTH = 6;
 const WINDOW_MS = 30_000;
@@ -39,12 +40,33 @@ export async function generateWaiterCode() {
 export async function assignNewWaiterCode(userId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const [waiter] = await db.select({ id: users.id, role: users.role, waiterActive: users.waiterActive }).from(users).where(eq(users.id, userId)).limit(1);
+  const [waiter] = await db
+    .select({ id: users.id, role: users.role, waiterActive: users.waiterActive, waiterCode: users.waiterCode })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
   if (!waiter || waiter.role !== "garcom") throw new Error("WAITER_NOT_FOUND");
+
+  const waiterProfile = await db
+    .select({ id: garcons.id, authUserId: garcons.authUserId })
+    .from(garcons)
+    .where(eq(garcons.legacyUserId, userId))
+    .limit(1);
+  if (!waiterProfile[0]) throw new Error("WAITER_NOT_FOUND");
+
   const waiterCode = await generateWaiterCode();
-  const [updated] = await db.update(users).set({ waiterCode, updatedAt: new Date() }).where(and(eq(users.id, userId), eq(users.role, "garcom"))).returning({ id: users.id, waiterCode: users.waiterCode });
-  if (!updated?.waiterCode) throw new Error("WAITER_CODE_UPDATE_FAILED");
-  return updated;
+  await db.update(users).set({ waiterCode, updatedAt: new Date() }).where(and(eq(users.id, userId), eq(users.role, "garcom")));
+  try {
+    await setSupabaseWaiterAccessCode(waiterProfile[0].authUserId, waiterCode);
+  } catch (error) {
+    if (waiter.waiterCode) {
+      await db.update(users).set({ waiterCode: waiter.waiterCode, updatedAt: new Date() }).where(eq(users.id, userId));
+    } else {
+      await db.update(users).set({ waiterCode: null, updatedAt: new Date() }).where(eq(users.id, userId));
+    }
+    throw new Error("WAITER_CODE_UPDATE_FAILED");
+  }
+  return { id: userId, waiterCode };
 }
 
 /** Convert existing legacy GAR-XXXXXX codes to secure random six-digit codes. */
@@ -77,6 +99,29 @@ export async function quickWaiterLogin(code: string, rateLimitKey: string) {
 
   const isActive = anyMatch.user.waiterActive === 1 && anyMatch.garcon.status === "ATIVO";
   if (!isActive) throw new Error("WAITER_ACCOUNT_DISABLED");
+
+  // Supabase Auth is the source of authentication for the waiter identity.
+  // The app still creates its existing session cookie for backwards compatibility.
+  try {
+    await signInSupabaseWaiterByCode({
+      authUserId: anyMatch.garcon.authUserId,
+      email: anyMatch.garcon.email,
+      accessCode: normalized,
+    });
+  } catch {
+    // Migrate older waiter Auth identities that were created before code-based
+    // credentials were synchronized, then retry once with the same six-digit code.
+    try {
+      await setSupabaseWaiterAccessCode(anyMatch.garcon.authUserId, normalized);
+      await signInSupabaseWaiterByCode({
+        authUserId: anyMatch.garcon.authUserId,
+        email: anyMatch.garcon.email,
+        accessCode: normalized,
+      });
+    } catch {
+      throw new Error("WAITER_CODE_INVALID");
+    }
+  }
 
   const sessionToken = await sdk.createSessionToken(anyMatch.user.openId, {
     name: anyMatch.user.name ?? anyMatch.garcon.fullName,
