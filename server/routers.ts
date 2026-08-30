@@ -7,7 +7,7 @@ import { translateActiveMenu } from "./menuTranslation";
 import { randomBytes, randomUUID } from "node:crypto";
 import { storagePut } from "./storage";
 import { getSupabaseUserFromAccessToken } from "./supabaseAuth";
-import { quickWaiterLogin, ensureNumericWaiterCodes } from "./quickWaiterLogin";
+import { quickWaiterLogin } from "./quickWaiterLogin";
 import { assertAccessCodeAvailable, updateWaiterAccessCode } from "./waiterAccessCode";
 import { assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, updateMenuCategory, deleteMenuCategory, createMenuProduct, createTableSelection, getStaffTables, recordAuditLog, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, getWaiterServiceHistory, listMenuCategories, listMenuProducts, listWaiterCurrentAssignments, listTableQrCodes, listViewedReceipts, listReceiptWaiterOptions, getViewedReceiptForStaff, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode, listGarcons, createGarcon, createAdminUser, updateAdminUser, setAdminActive, deleteAdminUser, updateGarcon, deleteGarcon, getGarconProfileByLegacyUserId, getUserByOpenId, getAdminById, listAdminUsers, getDailyStaffSummary, createManualTableSelection, MENU_RESTAURANT_ID } from "./db";
 
@@ -17,15 +17,16 @@ export const selectionStatusSchema = z.enum(["PENDING", "PREPARING", "READY", "D
 
 function mapAccessCodeError(error: unknown): never {
   const message = error instanceof Error ? error.message : "";
-  if (message === "WAITER_CODE_ALREADY_IN_USE") throw new Error("Este código de acesso já está em utilização. Escolha outro código.");
+  if (message === "WAITER_CODE_ALREADY_IN_USE") throw new Error("Este código de acesso já está a ser utilizado.");
   if (message === "WAITER_CODE_MUST_BE_6_DIGITS") throw new Error("O código de acesso deve conter exatamente 6 dígitos.");
+  if (message === "WAITER_CODE_MUST_BE_NUMERIC") throw new Error("O código de acesso deve conter apenas números.");
   if (message === "WAITER_CODE_SAVE_FAILED") throw new Error("Não foi possível guardar o código de acesso. Tente novamente.");
   throw error instanceof Error ? error : new Error(String(error));
 }
 
 function mapWaiterPersistError(error: unknown): never {
   const message = error instanceof Error ? error.message : String(error);
-  if (message === "WAITER_CODE_ALREADY_IN_USE" || message === "WAITER_CODE_MUST_BE_6_DIGITS" || message === "WAITER_CODE_SAVE_FAILED") {
+  if (message === "WAITER_CODE_ALREADY_IN_USE" || message === "WAITER_CODE_MUST_BE_6_DIGITS" || message === "WAITER_CODE_MUST_BE_NUMERIC" || message === "WAITER_CODE_SAVE_FAILED") {
     mapAccessCodeError(error);
   }
   if (
@@ -99,7 +100,8 @@ export const appRouter = router({
         throw new Error("Código de acesso incorreto.");
       }
     }),
-    list: adminProcedure.query(async () => { await ensureNumericWaiterCodes(); return listGarcons(); }),
+    // list reads users.waiterCode via join — never regenerates codes on read
+    list: adminProcedure.query(async () => listGarcons()),
     admins: adminProcedure.query(() => listAdminUsers()),
     candidates: adminProcedure.query(() => []),
     add: adminProcedure
@@ -119,7 +121,6 @@ export const appRouter = router({
             mapAccessCodeError(error);
           }
 
-          // Supabase Auth requires a password internally. Generated server-side only.
           const internalPassword = randomBytes(32).toString("base64url");
 
           let created;
@@ -163,6 +164,16 @@ export const appRouter = router({
       }))
       .mutation(async ({ input, ctx }) => {
         return auditMutation(ctx, "WAITER_UPDATED", "garcon", input.id, async () => {
+          // 1) Persist access code first — users.waiterCode is the source of truth.
+          //    updateWaiterAccessCode verifies with RETURNING + SELECT before returning.
+          let codeResult;
+          try {
+            codeResult = await updateWaiterAccessCode({ waiterId: input.id, code: input.accessCode });
+          } catch (error) {
+            mapWaiterPersistError(error);
+          }
+
+          // 2) Profile fields. Auth sync failures must not roll back the verified code.
           let updated;
           try {
             updated = await updateGarcon({
@@ -175,14 +186,14 @@ export const appRouter = router({
               active: input.active,
             });
           } catch (error) {
+            console.error("[staff.update] profile update failed after code persist", {
+              waiterId: input.id,
+              waiterCodePersisted: true,
+            });
             mapWaiterPersistError(error);
           }
-          try {
-            const codeResult = await updateWaiterAccessCode({ waiterId: input.id, code: input.accessCode });
-            return { ...updated, waiterCode: codeResult.waiterCode };
-          } catch (error) {
-            mapWaiterPersistError(error);
-          }
+
+          return { ...updated, waiterCode: codeResult.waiterCode };
         }, result => ({ waiter_code: (result as { waiterCode?: string }).waiterCode }));
       }),
     setActive: adminProcedure.input(z.object({ id: z.string().uuid(), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, input.active ? "WAITER_ACTIVATED" : "WAITER_DEACTIVATED", "garcon", input.id, async () => { const current = (await listGarcons()).find(({ garcon }) => garcon.id === input.id); if (!current) throw new Error("WAITER_NOT_FOUND"); return updateGarcon({ id: input.id, fullName: current.garcon.fullName, username: current.garcon.username, email: current.garcon.email, phone: current.garcon.phone ?? undefined, active: input.active }); })),
