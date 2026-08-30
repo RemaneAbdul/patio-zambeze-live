@@ -5,12 +5,18 @@ import { describe, expect, it } from "vitest";
 const source = fs.readFileSync(path.resolve(import.meta.dirname, "WaitersPanel.tsx"), "utf8");
 
 describe("admin waiter management", () => {
-  it("exposes Supabase Auth waiter onboarding without photos", () => {
+  it("uses a six-digit access code and does not expose a waiter password field", () => {
     expect(source).toContain("Adicionar Garçom");
-    expect(source).toContain("type=\"password\"");
-    expect(source).toContain("type=\"email\"");
-    expect(source).toContain("Supabase");
-    expect(source).not.toContain("photoUrl");
+    expect(source).toContain("inputMode=\"numeric\"");
+    expect(source).toContain("pattern=\"[0-9]{6}\"");
+    expect(source).toContain("maxLength={6}");
+    expect(source).not.toContain("Palavra-passe<input required type=\"password\"");
+  });
+
+  it("refreshes waiter data from the backend after a successful save", () => {
+    expect(source).toContain("utils.staff.list.invalidate()");
+    expect(source).toContain("utils.staff.list.refetch()");
+    expect(source).toContain("updateWaiter.mutate");
   });
 
   it("shows current assignments and service history", () => {
