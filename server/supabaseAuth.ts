@@ -1,18 +1,84 @@
+import { createHmac } from "node:crypto";
 import { createClient, type SupabaseClient, type User as SupabaseUser } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.SUPABASE_URL ?? "";
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+const serviceRoleKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ??
+  process.env.SUPABASE_SECRET_KEY ??
+  process.env.SUPABASE_SERVICE_KEY ??
+  "";
+const publishableKey =
+  process.env.SUPABASE_PUBLISHABLE_KEY ??
+  process.env.SUPABASE_ANON_KEY ??
+  serviceRoleKey;
 
 let adminClient: SupabaseClient | null = null;
+let authClient: SupabaseClient | null = null;
 
 function getAdminClient() {
   if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error("Supabase Auth server configuration is missing");
+    throw new Error("SUPABASE_AUTH_SERVER_CONFIGURATION_MISSING");
   }
   adminClient ??= createClient(supabaseUrl, serviceRoleKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
+    auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
   });
   return adminClient;
+}
+
+function getAuthClient() {
+  if (!supabaseUrl || !publishableKey) {
+    throw new Error("SUPABASE_AUTH_CLIENT_CONFIGURATION_MISSING");
+  }
+  authClient ??= createClient(supabaseUrl, publishableKey, {
+    auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+  });
+  return authClient;
+}
+
+function assertWaiterAccessCode(accessCode: string) {
+  if (!/^\d{6}$/.test(accessCode)) {
+    throw new Error("WAITER_CODE_MUST_BE_6_DIGITS");
+  }
+}
+
+/**
+ * Derives the private Supabase Auth password used internally for waiter code login.
+ * The waiter never sees or enters this password. The six-digit access code remains
+ * the only credential exposed by the application.
+ */
+export function deriveWaiterAuthPassword(authUserId: string, accessCode: string) {
+  assertWaiterAccessCode(accessCode);
+  if (!serviceRoleKey) throw new Error("SUPABASE_AUTH_SERVER_CONFIGURATION_MISSING");
+  return createHmac("sha256", serviceRoleKey)
+    .update(`patio-zambeze:waiter:${authUserId}:${accessCode}`)
+    .digest("hex");
+}
+
+export async function setSupabaseWaiterAccessCode(authUserId: string, accessCode: string) {
+  const password = deriveWaiterAuthPassword(authUserId, accessCode);
+  const { data, error } = await getAdminClient().auth.admin.updateUserById(authUserId, { password });
+  if (error) {
+    throw new Error(`SUPABASE_WAITER_ACCESS_CODE_UPDATE_FAILED:${error.message}`);
+  }
+  if (!data.user) {
+    throw new Error("SUPABASE_WAITER_ACCESS_CODE_UPDATE_FAILED:USER_MISSING");
+  }
+  return data.user;
+}
+
+export async function signInSupabaseWaiterByCode(input: { authUserId: string; email: string; accessCode: string }) {
+  const password = deriveWaiterAuthPassword(input.authUserId, input.accessCode);
+  const { data, error } = await getAuthClient().auth.signInWithPassword({
+    email: input.email.trim().toLowerCase(),
+    password,
+  });
+  if (error || !data.user || !data.session) {
+    throw new Error(`SUPABASE_WAITER_LOGIN_FAILED:${error?.message ?? "SESSION_MISSING"}`);
+  }
+  if (data.user.id !== input.authUserId) {
+    throw new Error("SUPABASE_WAITER_IDENTITY_MISMATCH");
+  }
+  return data;
 }
 
 export async function getSupabaseUserFromAccessToken(accessToken: string): Promise<SupabaseUser | null> {
@@ -71,8 +137,9 @@ export async function createSupabaseAdmin(input: { email: string; password: stri
 }
 
 export async function createSupabaseWaiter(input: { email: string; password: string; fullName: string; phone?: string }) {
+  const normalizedEmail = input.email.trim().toLowerCase();
   const { data, error } = await getAdminClient().auth.admin.createUser({
-    email: input.email,
+    email: normalizedEmail,
     password: input.password,
     email_confirm: true,
     user_metadata: {
@@ -81,8 +148,8 @@ export async function createSupabaseWaiter(input: { email: string; password: str
       role: "GARCOM",
     },
   });
-  if (error) throw new Error(error.message);
-  if (!data.user) throw new Error("SUPABASE_AUTH_USER_CREATE_FAILED");
+  if (error) throw new Error(`SUPABASE_WAITER_CREATE_FAILED:${error.message}`);
+  if (!data.user) throw new Error("SUPABASE_WAITER_CREATE_FAILED:USER_MISSING");
   return data.user;
 }
 
@@ -121,7 +188,7 @@ export async function enableSupabaseUser(authUserId: string) {
 
 export async function updateSupabaseWaiter(input: { authUserId: string; email: string; password?: string; fullName: string; phone?: string }) {
   const { data, error } = await getAdminClient().auth.admin.updateUserById(input.authUserId, {
-    email: input.email,
+    email: input.email.trim().toLowerCase(),
     ...(input.password ? { password: input.password } : {}),
     user_metadata: {
       full_name: input.fullName,
@@ -129,8 +196,8 @@ export async function updateSupabaseWaiter(input: { authUserId: string; email: s
       role: "GARCOM",
     },
   });
-  if (error) throw new Error(error.message);
-  if (!data.user) throw new Error("SUPABASE_AUTH_USER_UPDATE_FAILED");
+  if (error) throw new Error(`SUPABASE_WAITER_UPDATE_FAILED:${error.message}`);
+  if (!data.user) throw new Error("SUPABASE_WAITER_UPDATE_FAILED:USER_MISSING");
   return data.user;
 }
 

@@ -4,16 +4,53 @@ import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, protectedProcedure, publicProcedure, router, staffProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { translateActiveMenu } from "./menuTranslation";
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { storagePut } from "./storage";
 import { getSupabaseUserFromAccessToken } from "./supabaseAuth";
-import { sdk } from "./_core/sdk";
-import { normalizeWaiterAccessCode, waiterCodeRateLimiter, WAITER_ACCESS_CODE_MESSAGE } from "./waiterAccess";
-import {   assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, updateMenuCategory, deleteMenuCategory, createMenuProduct, createTableSelection, getStaffTables, listWaiterUsers, recordAuditLog, setWaiterActive, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, getWaiterServiceHistory, listMenuCategories, listMenuProducts, listWaiterCandidates, listWaiterCurrentAssignments, promoteUserToWaiter,   listTableQrCodes, listViewedReceipts, listReceiptWaiterOptions, getViewedReceiptForStaff, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode, listGarcons, createGarcon, createAdminUser, updateAdminUser, setAdminActive, deleteAdminUser, updateGarcon, deleteGarcon, getGarconProfileByLegacyUserId, getUserByOpenId, getActiveWaiterByAccessCode, getAdminById, listAdminUsers, getDailyStaffSummary, createManualTableSelection, MENU_RESTAURANT_ID } from "./db";
+import { quickWaiterLogin } from "./quickWaiterLogin";
+import { assertAccessCodeAvailable, updateWaiterAccessCode } from "./waiterAccessCode";
+import { assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, updateMenuCategory, deleteMenuCategory, createMenuProduct, createTableSelection, getStaffTables, recordAuditLog, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, getWaiterServiceHistory, listMenuCategories, listMenuProducts, listWaiterCurrentAssignments, listTableQrCodes, listViewedReceipts, listReceiptWaiterOptions, getViewedReceiptForStaff, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode, listGarcons, createGarcon, createAdminUser, updateAdminUser, setAdminActive, deleteAdminUser, updateGarcon, deleteGarcon, getGarconProfileByLegacyUserId, getUserByOpenId, getAdminById, listAdminUsers, getDailyStaffSummary, createManualTableSelection, MENU_RESTAURANT_ID } from "./db";
 
 const allowedMenuImageUrl = /^(https?:\/\/|\/|data:image\/(jpeg|jpg|png|webp|avif);base64,)/;
 export const menuImageUrlSchema = z.union([z.literal(""), z.string().max(8_000_000).refine((value) => allowedMenuImageUrl.test(value), "Formato de imagem inválido")]).optional();
 export const selectionStatusSchema = z.enum(["PENDING", "PREPARING", "READY", "DELIVERED", "COMPLETED"]);
+
+function mapAccessCodeError(error: unknown): never {
+  const message = error instanceof Error ? error.message : "";
+  if (message === "WAITER_CODE_ALREADY_IN_USE") throw new Error("Este código de acesso já está a ser utilizado.");
+  if (message === "WAITER_CODE_MUST_BE_6_DIGITS") throw new Error("O código de acesso deve conter exatamente 6 dígitos.");
+  if (message === "WAITER_CODE_MUST_BE_NUMERIC") throw new Error("O código de acesso deve conter apenas números.");
+  if (message === "WAITER_CODE_SAVE_FAILED") throw new Error("Não foi possível guardar o código de acesso. Tente novamente.");
+  throw error instanceof Error ? error : new Error(String(error));
+}
+
+function mapWaiterPersistError(error: unknown): never {
+  const message = error instanceof Error ? error.message : String(error);
+  if (message === "WAITER_CODE_ALREADY_IN_USE" || message === "WAITER_CODE_MUST_BE_6_DIGITS" || message === "WAITER_CODE_MUST_BE_NUMERIC" || message === "WAITER_CODE_SAVE_FAILED") {
+    mapAccessCodeError(error);
+  }
+  if (
+    message === "WAITER_EMAIL_ALREADY_EXISTS" ||
+    message === "WAITER_EMAIL_OR_USER_ALREADY_EXISTS" ||
+    /already been registered|already exists|User already registered|duplicate key.*email/i.test(message)
+  ) {
+    throw new Error("Este email já está registado. Use outro email ou apague o garçom existente.");
+  }
+  if (message === "WAITER_USERNAME_ALREADY_EXISTS" || /duplicate key.*username/i.test(message)) {
+    throw new Error("Este nome de utilizador já está em uso. Escolha outro.");
+  }
+  if (
+    message.startsWith("SUPABASE_WAITER_CREATE_FAILED:") ||
+    message.startsWith("SUPABASE_WAITER_UPDATE_FAILED:") ||
+    /supabase|auth\.admin|service.?role|configuration is missing/i.test(message)
+  ) {
+    throw new Error("Falha ao sincronizar com o Supabase. Verifique as configurações e se o email é válido.");
+  }
+  if (message === "WAITER_NOT_FOUND") throw new Error("Garçom não encontrado.");
+  if (message === "Database is not available") throw new Error("Base de dados indisponível. Tente novamente dentro de momentos.");
+  console.error("[staff] waiter persist failed:", message);
+  throw new Error("Não foi possível guardar o garçom. Verifique os dados e o código de acesso.");
+}
 
 async function persistMenuImage(imageUrl?: string) {
   if (!imageUrl || !imageUrl.startsWith("data:")) return imageUrl;
@@ -39,72 +76,131 @@ function getWaiterCodeRateLimitKey(req: { ip?: string; socket?: { remoteAddress?
 }
 
 export const appRouter = router({
-    // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     recordLogin: protectedProcedure.mutation(({ ctx }) => recordAuditLog({ userId: ctx.user.id, role: ctx.user.role, action: "AUTH_LOGIN_SUCCESS", entityType: "auth_session", entityId: ctx.user.openId }).then(() => ({ success: true as const }))),
     recordPasswordChange: protectedProcedure.mutation(({ ctx }) => recordAuditLog({ userId: ctx.user.id, role: ctx.user.role, action: "AUTH_PASSWORD_CHANGED", entityType: "auth_user", entityId: ctx.user.openId }).then(() => ({ success: true as const }))),
-    logout: publicProcedure.mutation(async ({ ctx }) => {
-      if (ctx.user) await recordAuditLog({ userId: ctx.user.id, role: ctx.user.role, action: "AUTH_LOGOUT", entityType: "auth_session", entityId: ctx.user.openId });
-      const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
-    }),
+    logout: publicProcedure.mutation(async ({ ctx }) => { if (ctx.user) await recordAuditLog({ userId: ctx.user.id, role: ctx.user.role, action: "AUTH_LOGOUT", entityType: "auth_session", entityId: ctx.user.openId }); const cookieOptions = getSessionCookieOptions(ctx.req); ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 }); return { success: true } as const; }),
   }),
 
   staff: router({
-    profile: publicProcedure.query(async ({ ctx }) => {
-      if (!ctx.user) return null;
-      if (ctx.user.role === "admin") return { role: "admin" as const, restaurantId: "default", status: ctx.user.waiterActive === 1 ? "ATIVO" as const : "INACTIVO" as const, userId: ctx.user.id };
-      const profile = await getGarconProfileByLegacyUserId(ctx.user.id);
-      if (!profile || profile.status !== "ATIVO" || ctx.user.role !== "garcom" || ctx.user.waiterActive === 0) return null;
-      return { role: "garcom" as const, restaurantId: profile.restaurantId, status: profile.status, userId: ctx.user.id };
-    }),
-    loginStatus: publicProcedure.query(async ({ ctx }) => {
-      const authorization = ctx.req.headers.authorization;
-      const accessToken = authorization?.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
-      if (!accessToken) return { status: "UNAUTHENTICATED" as const };
-      const supabaseUser = await getSupabaseUserFromAccessToken(accessToken);
-      if (!supabaseUser) return { status: "INVALID_SESSION" as const };
-      const profile = await getUserByOpenId(`supabase:${supabaseUser.id}`);
-      if (!profile) return { status: "PROFILE_MISSING" as const };
-      if (profile.role === "admin" && profile.waiterActive === 0) return { status: "ADMIN_INACTIVE" as const };
-      if (profile.role !== "admin" && profile.role !== "garcom") return { status: "ROLE_NOT_ALLOWED" as const };
-      return { status: "ACTIVE" as const };
-    }),
-    quickLogin: publicProcedure.input(z.object({ code: z.string().max(64) })).mutation(async ({ input, ctx }) => {
-      const rateLimitKey = getWaiterCodeRateLimitKey(ctx.req);
-      const gate = waiterCodeRateLimiter.check(rateLimitKey);
-      if (!gate.allowed) throw new Error(WAITER_ACCESS_CODE_MESSAGE);
-      const code = normalizeWaiterAccessCode(input.code);
-      if (!code) {
-        waiterCodeRateLimiter.registerFailure(rateLimitKey);
-        throw new Error(WAITER_ACCESS_CODE_MESSAGE);
+    profile: publicProcedure.query(async ({ ctx }) => { if (!ctx.user) return null; if (ctx.user.role === "admin") return { role: "admin" as const, restaurantId: "default", status: ctx.user.waiterActive === 1 ? "ATIVO" as const : "INACTIVO" as const, userId: ctx.user.id }; const profile = await getGarconProfileByLegacyUserId(ctx.user.id); if (!profile || profile.status !== "ATIVO" || ctx.user.role !== "garcom" || ctx.user.waiterActive === 0) return null; return { role: "garcom" as const, restaurantId: profile.restaurantId, status: profile.status, userId: ctx.user.id }; }),
+    loginStatus: publicProcedure.query(async ({ ctx }) => { const authorization = ctx.req.headers.authorization; const accessToken = authorization?.startsWith("Bearer ") ? authorization.slice(7).trim() : ""; if (!accessToken) return { status: "UNAUTHENTICATED" as const }; const supabaseUser = await getSupabaseUserFromAccessToken(accessToken); if (!supabaseUser) return { status: "INVALID_SESSION" as const }; const profile = await getUserByOpenId(`supabase:${supabaseUser.id}`); if (!profile) return { status: "PROFILE_MISSING" as const }; if (profile.role === "admin" && profile.waiterActive === 0) return { status: "ADMIN_INACTIVE" as const }; if (profile.role !== "admin" && profile.role !== "garcom") return { status: "ROLE_NOT_ALLOWED" as const }; return { status: "ACTIVE" as const }; }),
+    quickLogin: publicProcedure.input(z.object({ code: z.string().regex(/^\d{6}$/) })).mutation(async ({ input, ctx }) => {
+      try {
+        const result = await quickWaiterLogin(input.code, ctx.req.ip || ctx.req.socket.remoteAddress || "unknown");
+        ctx.res.cookie(COOKIE_NAME, result.sessionToken, getSessionCookieOptions(ctx.req));
+        await recordAuditLog({ userId: result.waiter.id, role: "garcom", action: "AUTH_QUICK_LOGIN_SUCCESS", entityType: "auth_session", entityId: result.sessionToken.slice(0, 16) });
+        return { waiter: result.waiter };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "WAITER_CODE_INVALID";
+        if (message === "WAITER_LOGIN_RATE_LIMITED") {
+          throw new Error("Muitas tentativas de login. Aguarde alguns segundos antes de tentar novamente.");
+        }
+        if (message === "WAITER_ACCOUNT_DISABLED") {
+          throw new Error("Esta conta está desativada. Contacte o administrador.");
+        }
+        throw new Error("Código de acesso incorreto.");
       }
-      const waiter = await getActiveWaiterByAccessCode(code);
-      if (!waiter) {
-        waiterCodeRateLimiter.registerFailure(rateLimitKey);
-        throw new Error(WAITER_ACCESS_CODE_MESSAGE);
-      }
-      waiterCodeRateLimiter.reset(rateLimitKey);
-      const sessionToken = await sdk.createSessionToken(waiter.openId, { expiresInMs: 12 * 60 * 60 * 1000, name: waiter.name ?? "" });
-      ctx.res.cookie(COOKIE_NAME, sessionToken, { ...getSessionCookieOptions(ctx.req), maxAge: 12 * 60 * 60 * 1000 });
-      await recordAuditLog({ userId: waiter.id, role: "garcom", action: "AUTH_QUICK_LOGIN_SUCCESS", entityType: "auth_session", entityId: waiter.openId });
-      return { success: true as const, role: "garcom" as const };
     }),
-    list: adminProcedure.query(() => listGarcons()),
+    // list reads users.waiterCode via join — never regenerates codes on read
+    list: adminProcedure.query(async () => listGarcons()),
     admins: adminProcedure.query(() => listAdminUsers()),
     candidates: adminProcedure.query(() => []),
-    add: adminProcedure.input(z.object({ fullName: z.string().trim().min(1).max(160), username: z.string().trim().min(3).max(64).regex(/^[a-z0-9._-]+$/), email: z.string().email().max(320), phone: z.string().max(32).optional(), password: z.string().min(6).max(128), waiterCode: z.string().max(64), active: z.boolean().default(true) })).mutation(({ input, ctx }) => auditMutation(ctx, "WAITER_CREATED", "garcon", undefined, () => createGarcon({ ...input, restaurantId: MENU_RESTAURANT_ID }))),
-    createAdmin: adminProcedure.input(z.object({ fullName: z.string().trim().min(1).max(160), email: z.string().email().max(320), password: z.string().min(6).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "CREATE_ADMIN", "admin", undefined, () => createAdminUser(input), (result) => ({ affectedUserId: result.id }))),
-    updateAdmin: adminProcedure.input(z.object({ id: z.number().int().positive(), fullName: z.string().trim().min(1).max(160), email: z.string().email().max(320), password: z.string().min(8).max(128).optional() })).mutation(({ input, ctx }) => auditMutation(ctx, "UPDATE_ADMIN", "admin", input.id, () => updateAdminUser(input), (result) => ({ affectedUserId: result.id }))),
-    setAdminActive: adminProcedure.input(z.object({ id: z.number().int().positive(), active: z.boolean() })).mutation(async ({ input, ctx }) => { const target = await getAdminById(input.id); const sameIdentity = input.id === ctx.user.id || (!!ctx.user.email && target.admin.email?.toLowerCase() === ctx.user.email.toLowerCase()); if (sameIdentity && !input.active) throw new Error("ADMIN_CANNOT_DEACTIVATE_SELF"); return auditMutation(ctx, input.active ? "ACTIVATE_ADMIN" : "DEACTIVATE_ADMIN", "admin", input.id, () => setAdminActive(input.id, input.active), (result) => ({ affectedUserId: result.id })); }),
-    deleteAdmin: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input, ctx }) => { const target = await getAdminById(input.id); const sameIdentity = input.id === ctx.user.id || (!!ctx.user.email && target.admin.email?.toLowerCase() === ctx.user.email.toLowerCase()); if (sameIdentity) throw new Error("ADMIN_CANNOT_DELETE_SELF"); return auditMutation(ctx, "DELETE_ADMIN", "admin", input.id, () => deleteAdminUser(input.id), (result) => ({ affectedUserId: result.id })); }),
-    update: adminProcedure.input(z.object({ id: z.string().uuid(), fullName: z.string().trim().min(1).max(160), username: z.string().trim().min(3).max(64).regex(/^[a-z0-9._-]+$/), email: z.string().email().max(320), phone: z.string().max(32).optional(), password: z.string().min(6).max(128).optional(), waiterCode: z.string().max(64), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, "WAITER_UPDATED", "garcon", input.id, () => updateGarcon(input))),
-    setActive: adminProcedure.input(z.object({ id: z.string().uuid(), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, input.active ? "WAITER_ACTIVATED" : "WAITER_DEACTIVATED", "garcon", input.id, async () => { const current = (await listGarcons()).find(({ garcon }) => garcon.id === input.id); if (!current) throw new Error("WAITER_NOT_FOUND"); return updateGarcon({ id: input.id, fullName: current.garcon.fullName, username: current.garcon.username, email: current.garcon.email, phone: current.garcon.phone ?? undefined, waiterCode: current.user.waiterCode ?? "", active: input.active }); })),
+    add: adminProcedure
+      .input(z.object({
+        fullName: z.string().trim().min(1).max(160),
+        username: z.string().trim().min(3).max(64).regex(/^[a-z0-9._-]+$/),
+        email: z.string().email().max(320),
+        phone: z.string().max(32).optional(),
+        accessCode: z.string().regex(/^\d{6}$/, "O código de acesso deve conter exatamente 6 dígitos."),
+        active: z.boolean().default(true),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        return auditMutation(ctx, "WAITER_CREATED", "garcon", undefined, async () => {
+          try {
+            await assertAccessCodeAvailable(input.accessCode);
+          } catch (error) {
+            mapAccessCodeError(error);
+          }
+
+          const internalPassword = randomBytes(32).toString("base64url");
+
+          let created;
+          try {
+            created = await createGarcon({
+              fullName: input.fullName,
+              username: input.username,
+              email: input.email,
+              phone: input.phone,
+              password: internalPassword,
+              active: input.active,
+              restaurantId: MENU_RESTAURANT_ID,
+            });
+          } catch (error) {
+            mapWaiterPersistError(error);
+          }
+
+          try {
+            const codeResult = await updateWaiterAccessCode({ waiterId: created.id, code: input.accessCode });
+            return { ...created, waiterCode: codeResult.waiterCode };
+          } catch (error) {
+            try { await deleteGarcon(created.id); } catch {}
+            mapWaiterPersistError(error);
+          }
+        }, result => ({ waiter_code: (result as { waiterCode?: string }).waiterCode }));
+      }),
+    createAdmin: adminProcedure.input(z.object({ fullName: z.string().trim().min(1).max(160), email: z.string().email().max(320), password: z.string().min(6).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "CREATE_ADMIN", "admin", undefined, () => createAdminUser(input), result => ({ affectedUserId: result.id }))),
+    updateAdmin: adminProcedure.input(z.object({ id: z.number().int().positive(), fullName: z.string().trim().min(1).max(160), email: z.string().email().max(320), password: z.string().min(8).max(128).optional() })).mutation(({ input, ctx }) => auditMutation(ctx, "UPDATE_ADMIN", "admin", input.id, () => updateAdminUser(input), result => ({ affectedUserId: result.id }))),
+    setAdminActive: adminProcedure.input(z.object({ id: z.number().int().positive(), active: z.boolean() })).mutation(async ({ input, ctx }) => { const target = await getAdminById(input.id); const sameIdentity = input.id === ctx.user.id || (!!ctx.user.email && target.admin.email?.toLowerCase() === ctx.user.email.toLowerCase()); if (sameIdentity && !input.active) throw new Error("ADMIN_CANNOT_DEACTIVATE_SELF"); return auditMutation(ctx, input.active ? "ACTIVATE_ADMIN" : "DEACTIVATE_ADMIN", "admin", input.id, () => setAdminActive(input.id, input.active), result => ({ affectedUserId: result.id })); }),
+    deleteAdmin: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input, ctx }) => { const target = await getAdminById(input.id); const sameIdentity = input.id === ctx.user.id || (!!ctx.user.email && target.admin.email?.toLowerCase() === ctx.user.email.toLowerCase()); if (sameIdentity) throw new Error("ADMIN_CANNOT_DELETE_SELF"); return auditMutation(ctx, "DELETE_ADMIN", "admin", input.id, () => deleteAdminUser(input.id), result => ({ affectedUserId: result.id })); }),
+    update: adminProcedure
+      .input(z.object({
+        id: z.string().uuid(),
+        fullName: z.string().trim().min(1).max(160),
+        username: z.string().trim().min(3).max(64).regex(/^[a-z0-9._-]+$/),
+        email: z.string().email().max(320),
+        phone: z.string().max(32).optional(),
+        password: z.string().min(6).max(128).optional(),
+        accessCode: z.string().regex(/^\d{6}$/, "O código de acesso deve conter exatamente 6 dígitos."),
+        active: z.boolean(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        return auditMutation(ctx, "WAITER_UPDATED", "garcon", input.id, async () => {
+          // 1) Persist access code first — users.waiterCode is the source of truth.
+          //    updateWaiterAccessCode verifies with RETURNING + SELECT before returning.
+          let codeResult;
+          try {
+            codeResult = await updateWaiterAccessCode({ waiterId: input.id, code: input.accessCode });
+          } catch (error) {
+            mapWaiterPersistError(error);
+          }
+
+          // 2) Profile fields. Auth sync failures must not roll back the verified code.
+          let updated;
+          try {
+            updated = await updateGarcon({
+              id: input.id,
+              fullName: input.fullName,
+              username: input.username,
+              email: input.email,
+              phone: input.phone,
+              password: input.password,
+              active: input.active,
+            });
+          } catch (error) {
+            console.error("[staff.update] profile update failed after code persist", {
+              waiterId: input.id,
+              waiterCodePersisted: true,
+            });
+            mapWaiterPersistError(error);
+          }
+
+          return { ...updated, waiterCode: codeResult.waiterCode };
+        }, result => ({ waiter_code: (result as { waiterCode?: string }).waiterCode }));
+      }),
+    setActive: adminProcedure.input(z.object({ id: z.string().uuid(), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, input.active ? "WAITER_ACTIVATED" : "WAITER_DEACTIVATED", "garcon", input.id, async () => { const current = (await listGarcons()).find(({ garcon }) => garcon.id === input.id); if (!current) throw new Error("WAITER_NOT_FOUND"); return updateGarcon({ id: input.id, fullName: current.garcon.fullName, username: current.garcon.username, email: current.garcon.email, phone: current.garcon.phone ?? undefined, active: input.active }); })),
     delete: adminProcedure.input(z.object({ id: z.string().uuid() })).mutation(({ input, ctx }) => auditMutation(ctx, "WAITER_DELETED", "garcon", input.id, () => deleteGarcon(input.id))),
     currentAssignments: adminProcedure.query(() => listWaiterCurrentAssignments()),
     serviceHistory: adminProcedure.input(z.object({ userId: z.number().int().positive() })).query(({ input }) => getWaiterServiceHistory(input.userId)),
@@ -141,27 +237,10 @@ export const appRouter = router({
     closeSession: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "RECEIPT_CLOSED", "table_session", input.sessionToken, () => closeTableSessionByStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin"))),
     updateSelectionStatus: staffProcedure.input(z.object({ selectionId: z.number().int().positive(), status: selectionStatusSchema })).mutation(({ input, ctx }) => auditMutation(ctx, "RECEIPT_STATUS_CHANGE", "table_selection", input.selectionId, () => setTableSelectionStatus(input.selectionId, input.status, ctx.user.id, ctx.user.role === "admin"))),
     removeSelectionItem: staffProcedure.input(z.object({ itemId: z.number().int().positive() })).mutation(({ input, ctx }) => auditMutation(ctx, "RECEIPT_EDIT", "table_selection_item", input.itemId, () => removeTableSelectionItem(input.itemId, ctx.user.id, ctx.user.role === "admin"))),
-    staffLookup: staffProcedure
-      .input(z.object({ sessionToken: z.string().min(32).max(128) }))
-      .query(({ input, ctx }) => getTableHistoryForStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
+    staffLookup: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).query(({ input, ctx }) => getTableHistoryForStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
     staffIdentity: staffProcedure.query(({ ctx }) => ({ id: ctx.user.id, name: ctx.user.name, email: ctx.user.email, waiterCode: ctx.user.waiterCode ?? null, active: Boolean(ctx.user.waiterActive) })),
-    createManualOrder: staffProcedure.input(z.object({ tableId: z.string().trim().min(1).max(128), notes: z.string().trim().max(1000).optional(), items: z.array(z.object({ productId: z.number().int().positive(), quantity: z.number().int().positive().max(100) })).min(1).max(100) })).mutation(({ input, ctx }) => auditMutation(ctx, "CREATE_MANUAL_ORDER", "table_selection", undefined, () => createManualTableSelection({ ...input, waiterId: ctx.user.id }), (result) => ({ waiter_id: result.waiterId, table_id: result.tableNumber, selection_id: result.id }))),
-    addSelection: publicProcedure.input(z.object({
-      sessionToken: z.string().min(32).max(128),
-      tableNumber: z.string().min(1).max(64).default("01"),
-      tableId: z.string().min(1).max(128).optional(),
-      subtotal: z.number().nonnegative(),
-      notes: z.string().trim().max(1000).optional(),
-      items: z.array(
-        z.object({
-          productId: z.number().int().positive().optional(),
-          productName: z.string().min(1).max(160),
-          preparation: z.string().max(1000).optional(),
-          quantity: z.number().int().positive(),
-          unitPrice: z.number().nonnegative(),
-        }),
-      ).min(1),
-    })).mutation(({ input, ctx }) => auditMutation(ctx, "ORDER_CREATED", "table_selection", undefined, () => createTableSelection({ ...input, mergeOpenOrder: false }))),
+    createManualOrder: staffProcedure.input(z.object({ tableId: z.string().trim().min(1).max(128), notes: z.string().trim().max(1000).optional(), items: z.array(z.object({ productId: z.number().int().positive(), quantity: z.number().int().positive().max(100) })).min(1).max(100) })).mutation(({ input, ctx }) => auditMutation(ctx, "CREATE_MANUAL_ORDER", "table_selection", undefined, () => createManualTableSelection({ ...input, waiterId: ctx.user.id }), result => ({ waiter_id: result.waiterId, table_id: result.tableNumber, selection_id: result.id }))),
+    addSelection: publicProcedure.input(z.object({ sessionToken: z.string().min(32).max(128), tableNumber: z.string().min(1).max(64).default("01"), tableId: z.string().min(1).max(128).optional(), subtotal: z.number().nonnegative(), notes: z.string().trim().max(1000).optional(), items: z.array(z.object({ productId: z.number().int().positive().optional(), productName: z.string().min(1).max(160), preparation: z.string().max(1000).optional(), quantity: z.number().int().positive(), unitPrice: z.number().nonnegative() })).min(1) })).mutation(({ input, ctx }) => auditMutation(ctx, "ORDER_CREATED", "table_selection", undefined, () => createTableSelection({ ...input, mergeOpenOrder: false }))),
   }),
 });
 

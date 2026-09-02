@@ -1,0 +1,63 @@
+/* Menu Cliente — correções pontuais de fluxo, scroll e responsividade. */
+
+/* Enquanto qualquer etapa/modal do pedido estiver aberta, as barras flutuantes
+   deixam de existir visual e interativamente. Isto evita colisões entre
+   "Fazer Pedido", "Confirmar ao Garçom" e a confirmação final. */
+.menu-app-shell:has(.modal-backdrop) .selection-bar,
+.menu-app-shell:has(.modal-backdrop) .history-bar {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* O fundo não pode acompanhar o gesto enquanto um modal/recibo está aberto. */
+body:has(.modal-backdrop) {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
+.modal-backdrop {
+  overscroll-behavior: contain;
+  touch-action: none;
+}
+
+/* Apenas o painel aberto recebe o gesto vertical. */
+.modal-backdrop .detail-modal {
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+/* O recibo precisa continuar rolável mesmo quando tem vários pedidos. */
+.modal-backdrop .receipt-modal {
+  max-height: min(92vh, 900px);
+  overflow-y: auto !important;
+  overscroll-behavior-y: contain !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Área de toque segura no mobile; nunca comprimir botões entre si. */
+@media (max-width: 560px) {
+  .selection-footer-actions {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .selection-footer-actions > button,
+  .show-waiter {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .history-actions {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .history-actions > button {
+    width: 100%;
+    min-height: 44px;
+  }
+}
