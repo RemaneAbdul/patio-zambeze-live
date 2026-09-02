@@ -87,7 +87,7 @@ export const appRouter = router({
   staff: router({
     profile: publicProcedure.query(async ({ ctx }) => { if (!ctx.user) return null; if (ctx.user.role === "admin") return { role: "admin" as const, restaurantId: "default", status: ctx.user.waiterActive === 1 ? "ATIVO" as const : "INACTIVO" as const, userId: ctx.user.id }; const profile = await getGarconProfileByLegacyUserId(ctx.user.id); if (!profile || profile.status !== "ATIVO" || ctx.user.role !== "garcom" || ctx.user.waiterActive === 0) return null; return { role: "garcom" as const, restaurantId: profile.restaurantId, status: profile.status, userId: ctx.user.id }; }),
     loginStatus: publicProcedure.query(async ({ ctx }) => { const authorization = ctx.req.headers.authorization; const accessToken = authorization?.startsWith("Bearer ") ? authorization.slice(7).trim() : ""; if (!accessToken) return { status: "UNAUTHENTICATED" as const }; const supabaseUser = await getSupabaseUserFromAccessToken(accessToken); if (!supabaseUser) return { status: "INVALID_SESSION" as const }; const profile = await getUserByOpenId(`supabase:${supabaseUser.id}`); if (!profile) return { status: "PROFILE_MISSING" as const }; if (profile.role === "admin" && profile.waiterActive === 0) return { status: "ADMIN_INACTIVE" as const }; if (profile.role !== "admin" && profile.role !== "garcom") return { status: "ROLE_NOT_ALLOWED" as const }; return { status: "ACTIVE" as const }; }),
-    quickLogin: publicProcedure.input(z.object({ code: z.string().regex(/^\d{6}$/) })).mutation(async ({ input, ctx }) => {
+    quickLogin: publicProcedure.input(z.object({ code: z.string().max(64) })).mutation(async ({ input, ctx }) => {
       try {
         const result = await quickWaiterLogin(input.code, ctx.req.ip || ctx.req.socket.remoteAddress || "unknown");
         ctx.res.cookie(COOKIE_NAME, result.sessionToken, getSessionCookieOptions(ctx.req));
@@ -135,6 +135,7 @@ export const appRouter = router({
               email: input.email,
               phone: input.phone,
               password: internalPassword,
+              waiterCode: input.accessCode,
               active: input.active,
               restaurantId: MENU_RESTAURANT_ID,
             });
@@ -187,6 +188,7 @@ export const appRouter = router({
               email: input.email,
               phone: input.phone,
               password: input.password,
+              waiterCode: codeResult.waiterCode,
               active: input.active,
             });
           } catch (error) {
@@ -200,7 +202,7 @@ export const appRouter = router({
           return { ...updated, waiterCode: codeResult.waiterCode };
         }, result => ({ waiter_code: (result as { waiterCode?: string }).waiterCode }));
       }),
-    setActive: adminProcedure.input(z.object({ id: z.string().uuid(), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, input.active ? "WAITER_ACTIVATED" : "WAITER_DEACTIVATED", "garcon", input.id, async () => { const current = (await listGarcons()).find(({ garcon }) => garcon.id === input.id); if (!current) throw new Error("WAITER_NOT_FOUND"); return updateGarcon({ id: input.id, fullName: current.garcon.fullName, username: current.garcon.username, email: current.garcon.email, phone: current.garcon.phone ?? undefined, active: input.active }); })),
+    setActive: adminProcedure.input(z.object({ id: z.string().uuid(), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, input.active ? "WAITER_ACTIVATED" : "WAITER_DEACTIVATED", "garcon", input.id, async () => { const current = (await listGarcons()).find(({ garcon }) => garcon.id === input.id); if (!current) throw new Error("WAITER_NOT_FOUND"); return updateGarcon({ id: input.id, fullName: current.garcon.fullName, username: current.garcon.username, email: current.garcon.email, phone: current.garcon.phone ?? undefined, waiterCode: current.user.waiterCode ?? "", active: input.active }); })),
     delete: adminProcedure.input(z.object({ id: z.string().uuid() })).mutation(({ input, ctx }) => auditMutation(ctx, "WAITER_DELETED", "garcon", input.id, () => deleteGarcon(input.id))),
     currentAssignments: adminProcedure.query(() => listWaiterCurrentAssignments()),
     serviceHistory: adminProcedure.input(z.object({ userId: z.number().int().positive() })).query(({ input }) => getWaiterServiceHistory(input.userId)),

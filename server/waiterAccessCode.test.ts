@@ -14,10 +14,11 @@ describe("waiter access-code persistence contract", () => {
 
   it("persists waiterCode in users and verifies the exact database row", () => {
     expect(source).toContain(".update(users)");
-    expect(source).toContain(".set({ waiterCode: normalized");
+    expect(source).toContain(".set({");
+    expect(source).toContain("waiterCode: normalized");
     expect(source).toContain("eq(users.id, waiter.legacyUserId)");
     expect(source).toContain(".returning({ id: users.id, waiterCode: users.waiterCode })");
-    expect(source).toContain("persistence verification failed");
+    expect(source).toContain("post-UPDATE SELECT mismatch");
   });
 
   it("does not make Supabase Auth password synchronization a prerequisite for persistence", () => {

@@ -44,7 +44,6 @@ export default function WaiterLogin() {
   const loginStatusQuery = trpc.staff.loginStatus.useQuery(undefined, { enabled: false, retry: false });
   const quickLogin = trpc.staff.quickLogin.useMutation();
   const recordLogin = trpc.auth.recordLogin.useMutation();
-  const quickLogin = trpc.staff.quickLogin.useMutation();
 
   const submitCode = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -94,6 +93,7 @@ export default function WaiterLogin() {
       await supabase.auth.signOut();
       setError("Esta conta está desactivada. Contacte um administrador.");
       setLoading(false);
+      return;
     }
     const profileResult = await profileQuery.refetch();
     const profile = profileResult.data;

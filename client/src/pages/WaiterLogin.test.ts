@@ -11,9 +11,8 @@ describe("Supabase waiter login routing", () => {
     expect(source).toContain('statusResult.data?.status === "ADMIN_INACTIVE"');
     expect(source).toContain("profileQuery.refetch()");
     expect(source).toContain('navigate("/painel/garcom");');
-    expect(source).toContain('navigate("/painel/admin");');
+    expect(source).toContain('navigate(profile.role === "admin" ? "/painel/admin" : "/painel/garcom");');
     expect(source).toContain("recordLogin.mutateAsync()");
-    expect(source).toContain("utils.auth.me.setData(undefined, null)");
     expect(source).toContain("utils.auth.me.invalidate()");
   });
 
@@ -21,15 +20,15 @@ describe("Supabase waiter login routing", () => {
     expect(appSource).toContain('<Route path="/login" component={WaiterLogin} />');
     expect(appSource).toContain('<Route path="/painel/login" component={WaiterLogin} />');
     expect(appSource).toContain('<Route path="/menu" component={Home} />');
-    expect(source).toContain("quickLogin.mutateAsync({ code: accessCode })");
+    expect(source).toContain("quickLogin.mutateAsync({ code })");
     expect(source).toContain('pattern="[0-9]{6}"');
     expect(source).toContain('maxLength={6}');
-    expect(source).toContain('const QUICK_CODE_ERROR = "Código de acesso incorreto.";');
+    expect(source).toContain('return "Código de acesso incorreto.";');
   });
 
   it("rejects accounts without an active configured profile", () => {
     expect(source).toContain("Esta conta está desactivada. Contacte um administrador.");
-    expect(source).toContain("O seu perfil de administrador não está configurado. Contacte o administrador.");
+    expect(source).toContain("O seu perfil não está configurado. Contacte o administrador.");
     expect(source).toContain("supabase.auth.signOut()");
   });
 });

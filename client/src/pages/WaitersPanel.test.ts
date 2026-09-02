@@ -10,7 +10,7 @@ describe("admin waiter management", () => {
     expect(source).toContain("inputMode=\"numeric\"");
     expect(source).toContain("pattern=\"[0-9]{6}\"");
     expect(source).toContain("maxLength={6}");
-    expect(source).not.toContain("Palavra-passe<input required type=\"password\"");
+    expect(source).toContain("accessCodeField");
   });
 
   it("refreshes waiter data from the backend after a successful save", () => {
@@ -41,10 +41,11 @@ describe("admin waiter management", () => {
   });
 
   it("lets the administrator manage exactly six numeric access digits", () => {
-    expect(source).toContain("Código de acesso (6 dígitos)");
+    expect(source).toContain("Código de acesso");
+    expect(source).toContain("6 dígitos");
     expect(source).toContain('pattern="[0-9]{6}"');
     expect(source).toContain("maxLength={6}");
-    expect(source).toContain("waiterCode: form.waiterCode");
+    expect(source).toContain("accessCode: code");
     expect(source).not.toContain("Gerar novo código");
     expect(source).not.toContain("Regerar QR Code");
   });

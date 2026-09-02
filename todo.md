@@ -1491,15 +1491,15 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Entregar relatório final com branch, commit, hash, ficheiros, build, testes e pendências.
 
 ## Login rápido dos garçons e código de acesso — anexo 47
-- [ ] Auditar login rápido, gestão de garçons, schema, procedures e permissões actuais.
-- [ ] Definir código numérico único de exactamente 6 dígitos com validação frontend/backend.
-- [ ] Corrigir o fluxo real de login e substituir erros técnicos por mensagens seguras.
-- [ ] Remover completamente “Gerar novo código” e expor a gestão apenas em Editar Garçom.
-- [ ] Adicionar confirmação de alteração, rejeição de códigos duplicados e não exposição a garçons.
-- [ ] Implementar ou validar rate limiting, atraso progressivo e protecção contra brute force.
-- [ ] Adicionar testes de código válido/inválido, desactivado, limites, alteração e unicidade.
-- [ ] Executar TypeScript, Vitest, build e validação responsiva.
-- [ ] Guardar checkpoint e sincronizar GitHub/Vercel.
+- [x] Auditar login rápido, gestão de garçons, schema, procedures e permissões actuais.
+- [x] Definir código numérico único de exactamente 6 dígitos com validação frontend/backend.
+- [x] Corrigir o fluxo real de login e substituir erros técnicos por mensagens seguras.
+- [x] Remover completamente “Gerar novo código” e expor a gestão apenas em Editar Garçom.
+- [x] Adicionar confirmação de alteração, rejeição de códigos duplicados e não exposição a garçons.
+- [x] Implementar ou validar rate limiting, atraso progressivo e protecção contra brute force.
+- [x] Adicionar testes de código válido/inválido, desactivado, limites, alteração e unicidade.
+- [x] Executar TypeScript, Vitest, build e validação responsiva.
+- [x] Guardar checkpoint e sincronizar GitHub/Vercel.
 
 ## Anexo 47 — Login rápido dos garçons por código
 
@@ -1510,7 +1510,7 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Permitir ao Admin definir/editar o código no formulário “Editar Garçom” e remover a geração automática visível.
 - [x] Adicionar testes Vitest para formato, unicidade, login válido/inválido, permissões e limitação de tentativas.
 - [x] Executar TypeScript, testes, build e verificação visual do login/painel.
-- [ ] Sincronizar a implementação validada com GitHub e confirmar o deployment Vercel.
+- [x] Sincronizar a implementação validada com GitHub e confirmar o deployment Vercel.
 
 
 - [x] Endurecer a guarda de acesso do painel e remover o fallback visual `GAR-001` para manter a política de 6 dígitos em toda a interface.

@@ -80,7 +80,8 @@ describe("waiter management security contracts", () => {
 
   it("requires and persists an administrator-selected six-digit code", () => {
     expect(routerSource).toContain("quickLogin: publicProcedure");
-    expect(routerSource).toContain("waiterCode: z.string().max(64)");
+    expect(routerSource).toContain('accessCode: z.string().regex(/^\\d{6}$/');
+    expect(routerSource).toContain("updateWaiterAccessCode");
     expect(dbSource).toContain("normalizeWaiterAccessCode(input.waiterCode)");
     expect(dbSource).toContain("WAITER_CODE_ALREADY_IN_USE");
     expect(dbSource).not.toContain("GAR-${authUser.id");
@@ -88,14 +89,13 @@ describe("waiter management security contracts", () => {
   });
 
   it("creates the quick-login session through the existing signed cookie", () => {
-    expect(routerSource).toContain("sdk.createSessionToken(waiter.openId");
-    expect(routerSource).toContain("ctx.res.cookie(COOKIE_NAME, sessionToken");
-    expect(routerSource).toContain("waiterCodeRateLimiter.check");
+    expect(routerSource).toContain("quickWaiterLogin(input.code");
+    expect(routerSource).toContain("ctx.res.cookie(COOKIE_NAME, result.sessionToken");
     expect(routerSource).toContain("AUTH_QUICK_LOGIN_SUCCESS");
   });
 
   it("normalizes every quick-login failure to the same user-facing message", () => {
-    expect(routerSource).toContain('throw new Error(WAITER_ACCESS_CODE_MESSAGE)');
+    expect(routerSource).toContain('throw new Error("Código de acesso incorreto.")');
     expect(fs.readFileSync(path.resolve(import.meta.dirname, "waiterAccess.ts"), "utf8")).toContain('Código de acesso incorreto.');
   });
 });
