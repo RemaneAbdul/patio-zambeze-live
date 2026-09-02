@@ -1553,4 +1553,4 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Implementar apenas correcções necessárias, com testes de regressão e documentação das limitações não aplicáveis.
 - [x] Executar Vitest, TypeScript, build, auditoria de dependências e smoke tests controlados.
 - [x] Rever diff sem segredos, criar commit final e sincronizar GitHub/Vercel.
-- [ ] Activar manualmente `Leaked Password Protection` em Supabase Auth → Authentication → Password Security.
+- [x] Verificar `Leaked Password Protection` em Supabase Auth → Authentication → Attack Protection; a opção aparece indisponível no plano Free actual e permanece documentada como limitação de configuração.
