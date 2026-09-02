@@ -1523,3 +1523,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar regressões para não exposição server-side e client-side, mantendo login e permissões funcionais.
 - [x] Executar TypeScript, Vitest, build e validação responsiva.
 - [x] Criar commit final sem segredos e sincronizar GitHub/Vercel.
+
+## Anexo 49 — Correcção do logotipo REMA
+- [x] Auditar o activo actual do logotipo REMA e todas as referências no menu, painel, recibos e favicon.
+- [x] Corrigir a imagem ou a integração visual sem alterar funcionalidades não relacionadas.
+- [x] Garantir carregamento correcto, proporção, contraste, acessibilidade e fallback sem imagem quebrada.
+- [x] Adicionar regressão para a referência correcta do logotipo e validar a renderização responsiva.
+- [x] Executar TypeScript, Vitest e build de produção.
+- [x] Criar commit final, guardar checkpoint e sincronizar GitHub/Vercel.

@@ -1,4 +1,4 @@
-const REMA_LOGO_URL = "/manus-storage/rema-logo-transparent-clean_a9363c1f.png";
+const REMA_LOGO_URL = "/manus-storage/rema-logo-horizontal-transparent_cc992c4c.png";
 
 export default function REMAFooter() {
   return (

@@ -9,7 +9,7 @@ const styles = fs.readFileSync(path.resolve(import.meta.dirname, "../index.css")
 
 describe("REMA footer", () => {
   it("uses the supplied persistent icon and exact signature", () => {
-    expect(component).toContain("/manus-storage/rema-logo-transparent-clean_a9363c1f.png");
+    expect(component).toContain("/manus-storage/rema-logo-horizontal-transparent_cc992c4c.png");
     expect(component).toContain("Desenvolvido por REMA | Sistema de Gestão de Menu Digital");
     expect(component).toContain('alt="REMA"');
   });
