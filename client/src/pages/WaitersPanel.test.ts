@@ -33,4 +33,13 @@ describe("admin waiter management", () => {
     expect(source).toContain("O histórico será preservado");
     expect(source).toContain("deleteWaiter.mutate({ id: garcon.id })");
   });
+
+  it("lets the administrator manage exactly six numeric access digits", () => {
+    expect(source).toContain("Código de acesso (6 dígitos)");
+    expect(source).toContain('pattern="[0-9]{6}"');
+    expect(source).toContain("maxLength={6}");
+    expect(source).toContain("waiterCode: form.waiterCode");
+    expect(source).not.toContain("Gerar novo código");
+    expect(source).not.toContain("Regerar QR Code");
+  });
 });

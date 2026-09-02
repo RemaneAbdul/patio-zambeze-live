@@ -7,7 +7,9 @@ import { translateActiveMenu } from "./menuTranslation";
 import { randomUUID } from "node:crypto";
 import { storagePut } from "./storage";
 import { getSupabaseUserFromAccessToken } from "./supabaseAuth";
-import {   assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, updateMenuCategory, deleteMenuCategory, createMenuProduct, createTableSelection, getStaffTables, listWaiterUsers, recordAuditLog, setWaiterActive, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, getWaiterServiceHistory, listMenuCategories, listMenuProducts, listWaiterCandidates, listWaiterCurrentAssignments, promoteUserToWaiter,   listTableQrCodes, listViewedReceipts, listReceiptWaiterOptions, getViewedReceiptForStaff, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode, listGarcons, createGarcon, createAdminUser, updateAdminUser, setAdminActive, deleteAdminUser, updateGarcon, deleteGarcon, getGarconProfileByLegacyUserId, getUserByOpenId, getAdminById, listAdminUsers, getDailyStaffSummary, createManualTableSelection, MENU_RESTAURANT_ID } from "./db";
+import { sdk } from "./_core/sdk";
+import { normalizeWaiterAccessCode, waiterCodeRateLimiter, WAITER_ACCESS_CODE_MESSAGE } from "./waiterAccess";
+import {   assumeTableSession, closeTableSessionByStaff, releaseTableSessionByStaff, setTableSelectionStatus, createMenuCategory, updateMenuCategory, deleteMenuCategory, createMenuProduct, createTableSelection, getStaffTables, listWaiterUsers, recordAuditLog, setWaiterActive, getTableHistory, getTableHistoryForStaff, getTableSessionInfo, getWaiterServiceHistory, listMenuCategories, listMenuProducts, listWaiterCandidates, listWaiterCurrentAssignments, promoteUserToWaiter,   listTableQrCodes, listViewedReceipts, listReceiptWaiterOptions, getViewedReceiptForStaff, markTableViewedByStaff, removeTableSelectionItem, setMenuProductStatus, updateMenuProduct, upsertTableQrCode, listGarcons, createGarcon, createAdminUser, updateAdminUser, setAdminActive, deleteAdminUser, updateGarcon, deleteGarcon, getGarconProfileByLegacyUserId, getUserByOpenId, getActiveWaiterByAccessCode, getAdminById, listAdminUsers, getDailyStaffSummary, createManualTableSelection, MENU_RESTAURANT_ID } from "./db";
 
 const allowedMenuImageUrl = /^(https?:\/\/|\/|data:image\/(jpeg|jpg|png|webp|avif);base64,)/;
 export const menuImageUrlSchema = z.union([z.literal(""), z.string().max(8_000_000).refine((value) => allowedMenuImageUrl.test(value), "Formato de imagem inválido")]).optional();
@@ -30,6 +32,10 @@ async function auditMutation<T>(ctx: { user?: { id: number; role: string } | nul
   const waiterProfile = ctx.user?.role === "garcom" ? await getGarconProfileByLegacyUserId(ctx.user.id) : null;
   await recordAuditLog({ userId: ctx.user?.id ?? null, restaurantId: waiterProfile?.restaurantId ?? "default", role: ctx.user?.role ?? "customer", action, entityType, entityId, metadata: metadataFromResult?.(result) });
   return result;
+}
+
+function getWaiterCodeRateLimitKey(req: { ip?: string; socket?: { remoteAddress?: string | null } }) {
+  return `waiter-code:${req.ip || req.socket?.remoteAddress || "unknown"}`;
 }
 
 export const appRouter = router({
@@ -69,16 +75,36 @@ export const appRouter = router({
       if (profile.role !== "admin" && profile.role !== "garcom") return { status: "ROLE_NOT_ALLOWED" as const };
       return { status: "ACTIVE" as const };
     }),
+    quickLogin: publicProcedure.input(z.object({ code: z.string().max(64) })).mutation(async ({ input, ctx }) => {
+      const rateLimitKey = getWaiterCodeRateLimitKey(ctx.req);
+      const gate = waiterCodeRateLimiter.check(rateLimitKey);
+      if (!gate.allowed) throw new Error(WAITER_ACCESS_CODE_MESSAGE);
+      const code = normalizeWaiterAccessCode(input.code);
+      if (!code) {
+        waiterCodeRateLimiter.registerFailure(rateLimitKey);
+        throw new Error(WAITER_ACCESS_CODE_MESSAGE);
+      }
+      const waiter = await getActiveWaiterByAccessCode(code);
+      if (!waiter) {
+        waiterCodeRateLimiter.registerFailure(rateLimitKey);
+        throw new Error(WAITER_ACCESS_CODE_MESSAGE);
+      }
+      waiterCodeRateLimiter.reset(rateLimitKey);
+      const sessionToken = await sdk.createSessionToken(waiter.openId, { expiresInMs: 12 * 60 * 60 * 1000, name: waiter.name ?? "" });
+      ctx.res.cookie(COOKIE_NAME, sessionToken, { ...getSessionCookieOptions(ctx.req), maxAge: 12 * 60 * 60 * 1000 });
+      await recordAuditLog({ userId: waiter.id, role: "garcom", action: "AUTH_QUICK_LOGIN_SUCCESS", entityType: "auth_session", entityId: waiter.openId });
+      return { success: true as const, role: "garcom" as const };
+    }),
     list: adminProcedure.query(() => listGarcons()),
     admins: adminProcedure.query(() => listAdminUsers()),
     candidates: adminProcedure.query(() => []),
-    add: adminProcedure.input(z.object({ fullName: z.string().trim().min(1).max(160), username: z.string().trim().min(3).max(64).regex(/^[a-z0-9._-]+$/), email: z.string().email().max(320), phone: z.string().max(32).optional(), password: z.string().min(6).max(128), active: z.boolean().default(true) })).mutation(({ input, ctx }) => auditMutation(ctx, "WAITER_CREATED", "garcon", undefined, () => createGarcon({ ...input, restaurantId: MENU_RESTAURANT_ID }))),
+    add: adminProcedure.input(z.object({ fullName: z.string().trim().min(1).max(160), username: z.string().trim().min(3).max(64).regex(/^[a-z0-9._-]+$/), email: z.string().email().max(320), phone: z.string().max(32).optional(), password: z.string().min(6).max(128), waiterCode: z.string().max(64), active: z.boolean().default(true) })).mutation(({ input, ctx }) => auditMutation(ctx, "WAITER_CREATED", "garcon", undefined, () => createGarcon({ ...input, restaurantId: MENU_RESTAURANT_ID }))),
     createAdmin: adminProcedure.input(z.object({ fullName: z.string().trim().min(1).max(160), email: z.string().email().max(320), password: z.string().min(6).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "CREATE_ADMIN", "admin", undefined, () => createAdminUser(input), (result) => ({ affectedUserId: result.id }))),
     updateAdmin: adminProcedure.input(z.object({ id: z.number().int().positive(), fullName: z.string().trim().min(1).max(160), email: z.string().email().max(320), password: z.string().min(8).max(128).optional() })).mutation(({ input, ctx }) => auditMutation(ctx, "UPDATE_ADMIN", "admin", input.id, () => updateAdminUser(input), (result) => ({ affectedUserId: result.id }))),
     setAdminActive: adminProcedure.input(z.object({ id: z.number().int().positive(), active: z.boolean() })).mutation(async ({ input, ctx }) => { const target = await getAdminById(input.id); const sameIdentity = input.id === ctx.user.id || (!!ctx.user.email && target.admin.email?.toLowerCase() === ctx.user.email.toLowerCase()); if (sameIdentity && !input.active) throw new Error("ADMIN_CANNOT_DEACTIVATE_SELF"); return auditMutation(ctx, input.active ? "ACTIVATE_ADMIN" : "DEACTIVATE_ADMIN", "admin", input.id, () => setAdminActive(input.id, input.active), (result) => ({ affectedUserId: result.id })); }),
     deleteAdmin: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input, ctx }) => { const target = await getAdminById(input.id); const sameIdentity = input.id === ctx.user.id || (!!ctx.user.email && target.admin.email?.toLowerCase() === ctx.user.email.toLowerCase()); if (sameIdentity) throw new Error("ADMIN_CANNOT_DELETE_SELF"); return auditMutation(ctx, "DELETE_ADMIN", "admin", input.id, () => deleteAdminUser(input.id), (result) => ({ affectedUserId: result.id })); }),
-    update: adminProcedure.input(z.object({ id: z.string().uuid(), fullName: z.string().trim().min(1).max(160), username: z.string().trim().min(3).max(64).regex(/^[a-z0-9._-]+$/), email: z.string().email().max(320), phone: z.string().max(32).optional(), password: z.string().min(6).max(128).optional(), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, "WAITER_UPDATED", "garcon", input.id, () => updateGarcon(input))),
-    setActive: adminProcedure.input(z.object({ id: z.string().uuid(), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, input.active ? "WAITER_ACTIVATED" : "WAITER_DEACTIVATED", "garcon", input.id, async () => { const current = (await listGarcons()).find(({ garcon }) => garcon.id === input.id); if (!current) throw new Error("WAITER_NOT_FOUND"); return updateGarcon({ id: input.id, fullName: current.garcon.fullName, username: current.garcon.username, email: current.garcon.email, phone: current.garcon.phone ?? undefined, active: input.active }); })),
+    update: adminProcedure.input(z.object({ id: z.string().uuid(), fullName: z.string().trim().min(1).max(160), username: z.string().trim().min(3).max(64).regex(/^[a-z0-9._-]+$/), email: z.string().email().max(320), phone: z.string().max(32).optional(), password: z.string().min(6).max(128).optional(), waiterCode: z.string().max(64), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, "WAITER_UPDATED", "garcon", input.id, () => updateGarcon(input))),
+    setActive: adminProcedure.input(z.object({ id: z.string().uuid(), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, input.active ? "WAITER_ACTIVATED" : "WAITER_DEACTIVATED", "garcon", input.id, async () => { const current = (await listGarcons()).find(({ garcon }) => garcon.id === input.id); if (!current) throw new Error("WAITER_NOT_FOUND"); return updateGarcon({ id: input.id, fullName: current.garcon.fullName, username: current.garcon.username, email: current.garcon.email, phone: current.garcon.phone ?? undefined, waiterCode: current.user.waiterCode ?? "", active: input.active }); })),
     delete: adminProcedure.input(z.object({ id: z.string().uuid() })).mutation(({ input, ctx }) => auditMutation(ctx, "WAITER_DELETED", "garcon", input.id, () => deleteGarcon(input.id))),
     currentAssignments: adminProcedure.query(() => listWaiterCurrentAssignments()),
     serviceHistory: adminProcedure.input(z.object({ userId: z.number().int().positive() })).query(({ input }) => getWaiterServiceHistory(input.userId)),

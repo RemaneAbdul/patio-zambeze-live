@@ -8,14 +8,16 @@ describe("role access matrix", () => {
   });
 
   it("recognises an active waiter", () => {
-    expect(isWaiterRole("waiter", "GAR-001")).toBe(true);
-    expect(canUseWaiterPanel("waiter", "GAR-001", 1)).toBe(true);
-    expect(canUseWaiterPanel("user", "GAR-001", 1)).toBe(true);
+    expect(isWaiterRole("waiter", "123456")).toBe(true);
+    expect(canUseWaiterPanel("waiter", "123456", 1)).toBe(true);
+    expect(canUseWaiterPanel("user", "123456", 1)).toBe(true);
   });
 
   it("blocks disabled or ordinary accounts", () => {
-    expect(canUseWaiterPanel("waiter", "GAR-001", 0)).toBe(false);
+    expect(canUseWaiterPanel("waiter", "123456", 0)).toBe(false);
+    expect(canUseWaiterPanel("garcom", "GAR-001", 1)).toBe(false);
     expect(canUseWaiterPanel("user", null, 1)).toBe(false);
     expect(canUseWaiterPanel(undefined, undefined, undefined)).toBe(false);
+    expect(isWaiterRole("garcom", "12345")).toBe(false);
   });
 });

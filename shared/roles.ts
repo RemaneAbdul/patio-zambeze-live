@@ -4,8 +4,10 @@ export function isAdminRole(role: string | null | undefined) {
   return role === "admin";
 }
 
+const WAITER_ACCESS_CODE_PATTERN = /^\d{6}$/;
+
 export function isWaiterRole(role: string | null | undefined, waiterCode?: string | null) {
-  return role === "waiter" || role === "garcom" || (role === "user" && Boolean(waiterCode));
+  return (role === "waiter" || role === "garcom" || role === "user") && WAITER_ACCESS_CODE_PATTERN.test(waiterCode ?? "");
 }
 
 export function isStaffRole(role: string | null | undefined, waiterCode?: string | null) {

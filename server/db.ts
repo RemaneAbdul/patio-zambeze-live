@@ -5,6 +5,8 @@ import { InsertUser, users, auditLogs, garcons } from "../drizzle/schema";
 import * as schema from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { createSupabaseAdminUser, createSupabaseWaiter, deleteSupabaseUser, deleteSupabaseWaiter, disableSupabaseWaiter, enableSupabaseWaiter, updateSupabaseAdmin, updateSupabaseWaiter } from './supabaseAuth';
+import { normalizeWaiterAccessCode } from './waiterAccess';
+import { randomInt } from 'node:crypto';
 
 let _db: NodePgDatabase<typeof schema> | null = null;
 let _pool: Pool | null = null;
@@ -69,12 +71,6 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     } else if (user.openId === ENV.ownerOpenId) {
       values.role = 'admin';
       updateSet.role = 'admin';
-    }
-
-    if ((values.role === 'admin' || user.openId === ENV.ownerOpenId) && !user.waiterCode) {
-      const generatedWaiterCode = `GAR-${user.openId.slice(-6).toUpperCase()}`;
-      values.waiterCode = generatedWaiterCode;
-      updateSet.waiterCode = generatedWaiterCode;
     }
 
     if (!values.lastSignedIn) {
@@ -170,20 +166,23 @@ export async function listReceiptWaiterOptions() {
   return waiterRows.map((waiter) => ({ ...waiter, active: waiter.waiterActive === 1, hasReceiptHistory: historicalIds.includes(waiter.id) }));
 }
 
-export async function createGarcon(input: { fullName: string; username: string; email: string; phone?: string; password: string; active: boolean; restaurantId?: string }) {
+export async function createGarcon(input: { fullName: string; username: string; email: string; phone?: string; password: string; waiterCode: string; active: boolean; restaurantId?: string }) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const fullName = input.fullName.trim();
   const username = input.username.trim().toLowerCase();
   const email = input.email.trim().toLowerCase();
+  const waiterCode = normalizeWaiterAccessCode(input.waiterCode);
   if (!fullName || !username || !email || !input.password) throw new Error("WAITER_REQUIRED_FIELDS");
+  if (!waiterCode) throw new Error("WAITER_CODE_INVALID");
   if (input.password.length < 6) throw new Error("WAITER_PASSWORD_TOO_SHORT");
+  const [codeOwner] = await db.select({ id: users.id }).from(users).where(eq(users.waiterCode, waiterCode)).limit(1);
+  if (codeOwner) throw new Error("WAITER_CODE_ALREADY_IN_USE");
   const authUser = await createSupabaseWaiter({ email, password: input.password, fullName, phone: input.phone });
   let legacyUserId: number | undefined;
   let createdGarconId: string | undefined;
   try {
     const openId = `supabase:${authUser.id}`;
-    const waiterCode = `GAR-${authUser.id.replace(/-/g, "").slice(-6).toUpperCase()}`;
     const [legacyUser] = await db.insert(users).values({ openId, name: fullName, email, loginMethod: "supabase", role: "garcom", waiterCode, waiterActive: input.active ? 1 : 0 }).onConflictDoNothing({ target: users.openId }).returning();
     if (!legacyUser) throw new Error("WAITER_EMAIL_OR_USER_ALREADY_EXISTS");
     legacyUserId = legacyUser.id;
@@ -221,15 +220,19 @@ export async function createAdminUser(input: { fullName: string; email: string; 
   }
 }
 
-export async function updateGarcon(input: { id: string; fullName: string; username: string; email: string; phone?: string; active: boolean; password?: string }) {
+export async function updateGarcon(input: { id: string; fullName: string; username: string; email: string; phone?: string; password?: string; waiterCode: string; active: boolean }) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   const [current] = await db.select().from(garcons).where(eq(garcons.id, input.id)).limit(1);
   if (!current) throw new Error("WAITER_NOT_FOUND");
+  const waiterCode = normalizeWaiterAccessCode(input.waiterCode);
+  if (!waiterCode) throw new Error("WAITER_CODE_INVALID");
+  const [codeOwner] = await db.select({ id: users.id }).from(users).where(and(eq(users.waiterCode, waiterCode), sql`${users.id} <> ${current.legacyUserId}`)).limit(1);
+  if (codeOwner) throw new Error("WAITER_CODE_ALREADY_IN_USE");
   await updateSupabaseWaiter({ authUserId: current.authUserId, email: input.email.trim().toLowerCase(), password: input.password, fullName: input.fullName.trim(), phone: input.phone });
   if (input.active) await enableSupabaseWaiter(current.authUserId); else await disableSupabaseWaiter(current.authUserId);
   const [updated] = await db.update(garcons).set({ fullName: input.fullName.trim(), username: input.username.trim().toLowerCase(), email: input.email.trim().toLowerCase(), phone: input.phone ?? null, status: input.active ? "ATIVO" : "INATIVO", disabledAt: input.active ? null : (current.disabledAt ?? new Date()), updatedAt: new Date() }).where(eq(garcons.id, input.id)).returning();
-  await db.update(users).set({ name: input.fullName.trim(), email: input.email.trim().toLowerCase(), waiterActive: input.active ? 1 : 0, updatedAt: new Date() }).where(eq(users.id, current.legacyUserId));
+  await db.update(users).set({ name: input.fullName.trim(), email: input.email.trim().toLowerCase(), waiterCode, waiterActive: input.active ? 1 : 0, updatedAt: new Date() }).where(eq(users.id, current.legacyUserId));
   return updated;
 }
 
@@ -264,7 +267,13 @@ export async function promoteUserToWaiter(userId: number) {
   const [existing] = await db.select({ id: users.id, openId: users.openId, role: users.role, name: users.name, email: users.email }).from(users).where(eq(users.id, userId)).limit(1);
   if (!existing) throw new Error("USER_NOT_FOUND");
   if (existing.role === "admin") throw new Error("ADMIN_CANNOT_BE_WAITER");
-  const waiterCode = `GAR-${existing.openId.slice(-6).toUpperCase()}`;
+  let waiterCode = "";
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const candidate = String(randomInt(0, 1_000_000)).padStart(6, "0");
+    const [codeOwner] = await db.select({ id: users.id }).from(users).where(eq(users.waiterCode, candidate)).limit(1);
+    if (!codeOwner) { waiterCode = candidate; break; }
+  }
+  if (!waiterCode) throw new Error("WAITER_CODE_GENERATION_FAILED");
   const [updated] = await db.update(users).set({ role: "garcom", waiterCode, waiterActive: 1, updatedAt: new Date() }).where(eq(users.id, userId)).returning({ id: users.id, name: users.name, email: users.email, role: users.role, waiterCode: users.waiterCode, waiterActive: users.waiterActive });
   if (!updated) throw new Error("WAITER_NOT_CREATED");
   return updated;
@@ -419,6 +428,19 @@ export async function getUserByOpenId(openId: string) {
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getActiveWaiterByAccessCode(code: string) {
+  const normalizedCode = normalizeWaiterAccessCode(code);
+  if (!normalizedCode) return undefined;
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const [waiter] = await db.select().from(users).where(and(
+    eq(users.waiterCode, normalizedCode),
+    eq(users.role, "garcom"),
+    eq(users.waiterActive, 1),
+  )).limit(1);
+  return waiter;
 }
 
 // TODO: add feature queries here as your schema grows.

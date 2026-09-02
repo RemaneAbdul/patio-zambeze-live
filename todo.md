@@ -1489,3 +1489,28 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Enviar a branch actual para GitHub sem force push.
 - [x] Confirmar hash remoto e working tree limpa; Vercel verificado com divergência documentada: o projecto existente está ligado a `RemaneAbdul/patio-zambeze-menu`, não a `RemaneAbdul/patio-zambeze-live`, e os deployments listados estão BLOCKED.
 - [x] Entregar relatório final com branch, commit, hash, ficheiros, build, testes e pendências.
+
+## Login rápido dos garçons e código de acesso — anexo 47
+- [ ] Auditar login rápido, gestão de garçons, schema, procedures e permissões actuais.
+- [ ] Definir código numérico único de exactamente 6 dígitos com validação frontend/backend.
+- [ ] Corrigir o fluxo real de login e substituir erros técnicos por mensagens seguras.
+- [ ] Remover completamente “Gerar novo código” e expor a gestão apenas em Editar Garçom.
+- [ ] Adicionar confirmação de alteração, rejeição de códigos duplicados e não exposição a garçons.
+- [ ] Implementar ou validar rate limiting, atraso progressivo e protecção contra brute force.
+- [ ] Adicionar testes de código válido/inválido, desactivado, limites, alteração e unicidade.
+- [ ] Executar TypeScript, Vitest, build e validação responsiva.
+- [ ] Guardar checkpoint e sincronizar GitHub/Vercel.
+
+## Anexo 47 — Login rápido dos garçons por código
+
+- [x] Auditar `waiterCode` no schema, helpers, routers e componentes de login/gestão.
+- [x] Persistir códigos de acesso de exactamente 6 dígitos numéricos, com unicidade e validação no backend.
+- [x] Implementar procedimento público de login rápido que devolva sessão de painel válida sem expor palavras-passe.
+- [x] Substituir erros técnicos de login por “Código de acesso incorreto.” e aplicar protecção contra brute force.
+- [x] Permitir ao Admin definir/editar o código no formulário “Editar Garçom” e remover a geração automática visível.
+- [x] Adicionar testes Vitest para formato, unicidade, login válido/inválido, permissões e limitação de tentativas.
+- [x] Executar TypeScript, testes, build e verificação visual do login/painel.
+- [ ] Sincronizar a implementação validada com GitHub e confirmar o deployment Vercel.
+
+
+- [x] Endurecer a guarda de acesso do painel e remover o fallback visual `GAR-001` para manter a política de 6 dígitos em toda a interface.
