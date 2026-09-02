@@ -150,12 +150,12 @@ export const appRouter = router({
 
           try {
             const codeResult = await updateWaiterAccessCode({ waiterId: created.id, code: input.accessCode });
-            return { ...created, waiterCode: codeResult.waiterCode };
+            return { id: created.id, fullName: created.fullName, username: created.username, email: created.email, active: created.status === "ATIVO", updated: true as const };
           } catch (error) {
             try { await deleteGarcon(created.id); } catch {}
             mapWaiterPersistError(error);
           }
-        }, result => ({ waiter_code: (result as { waiterCode?: string }).waiterCode }));
+        }, () => undefined);
       }),
     createAdmin: adminProcedure.input(z.object({ fullName: z.string().trim().min(1).max(160), email: z.string().email().max(320), password: z.string().min(6).max(128) })).mutation(({ input, ctx }) => auditMutation(ctx, "CREATE_ADMIN", "admin", undefined, () => createAdminUser(input), result => ({ affectedUserId: result.id }))),
     updateAdmin: adminProcedure.input(z.object({ id: z.number().int().positive(), fullName: z.string().trim().min(1).max(160), email: z.string().email().max(320), password: z.string().min(8).max(128).optional() })).mutation(({ input, ctx }) => auditMutation(ctx, "UPDATE_ADMIN", "admin", input.id, () => updateAdminUser(input), result => ({ affectedUserId: result.id }))),
@@ -204,8 +204,8 @@ export const appRouter = router({
             mapWaiterPersistError(error);
           }
 
-          return { ...updated, waiterCode: codeResult.waiterCode };
-        }, result => ({ waiter_code: (result as { waiterCode?: string }).waiterCode }));
+          return updated;
+        }, () => undefined);
       }),
     setActive: adminProcedure.input(z.object({ id: z.string().uuid(), active: z.boolean() })).mutation(({ input, ctx }) => auditMutation(ctx, input.active ? "WAITER_ACTIVATED" : "WAITER_DEACTIVATED", "garcon", input.id, async () => { const current = (await listGarcons()).find(({ garcon }) => garcon.id === input.id); if (!current) throw new Error("WAITER_NOT_FOUND"); return updateGarcon({ id: input.id, fullName: current.garcon.fullName, username: current.garcon.username, email: current.garcon.email, phone: current.garcon.phone ?? undefined, waiterCode: current.user.waiterCode ?? "", active: input.active }); })),
     delete: adminProcedure.input(z.object({ id: z.string().uuid() })).mutation(({ input, ctx }) => auditMutation(ctx, "WAITER_DELETED", "garcon", input.id, () => deleteGarcon(input.id))),
@@ -247,7 +247,7 @@ export const appRouter = router({
     staffLookup: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).query(({ input, ctx }) => getTableHistoryForStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
     staffIdentity: staffProcedure.query(({ ctx }) => ({ id: ctx.user.id, name: ctx.user.name, email: ctx.user.email, active: Boolean(ctx.user.waiterActive) })),
     createManualOrder: staffProcedure.input(z.object({ tableId: z.string().trim().min(1).max(128), notes: z.string().trim().max(1000).optional(), items: z.array(z.object({ productId: z.number().int().positive(), quantity: z.number().int().positive().max(100) })).min(1).max(100) })).mutation(({ input, ctx }) => auditMutation(ctx, "CREATE_MANUAL_ORDER", "table_selection", undefined, () => createManualTableSelection({ ...input, waiterId: ctx.user.id }), result => ({ waiter_id: result.waiterId, table_id: result.tableNumber, selection_id: result.id }))),
-    addSelection: publicProcedure.input(z.object({ sessionToken: z.string().min(32).max(128), tableNumber: z.string().min(1).max(64).default("01"), tableId: z.string().min(1).max(128).optional(), subtotal: z.number().nonnegative(), notes: z.string().trim().max(1000).optional(), items: z.array(z.object({ productId: z.number().int().positive().optional(), productName: z.string().min(1).max(160), preparation: z.string().max(1000).optional(), quantity: z.number().int().positive(), unitPrice: z.number().nonnegative() })).min(1) })).mutation(({ input, ctx }) => auditMutation(ctx, "ORDER_CREATED", "table_selection", undefined, () => createTableSelection({ ...input, mergeOpenOrder: false }))),
+    addSelection: publicProcedure.input(z.object({ sessionToken: z.string().min(32).max(128), tableNumber: z.string().min(1).max(64).default("01"), tableId: z.string().min(1).max(128).optional(), notes: z.string().trim().max(1000).optional(), items: z.array(z.object({ productId: z.number().int().positive(), quantity: z.number().int().positive().max(100) })).min(1).max(100) })).mutation(({ input, ctx }) => auditMutation(ctx, "ORDER_CREATED", "table_selection", undefined, () => createTableSelection({ sessionToken: input.sessionToken, tableNumber: input.tableNumber, tableId: input.tableId, notes: input.notes, subtotal: 0, items: input.items.map((item) => ({ productId: item.productId, productName: "", quantity: item.quantity, unitPrice: 0 })), mergeOpenOrder: false }))),
   }),
 });
 

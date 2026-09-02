@@ -1541,3 +1541,16 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar regressões para permissões, estados, auditoria, remoção por item e actualização dos recibos.
 - [x] Executar TypeScript, Vitest, build e validação visual.
 - [x] Criar checkpoint, commit final e sincronizar GitHub/Vercel.
+
+## Anexo 50 — Auditoria e reforço completo de segurança
+- [x] Ler e mapear todo o Anexo 50, separando riscos reais de recomendações já implementadas.
+- [x] Auditar segredos no código, artefactos, Git, branches, tags, logs e configuração; confirmar `.gitignore` e `.env.example` sem valores reais.
+- [x] Auditar exposição de Service Role Key, credenciais, códigos de garçom, mensagens técnicas e dados sensíveis no cliente/API.
+- [x] Auditar RLS, políticas permissivas, funções SECURITY DEFINER e ligação efectiva ao Supabase sem apagar dados.
+- [x] Auditar autorização server-side por função, mass assignment, escopo de restaurante/mesa e acesso a recibos/históricos.
+- [x] Auditar queries parametrizadas, validação de inputs, cookies, sessões, CSRF/XSS, uploads, CORS, headers e dependências.
+- [x] Auditar rate limiting, protecção do login por código, pedidos públicos, recuperação de sessão e endpoints administrativos.
+- [x] Implementar apenas correcções necessárias, com testes de regressão e documentação das limitações não aplicáveis.
+- [x] Executar Vitest, TypeScript, build, auditoria de dependências e smoke tests controlados.
+- [x] Rever diff sem segredos, criar commit final e sincronizar GitHub/Vercel.
+- [ ] Activar manualmente `Leaked Password Protection` em Supabase Auth → Authentication → Password Security.
