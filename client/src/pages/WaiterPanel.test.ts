@@ -33,7 +33,7 @@ describe("special instructions visibility", () => {
   it("shows the persisted order note to authorized staff without changing the receipt flow", () => {
     expect(source).toContain('selection.notes && <p className="waiter-selection-notes"><strong>Nota:</strong> {selection.notes}</p>');
     expect(source).toContain("notes: selection.notes");
-    expect(source).toContain("canUseWaiterPanel(user?.role, user?.waiterCode, user?.waiterActive)");
+    expect(source).toContain("canUseStaffShell(user?.role, user?.waiterActive)");
   });
 });
 

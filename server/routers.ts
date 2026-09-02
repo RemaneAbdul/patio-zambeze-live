@@ -78,7 +78,12 @@ function getWaiterCodeRateLimitKey(req: { ip?: string; socket?: { remoteAddress?
 export const appRouter = router({
   system: systemRouter,
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    me: publicProcedure.query(opts => {
+      const user = opts.ctx.user;
+      if (!user) return null;
+      const { waiterCode: _hiddenWaiterCode, ...safeUser } = user;
+      return safeUser;
+    }),
     recordLogin: protectedProcedure.mutation(({ ctx }) => recordAuditLog({ userId: ctx.user.id, role: ctx.user.role, action: "AUTH_LOGIN_SUCCESS", entityType: "auth_session", entityId: ctx.user.openId }).then(() => ({ success: true as const }))),
     recordPasswordChange: protectedProcedure.mutation(({ ctx }) => recordAuditLog({ userId: ctx.user.id, role: ctx.user.role, action: "AUTH_PASSWORD_CHANGED", entityType: "auth_user", entityId: ctx.user.openId }).then(() => ({ success: true as const }))),
     logout: publicProcedure.mutation(async ({ ctx }) => { if (ctx.user) await recordAuditLog({ userId: ctx.user.id, role: ctx.user.role, action: "AUTH_LOGOUT", entityType: "auth_session", entityId: ctx.user.openId }); const cookieOptions = getSessionCookieOptions(ctx.req); ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 }); return { success: true } as const; }),
@@ -240,7 +245,7 @@ export const appRouter = router({
     updateSelectionStatus: staffProcedure.input(z.object({ selectionId: z.number().int().positive(), status: selectionStatusSchema })).mutation(({ input, ctx }) => auditMutation(ctx, "RECEIPT_STATUS_CHANGE", "table_selection", input.selectionId, () => setTableSelectionStatus(input.selectionId, input.status, ctx.user.id, ctx.user.role === "admin"))),
     removeSelectionItem: staffProcedure.input(z.object({ itemId: z.number().int().positive() })).mutation(({ input, ctx }) => auditMutation(ctx, "RECEIPT_EDIT", "table_selection_item", input.itemId, () => removeTableSelectionItem(input.itemId, ctx.user.id, ctx.user.role === "admin"))),
     staffLookup: staffProcedure.input(z.object({ sessionToken: z.string().min(32).max(128) })).query(({ input, ctx }) => getTableHistoryForStaff(input.sessionToken, ctx.user.id, ctx.user.role === "admin")),
-    staffIdentity: staffProcedure.query(({ ctx }) => ({ id: ctx.user.id, name: ctx.user.name, email: ctx.user.email, waiterCode: ctx.user.waiterCode ?? null, active: Boolean(ctx.user.waiterActive) })),
+    staffIdentity: staffProcedure.query(({ ctx }) => ({ id: ctx.user.id, name: ctx.user.name, email: ctx.user.email, active: Boolean(ctx.user.waiterActive) })),
     createManualOrder: staffProcedure.input(z.object({ tableId: z.string().trim().min(1).max(128), notes: z.string().trim().max(1000).optional(), items: z.array(z.object({ productId: z.number().int().positive(), quantity: z.number().int().positive().max(100) })).min(1).max(100) })).mutation(({ input, ctx }) => auditMutation(ctx, "CREATE_MANUAL_ORDER", "table_selection", undefined, () => createManualTableSelection({ ...input, waiterId: ctx.user.id }), result => ({ waiter_id: result.waiterId, table_id: result.tableNumber, selection_id: result.id }))),
     addSelection: publicProcedure.input(z.object({ sessionToken: z.string().min(32).max(128), tableNumber: z.string().min(1).max(64).default("01"), tableId: z.string().min(1).max(128).optional(), subtotal: z.number().nonnegative(), notes: z.string().trim().max(1000).optional(), items: z.array(z.object({ productId: z.number().int().positive().optional(), productName: z.string().min(1).max(160), preparation: z.string().max(1000).optional(), quantity: z.number().int().positive(), unitPrice: z.number().nonnegative() })).min(1) })).mutation(({ input, ctx }) => auditMutation(ctx, "ORDER_CREATED", "table_selection", undefined, () => createTableSelection({ ...input, mergeOpenOrder: false }))),
   }),

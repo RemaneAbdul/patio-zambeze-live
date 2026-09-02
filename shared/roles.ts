@@ -17,3 +17,10 @@ export function isStaffRole(role: string | null | undefined, waiterCode?: string
 export function canUseWaiterPanel(role: string | null | undefined, waiterCode?: string | null, waiterActive?: number | null) {
   return isAdminRole(role) || (isWaiterRole(role, waiterCode) && waiterActive !== 0);
 }
+
+// Client shell guard: the access code is a login credential and must not be
+// required or exposed after authentication. Server procedures remain the
+// authoritative authorization boundary.
+export function canUseStaffShell(role: string | null | undefined, waiterActive?: number | null) {
+  return isAdminRole(role) || (role === "garcom" && waiterActive !== 0);
+}

@@ -24,7 +24,7 @@ import { LayoutDashboard, LogOut, PanelLeft, Printer, QrCode, Settings, Table2, 
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
-import { canUseWaiterPanel, isAdminRole } from "@shared/roles";
+import { canUseStaffShell, isAdminRole } from "@shared/roles";
 import { Button } from "./ui/button";
 import REMAFooter from "./REMAFooter";
 
@@ -79,7 +79,7 @@ export default function DashboardLayout({
     );
   }
 
-  if (!canUseWaiterPanel(user.role, user.waiterCode, user.waiterActive)) {
+  if (!canUseStaffShell(user.role, user.waiterActive)) {
     return (
       <div className="flex items-center justify-center min-h-screen p-6">
         <div className="waiter-alert max-w-lg text-center" role="alert">
@@ -279,7 +279,7 @@ function DashboardLayoutContent({
             </div>
           </div>
         )}
-        <header className="internal-topbar"><div className="internal-brand"><div className="internal-brand-mark">🍴</div><div><strong>Pátio Zambeze</strong><span>Painel do Restaurante</span></div></div><div className="internal-topbar-actions"><div className="internal-language-switch" role="group" aria-label="Idioma do painel"><button type="button" className={panelLanguage === "PT" ? "active" : ""} onClick={() => setPanelLanguage("PT")}>PT</button><span>|</span><button type="button" className={panelLanguage === "EN" ? "active" : ""} onClick={() => setPanelLanguage("EN")}>EN</button></div><button className="internal-notification" type="button" aria-label="Notificações">♧<b>3</b></button><div className="internal-user"><div className="internal-user-avatar">{user?.name?.charAt(0).toUpperCase()}</div><div><strong>{user?.name || "João"}</strong><span>{/^\d{6}$/.test(user?.waiterCode ?? "") ? user?.waiterCode : "Acesso interno"}</span></div><span>⌄</span></div></div></header>        <main className="flex-1 p-4">{isAdminOnlyRoute && !isAdmin ? <div className="waiter-shell"><div className="waiter-alert" role="alert">403 — Acesso não autorizado. Esta área é exclusiva do administrador.</div></div> : children}</main><REMAFooter />
+        <header className="internal-topbar"><div className="internal-brand"><div className="internal-brand-mark">🍴</div><div><strong>Pátio Zambeze</strong><span>Painel do Restaurante</span></div></div><div className="internal-topbar-actions"><div className="internal-language-switch" role="group" aria-label="Idioma do painel"><button type="button" className={panelLanguage === "PT" ? "active" : ""} onClick={() => setPanelLanguage("PT")}>PT</button><span>|</span><button type="button" className={panelLanguage === "EN" ? "active" : ""} onClick={() => setPanelLanguage("EN")}>EN</button></div><button className="internal-notification" type="button" aria-label="Notificações">♧<b>3</b></button><div className="internal-user"><div className="internal-user-avatar">{user?.name?.charAt(0).toUpperCase()}</div><div><strong>{user?.name || "João"}</strong><span>Acesso interno</span></div><span>⌄</span></div></div></header>        <main className="flex-1 p-4">{isAdminOnlyRoute && !isAdmin ? <div className="waiter-shell"><div className="waiter-alert" role="alert">403 — Acesso não autorizado. Esta área é exclusiva do administrador.</div></div> : children}</main><REMAFooter />
       </SidebarInset>
     </>
   );

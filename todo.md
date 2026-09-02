@@ -1514,3 +1514,12 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 
 - [x] Endurecer a guarda de acesso do painel e remover o fallback visual `GAR-001` para manter a política de 6 dígitos em toda a interface.
+
+## Anexo 48 — Ocultar código de acesso do garçom
+- [x] Auditar todas as respostas, telas, logs e testes que possam expor `waiterCode`.
+- [x] Remover o código das respostas de perfil, dashboard, mesas, pedidos, recibos e autenticação do garçom.
+- [x] Remover código completo, parcial, placeholders e mensagens de login da interface do garçom.
+- [x] Preservar a gestão do código exclusivamente no Admin ao criar/editar garçons.
+- [x] Adicionar regressões para não exposição server-side e client-side, mantendo login e permissões funcionais.
+- [x] Executar TypeScript, Vitest, build e validação responsiva.
+- [x] Criar commit final sem segredos e sincronizar GitHub/Vercel.

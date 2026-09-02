@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canUseWaiterPanel, isAdminRole, isWaiterRole } from "./roles";
+import { canUseStaffShell, canUseWaiterPanel, isAdminRole, isWaiterRole } from "./roles";
 
 describe("role access matrix", () => {
   it("recognises administrator access", () => {
@@ -11,6 +11,13 @@ describe("role access matrix", () => {
     expect(isWaiterRole("waiter", "123456")).toBe(true);
     expect(canUseWaiterPanel("waiter", "123456", 1)).toBe(true);
     expect(canUseWaiterPanel("user", "123456", 1)).toBe(true);
+  });
+
+  it("allows the staff shell without exposing the access code", () => {
+    expect(canUseStaffShell("admin", 0)).toBe(true);
+    expect(canUseStaffShell("garcom", 1)).toBe(true);
+    expect(canUseStaffShell("garcom", 0)).toBe(false);
+    expect(canUseStaffShell("user", 1)).toBe(false);
   });
 
   it("blocks disabled or ordinary accounts", () => {

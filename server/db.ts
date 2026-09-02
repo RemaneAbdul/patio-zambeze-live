@@ -351,7 +351,7 @@ export async function listWaiterCurrentAssignments() {
   if (!db) throw new Error("Database is not available");
   const rows = await db.select({
     session: tableSessions,
-    waiter: { id: users.id, name: users.name, email: users.email, waiterCode: users.waiterCode },
+    waiter: { id: users.id, name: users.name, email: users.email },
   }).from(tableSessions)
     .innerJoin(users, eq(tableSessions.attendingWaiterId, users.id))
     .where(and(eq(tableSessions.status, "open"), sql`${tableSessions.attendingWaiterId} IS NOT NULL`))
@@ -372,7 +372,7 @@ export async function listWaiterCurrentAssignments() {
 export async function getWaiterServiceHistory(waiterId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const [waiter] = await db.select({ id: users.id, name: users.name, email: users.email, role: users.role, waiterCode: users.waiterCode, waiterActive: users.waiterActive })
+  const [waiter] = await db.select({ id: users.id, name: users.name, email: users.email, role: users.role, waiterActive: users.waiterActive })
     .from(users).where(eq(users.id, waiterId)).limit(1);
   if (!waiter) throw new Error("WAITER_NOT_FOUND");
 
@@ -413,7 +413,7 @@ export async function getWaiterServiceHistory(waiterId: number) {
 export async function setWaiterActive(userId: number, active: boolean) {
   const db = await getDb();
   if (!db) throw new Error("DATABASE_UNAVAILABLE");
-  const [updated] = await db.update(users).set({ waiterActive: active ? 1 : 0, updatedAt: new Date() }).where(eq(users.id, userId)).returning({ id: users.id, name: users.name, email: users.email, waiterCode: users.waiterCode, waiterActive: users.waiterActive });
+  const [updated] = await db.update(users).set({ waiterActive: active ? 1 : 0, updatedAt: new Date() }).where(eq(users.id, userId)).returning({ id: users.id, name: users.name, email: users.email, waiterActive: users.waiterActive });
   if (!updated) throw new Error("WAITER_NOT_FOUND");
   return updated;
 }
@@ -512,7 +512,7 @@ export async function getTableHistory(sessionToken: string, tableNumber = "01", 
     : [];
   const viewedWaiterIds = Array.from(new Set(selections.map((selection) => selection.viewedByWaiterId).filter((id): id is number => Boolean(id))));
   const viewedWaiters = viewedWaiterIds.length
-    ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode }).from(users).where(inArray(users.id, viewedWaiterIds))
+    ? await db.select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, viewedWaiterIds))
     : [];
   return selections.map((selection) => ({
     ...selection,
@@ -527,8 +527,8 @@ export async function getTableSessionInfo(sessionToken: string, tableNumber = "0
   if (!db) throw new Error("Database is not available");
   const table = await resolveTableReference(db, tableId || tableNumber, Boolean(tableId));
   const session = await ensureTableSession(sessionToken, table.tableNumber);
-  const historicalWaiter = session.waiterId ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode, waiterActive: users.waiterActive }).from(users).where(eq(users.id, session.waiterId)).limit(1) : [];
-  const currentWaiter = session.attendingWaiterId ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode, waiterActive: users.waiterActive }).from(users).where(eq(users.id, session.attendingWaiterId)).limit(1) : [];
+  const historicalWaiter = session.waiterId ? await db.select({ id: users.id, name: users.name, waiterActive: users.waiterActive }).from(users).where(eq(users.id, session.waiterId)).limit(1) : [];
+  const currentWaiter = session.attendingWaiterId ? await db.select({ id: users.id, name: users.name, waiterActive: users.waiterActive }).from(users).where(eq(users.id, session.attendingWaiterId)).limit(1) : [];
   const waiter = session.status === "open" ? currentWaiter[0] ?? null : historicalWaiter[0] ?? null;
   return { session, waiter, currentWaiter: currentWaiter[0] ?? null, historicalWaiter: historicalWaiter[0] ?? null };
 }
@@ -582,7 +582,7 @@ export async function getStaffTables() {
     const selections = sessionSelections;
     const unviewed = selections.filter((selection) => !selection.viewedAt).length;
     const attendingWaiter = session.attendingWaiterId
-      ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode }).from(users).where(eq(users.id, session.attendingWaiterId)).limit(1)
+      ? await db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, session.attendingWaiterId)).limit(1)
       : [];
     result.push({
       ...session,
@@ -668,8 +668,8 @@ export async function getTableHistoryForStaff(sessionToken: string, waiterId?: n
     await db.update(tableSessions).set({ waiterId }).where(eq(tableSessions.id, session[0].id));
     session[0].waiterId = waiterId;
   }
-  const attendingWaiter = session[0].attendingWaiterId ? await db.select({ id: users.id, name: users.name, email: users.email, waiterCode: users.waiterCode, waiterActive: users.waiterActive }).from(users).where(eq(users.id, session[0].attendingWaiterId)).limit(1) : [];
-  const waiter = session[0].waiterId ? await db.select({ id: users.id, name: users.name, email: users.email, waiterCode: users.waiterCode, waiterActive: users.waiterActive }).from(users).where(eq(users.id, session[0].waiterId)).limit(1) : [];
+  const attendingWaiter = session[0].attendingWaiterId ? await db.select({ id: users.id, name: users.name, email: users.email, waiterActive: users.waiterActive }).from(users).where(eq(users.id, session[0].attendingWaiterId)).limit(1) : [];
+  const waiter = session[0].waiterId ? await db.select({ id: users.id, name: users.name, email: users.email, waiterActive: users.waiterActive }).from(users).where(eq(users.id, session[0].waiterId)).limit(1) : [];
   const canOperate = isAdmin || (waiterId !== undefined && session[0].attendingWaiterId === waiterId);
 
   const selections = await db.select().from(tableSelections)
@@ -681,7 +681,7 @@ export async function getTableHistoryForStaff(sessionToken: string, waiterId?: n
     : [];
   const viewedWaiterIds = Array.from(new Set(selections.map((selection) => selection.viewedByWaiterId).filter((id): id is number => Boolean(id))));
   const viewedWaiters = viewedWaiterIds.length
-    ? await db.select({ id: users.id, name: users.name, email: users.email, waiterCode: users.waiterCode, waiterActive: users.waiterActive }).from(users).where(inArray(users.id, viewedWaiterIds))
+    ? await db.select({ id: users.id, name: users.name, email: users.email, waiterActive: users.waiterActive }).from(users).where(inArray(users.id, viewedWaiterIds))
     : [];
 
   return {
@@ -723,7 +723,7 @@ export async function listViewedReceipts(waiterId?: number, isAdmin = false) {
       if (!isAdmin && (waiterId === undefined || assignedWaiterId !== waiterId)) continue;
       const receiptWaiterId = assignedWaiterId ?? (isAdmin ? session.waiterId : null);
       const waiter = receiptWaiterId
-        ? await db.select({ id: users.id, name: users.name, waiterCode: users.waiterCode }).from(users).where(eq(users.id, receiptWaiterId)).limit(1)
+        ? await db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, receiptWaiterId)).limit(1)
         : [];
       const receiptSelection = {
         ...selection,

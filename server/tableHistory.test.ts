@@ -43,7 +43,7 @@ describe("tableHistory validation", () => {
 
   it("allows an active waiter to consult QR codes but not generate them", async () => {
     const caller = appRouter.createCaller({ ...ctx, user: { id: 42, openId: "waiter-user", email: "waiter@example.com", name: "Waiter User", loginMethod: "manus", role: "user", waiterCode: "123456", waiterActive: 1, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() } });
-    await expect(caller.tableHistory.staffIdentity()).resolves.toMatchObject({ waiterCode: "123456", active: true });
+    await expect(caller.tableHistory.staffIdentity()).resolves.toMatchObject({ active: true }).then((identity) => expect("waiterCode" in identity).toBe(false));
     await expect(caller.tableHistory.qrCodes()).resolves.toBeInstanceOf(Array);
     await expect(caller.tableHistory.generateQrCode({ tableNumber: "04" })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
