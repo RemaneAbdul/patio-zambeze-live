@@ -242,7 +242,7 @@ integration("tableHistory persistence", () => {
     }
   }, 30_000);
 
-  it("removes an open item, recalculates subtotal and blocks removal after viewed", async () => {
+  it("removes a pending item, recalculates subtotal and preserves viewed/status rules", async () => {
     const token = `vitest-remove-${crypto.randomUUID()}${crypto.randomUUID()}`;
     const db = await getDb();
     if (!db) throw new Error("SUPABASE_DATABASE_URL is required for this integration test");
@@ -257,9 +257,10 @@ integration("tableHistory persistence", () => {
       expect(afterRemoval?.selections[0]?.subtotal).toBe(300);
       expect(afterRemoval?.selections[0]?.items).toHaveLength(1);
       await markTableViewedByStaff(token, 1, true);
-      await expect(removeTableSelectionItem(afterRemoval!.selections[0]!.items[0]!.id, 1, false)).rejects.toThrow("SELECTION_ALREADY_VIEWED");
+      await expect(removeTableSelectionItem(afterRemoval!.selections[0]!.items[0]!.id, 1, false)).rejects.toThrow("SELECTION_CANNOT_BE_EMPTY");
       await expect(setTableSelectionStatus(afterRemoval!.selections[0]!.id, "READY", 1, false)).rejects.toThrow("SELECTION_ALREADY_VIEWED");
       await expect(setTableSelectionStatus(afterRemoval!.selections[0]!.id, "READY", 1, true)).resolves.toMatchObject({ success: true, status: "READY" });
+      await expect(removeTableSelectionItem(afterRemoval!.selections[0]!.items[0]!.id, 1, true)).rejects.toThrow("ITEM_NOT_PENDING");
     } finally {
       const session = await db.select({ id: tableSessions.id }).from(tableSessions).where(eq(tableSessions.sessionToken, token)).limit(1);
       if (session[0]) {

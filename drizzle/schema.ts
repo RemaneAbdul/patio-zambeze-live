@@ -107,6 +107,7 @@ export const tableSelectionItems = pgTable("table_selection_items", {
   productId: integer("productId"),
   productName: varchar("productName", { length: 160 }).notNull(),
   preparation: text("preparation"),
+  status: varchar("status", { length: 16 }).default("PENDING").notNull(),
   quantity: integer("quantity").notNull(),
   unitPrice: numeric("unitPrice", { precision: 10, scale: 2 }).notNull(),
 }, (table) => ({

@@ -759,6 +759,7 @@ export async function setTableSelectionStatus(selectionId: number, status: "PEND
   await assertTableAccess(db, rows[0].sessionToken, waiterId, isAdmin);
   const selection = await db.select({ viewedAt: tableSelections.viewedAt }).from(tableSelections).where(eq(tableSelections.id, selectionId)).limit(1);
   if (selection[0]?.viewedAt && !isAdmin) throw new Error("SELECTION_ALREADY_VIEWED");
+  await db.update(tableSelectionItems).set({ status }).where(eq(tableSelectionItems.selectionId, selectionId));
   const updated = await db.update(tableSelections).set({ status, finalizedAt: status === "COMPLETED" ? new Date() : undefined }).where(eq(tableSelections.id, selectionId));
   return { success: (updated.rowCount ?? 0) > 0, selectionId, status } as const;
 }
@@ -775,20 +776,20 @@ export async function removeTableSelectionItem(itemId: number, waiterId: number,
       .limit(1);
     if (!rows[0]) throw new Error("ITEM_NOT_FOUND");
     const { selection, session } = rows[0];
-    if (selection.viewedAt && !isAdmin) throw new Error("SELECTION_ALREADY_VIEWED");
+    if (selection.status !== "PENDING" || rows[0].item.status !== "PENDING") throw new Error("ITEM_NOT_PENDING");
     const canOperate = isAdmin || session.attendingWaiterId === waiterId;
     if (!canOperate) throw new Error(session.attendingWaiterId ? "TABLE_ALREADY_ASSIGNED" : "TABLE_NOT_ASSIGNED");
     const currentItems = await tx.select({ id: tableSelectionItems.id, quantity: tableSelectionItems.quantity, unitPrice: tableSelectionItems.unitPrice })
       .from(tableSelectionItems)
       .where(eq(tableSelectionItems.selectionId, selection.id));
     if (currentItems.length <= 1) throw new Error("SELECTION_CANNOT_BE_EMPTY");
-    const deleted = await tx.delete(tableSelectionItems).where(and(eq(tableSelectionItems.id, itemId), eq(tableSelectionItems.selectionId, selection.id)));
+    const deleted = await tx.delete(tableSelectionItems).where(and(eq(tableSelectionItems.id, itemId), eq(tableSelectionItems.selectionId, selection.id), eq(tableSelectionItems.status, "PENDING")));
     if (deleted.rowCount === 0) throw new Error("ITEM_NOT_FOUND");
     const remaining = currentItems.filter((item) => item.id !== itemId);
     const subtotal = remaining.reduce((sum, item) => sum + Number(item.unitPrice) * item.quantity, 0);
     await tx.update(tableSelections).set({ subtotal: subtotal.toFixed(2) }).where(isAdmin ? eq(tableSelections.id, selection.id) : and(eq(tableSelections.id, selection.id), isNull(tableSelections.viewedAt)));
     await tx.update(tableSessions).set({ lastActivityAt: new Date() }).where(eq(tableSessions.id, session.id));
-    return { success: true, itemId, selectionId: selection.id, subtotal } as const;
+    return { success: true, itemId, selectionId: selection.id, productName: rows[0].item.productName, quantity: rows[0].item.quantity, subtotal, removedAt: new Date() } as const;
   });
 }
 

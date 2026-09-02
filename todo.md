@@ -1531,3 +1531,13 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar regressão para a referência correcta do logotipo e validar a renderização responsiva.
 - [x] Executar TypeScript, Vitest e build de produção.
 - [x] Criar commit final, guardar checkpoint e sincronizar GitHub/Vercel.
+
+## Anexo 50 — Remoção de itens apenas enquanto PENDENTE
+- [x] Auditar armazenamento de estado, permissões, remoção, totais, recibos e sincronização actual.
+- [x] Garantir no backend que Garçom e Admin só removem itens com estado PENDENTE, validando o estado actual por item.
+- [x] Rejeitar no backend qualquer remoção de item em preparação, pronto, entregue, concluído ou outro estado posterior.
+- [x] Registar cada remoção com item, pedido, nome, quantidade, utilizador, role e data/hora quando disponível.
+- [x] Actualizar frontend do Garçom, Admin e cliente para mostrar/remover apenas itens PENDENTE e recalcular totais.
+- [x] Adicionar regressões para permissões, estados, auditoria, remoção por item e actualização dos recibos.
+- [x] Executar TypeScript, Vitest, build e validação visual.
+- [x] Criar checkpoint, commit final e sincronizar GitHub/Vercel.
