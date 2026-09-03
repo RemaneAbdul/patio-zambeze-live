@@ -5,9 +5,63 @@ import { KeyRound, LogIn, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 
-const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, {
-  auth: { persistSession: false },
-});
+const SUPABASE_URL = String(import.meta.env.VITE_SUPABASE_URL ?? "").trim();
+const SUPABASE_PUBLISHABLE_KEY = String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "").trim();
+const AUTH_OPERATION_TIMEOUT_MS = 15_000;
+const AUTH_SIGN_OUT_TIMEOUT_MS = 5_000;
+
+let supabase: ReturnType<typeof createClient> | null = null;
+try {
+  if (SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY) {
+    supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    });
+  }
+} catch (error) {
+  console.error("[Auth configuration] Supabase client could not be initialized", error);
+}
+
+function withTimeout<T>(operation: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      reject(new Error(timeoutMessage));
+    }, timeoutMs);
+
+    operation.then(
+      (value) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
+function clearSupabaseBrowserState() {
+  try {
+    sessionStorage.removeItem("supabase-access-token");
+    localStorage.removeItem("manus-runtime-user-info");
+  } catch {
+    // Storage can be blocked by private browsing or an embedded WebView.
+  }
+}
+
+function signOutSupabaseSilently() {
+  if (!supabase) return;
+  void supabase.auth.signOut().catch((error) => {
+    console.error("[Auth cleanup] Supabase sign out failed", error);
+  });
+}
 
 function mapQuickLoginError(error: unknown): string {
   const message =
@@ -28,6 +82,45 @@ function mapQuickLoginError(error: unknown): string {
     return "O código deve conter 6 dígitos.";
   }
   return "Código de acesso incorreto.";
+}
+
+function mapCredentialsLoginError(error: unknown): string {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "object" && error && "message" in error
+        ? String((error as { message: unknown }).message)
+        : "";
+
+  if (/invalid login credentials|invalid_credentials|email or password/i.test(message)) {
+    return "Email ou palavra-passe inválidos, ou conta desactivada.";
+  }
+  if (/timeout|timed out|AUTH_OPERATION_TIMEOUT|AUTH_SIGN_IN_TIMEOUT|AUTH_PROFILE_TIMEOUT|AUTH_STATUS_TIMEOUT/i.test(message)) {
+    return "A autenticação demorou demasiado. Verifique a sua ligação e tente novamente.";
+  }
+  if (/network|failed to fetch|fetch failed|connection|offline/i.test(message)) {
+    return "Não foi possível contactar o servidor. Verifique a sua ligação e tente novamente.";
+  }
+  if (/configuration|SUPABASE|AUTH_STORAGE_UNAVAILABLE/i.test(message)) {
+    return "O serviço de autenticação está temporariamente indisponível.";
+  }
+  return "Não foi possível concluir a autenticação. Tente novamente.";
+}
+
+function mapLoginStatusError(status: string | undefined): string {
+  switch (status) {
+    case "ADMIN_INACTIVE":
+      return "Esta conta está desactivada. Contacte um administrador.";
+    case "PROFILE_MISSING":
+      return "O seu perfil não está configurado. Contacte o administrador.";
+    case "ROLE_NOT_ALLOWED":
+      return "Esta conta não tem acesso a este painel. Contacte o administrador.";
+    case "INVALID_SESSION":
+    case "UNAUTHENTICATED":
+      return "A sessão não foi validada. Tente novamente.";
+    default:
+      return "O serviço de autenticação está temporariamente indisponível.";
+  }
 }
 
 export default function WaiterLogin() {
@@ -54,8 +147,10 @@ export default function WaiterLogin() {
     setLoading(true);
     setError("");
     try {
-      await supabase.auth.signOut().catch(() => undefined);
-      await quickLogin.mutateAsync({ code });
+      if (supabase) {
+        await withTimeout(supabase.auth.signOut(), AUTH_SIGN_OUT_TIMEOUT_MS, "AUTH_SIGN_OUT_TIMEOUT").catch(() => undefined);
+      }
+      await withTimeout(quickLogin.mutateAsync({ code }), AUTH_OPERATION_TIMEOUT_MS, "AUTH_OPERATION_TIMEOUT");
       await utils.auth.me.invalidate();
       navigate("/painel/garcom");
     } catch (err) {
@@ -70,44 +165,76 @@ export default function WaiterLogin() {
     setLoading(true);
     setError("");
     setRecoverySent(false);
+
     try {
-      sessionStorage.removeItem("supabase-access-token");
-      localStorage.removeItem("manus-runtime-user-info");
-    } catch {}
-    try {
-      await supabase.auth.signOut();
-    } catch {}
-    const { data, error: authError } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
-    if (authError || !data.session) {
-      setError("Email ou palavra-passe inválidos, ou conta desactivada.");
+      if (!supabase) {
+        throw new Error("SUPABASE_AUTH_CLIENT_CONFIGURATION_MISSING");
+      }
+
+      clearSupabaseBrowserState();
+      await withTimeout(supabase.auth.signOut(), AUTH_SIGN_OUT_TIMEOUT_MS, "AUTH_SIGN_OUT_TIMEOUT").catch(() => undefined);
+
+      const { data, error: authError } = await withTimeout(
+        supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        }),
+        AUTH_OPERATION_TIMEOUT_MS,
+        "AUTH_SIGN_IN_TIMEOUT",
+      );
+
+      if (authError || !data.session) {
+        throw new Error(authError?.message ?? "AUTH_SESSION_MISSING");
+      }
+
+      try {
+        sessionStorage.setItem("supabase-access-token", data.session.access_token);
+      } catch {
+        throw new Error("AUTH_STORAGE_UNAVAILABLE");
+      }
+
+      const statusResult = await withTimeout(
+        loginStatusQuery.refetch(),
+        AUTH_OPERATION_TIMEOUT_MS,
+        "AUTH_STATUS_TIMEOUT",
+      );
+      const status = statusResult.data?.status;
+      if (status !== "ACTIVE") {
+        clearSupabaseBrowserState();
+        signOutSupabaseSilently();
+        setError(mapLoginStatusError(status));
+        return;
+      }
+
+      const profileResult = await withTimeout(
+        profileQuery.refetch(),
+        AUTH_OPERATION_TIMEOUT_MS,
+        "AUTH_PROFILE_TIMEOUT",
+      );
+      const profile = profileResult.data;
+      if (!profile) {
+        clearSupabaseBrowserState();
+        signOutSupabaseSilently();
+        setError("O seu perfil não está configurado. Contacte o administrador.");
+        return;
+      }
+
+      // Audit/invalidation must not block a valid authentication redirect.
+      void recordLogin.mutateAsync().catch((auditError) => {
+        console.error("[Auth audit] Login record failed", auditError);
+      });
+      void utils.auth.me.invalidate().catch((invalidateError) => {
+        console.error("[Auth cache] Session invalidation failed", invalidateError);
+      });
+      navigate(profile.role === "admin" ? "/painel/admin" : "/painel/garcom");
+    } catch (err) {
+      console.error("[Auth login] Authentication flow failed", err);
+      clearSupabaseBrowserState();
+      signOutSupabaseSilently();
+      setError(mapCredentialsLoginError(err));
+    } finally {
       setLoading(false);
-      return;
     }
-    sessionStorage.setItem("supabase-access-token", data.session.access_token);
-    const statusResult = await loginStatusQuery.refetch();
-    if (statusResult.data?.status === "ADMIN_INACTIVE") {
-      sessionStorage.removeItem("supabase-access-token");
-      await supabase.auth.signOut();
-      setError("Esta conta está desactivada. Contacte um administrador.");
-      setLoading(false);
-      return;
-    }
-    const profileResult = await profileQuery.refetch();
-    const profile = profileResult.data;
-    if (!profile) {
-      sessionStorage.removeItem("supabase-access-token");
-      await supabase.auth.signOut();
-      setError("O seu perfil não está configurado. Contacte o administrador.");
-      setLoading(false);
-      return;
-    }
-    await recordLogin.mutateAsync();
-    await utils.auth.me.invalidate();
-    navigate(profile.role === "admin" ? "/painel/admin" : "/painel/garcom");
-    setLoading(false);
   };
 
   const recoverPassword = async () => {
@@ -117,14 +244,25 @@ export default function WaiterLogin() {
       setError("Introduza primeiro o email da conta.");
       return;
     }
-    const { error: recoveryError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/redefinir-senha`,
-    });
-    if (recoveryError) {
-      setError("Não foi possível enviar o email de recuperação. Tente novamente.");
+    if (!supabase) {
+      setError("O serviço de autenticação está temporariamente indisponível.");
       return;
     }
-    setRecoverySent(true);
+    try {
+      await withTimeout(
+        supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: `${window.location.origin}/redefinir-senha`,
+        }),
+        AUTH_OPERATION_TIMEOUT_MS,
+        "AUTH_RECOVERY_TIMEOUT",
+      ).then(({ error: recoveryError }) => {
+        if (recoveryError) throw recoveryError;
+      });
+      setRecoverySent(true);
+    } catch (recoveryError) {
+      console.error("[Auth recovery] Password recovery failed", recoveryError);
+      setError(mapCredentialsLoginError(recoveryError));
+    }
   };
 
   if (mode === "code") {

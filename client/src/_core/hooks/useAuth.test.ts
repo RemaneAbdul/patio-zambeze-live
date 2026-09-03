@@ -9,4 +9,11 @@ describe("shared authentication logout", () => {
     expect(source).toContain('sessionStorage.removeItem("manus-cookie")');
     expect(source).toContain('sessionStorage.removeItem("supabase-access-token")');
   });
+
+  it("does not let blocked localStorage break auth state calculation", () => {
+    expect(source).toContain("try {");
+    expect(source).toContain("localStorage.setItem(");
+    expect(source).toContain("Storage can be blocked");
+    expect(source).toContain("return {");
+  });
 });

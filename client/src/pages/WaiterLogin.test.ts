@@ -8,7 +8,9 @@ const appSource = fs.readFileSync(path.resolve(import.meta.dirname, "../App.tsx"
 describe("Supabase waiter login routing", () => {
   it("loads the persisted profile before navigating", () => {
     expect(source).toContain("loginStatusQuery.refetch()");
-    expect(source).toContain('statusResult.data?.status === "ADMIN_INACTIVE"');
+    expect(source).toContain('const status = statusResult.data?.status;');
+    expect(source).toContain('if (status !== "ACTIVE")');
+    expect(source).toContain('mapLoginStatusError(status)');
     expect(source).toContain("profileQuery.refetch()");
     expect(source).toContain('navigate("/painel/garcom");');
     expect(source).toContain('navigate(profile.role === "admin" ? "/painel/admin" : "/painel/garcom");');
@@ -30,5 +32,22 @@ describe("Supabase waiter login routing", () => {
     expect(source).toContain("Esta conta está desactivada. Contacte um administrador.");
     expect(source).toContain("O seu perfil não está configurado. Contacte o administrador.");
     expect(source).toContain("supabase.auth.signOut()");
+  });
+
+  it("prevents an infinite production loading state", () => {
+    expect(source).toContain("AUTH_OPERATION_TIMEOUT_MS = 15_000");
+    expect(source).toContain('supabase.auth.signInWithPassword');
+    expect(source).toContain('"AUTH_SIGN_IN_TIMEOUT"');
+    expect(source).toContain('"AUTH_STATUS_TIMEOUT"');
+    expect(source).toContain('"AUTH_PROFILE_TIMEOUT"');
+    expect(source).toContain("finally {");
+    expect(source).toContain("setLoading(false);");
+  });
+
+  it("does not block redirect on non-critical audit or cache work", () => {
+    expect(source).toContain("void recordLogin.mutateAsync().catch");
+    expect(source).toContain("void utils.auth.me.invalidate().catch");
+    expect(source).toContain("navigate(profile.role === \"admin\" ? \"/painel/admin\" : \"/painel/garcom\")");
+    expect(source).toContain("mapCredentialsLoginError");
   });
 });
