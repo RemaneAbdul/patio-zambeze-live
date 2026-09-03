@@ -1554,3 +1554,13 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Executar Vitest, TypeScript, build, auditoria de dependências e smoke tests controlados.
 - [x] Rever diff sem segredos, criar commit final e sincronizar GitHub/Vercel.
 - [x] Verificar `Leaked Password Protection` em Supabase Auth → Authentication → Attack Protection; a opção aparece indisponível no plano Free actual e permanece documentada como limitação de configuração.
+
+## Anexo 51 — Login por email bloqueado na Vercel
+- [x] Ler o Anexo 51 e reproduzir o comportamento com dados fictícios em produção.
+- [x] Garantir que o cliente Supabase não quebra com configuração ausente ou inválida.
+- [x] Aplicar timeout finito a sign-in, validação de estado, perfil e recuperação de palavra-passe.
+- [x] Encapsular o fluxo em try/catch/finally, limpar sessão/token em falhas e restaurar sempre o botão.
+- [x] Impedir que auditoria ou invalidação de cache bloqueiem o redirect após autenticação válida.
+- [x] Tornar o hook de sessão resiliente a localStorage bloqueado.
+- [x] Adicionar regressões estruturais e validar login inválido, TypeScript, Vitest, build e smoke HTTP.
+- [x] Rever diff sem segredos, criar commit final, guardar checkpoint e confirmar GitHub/Vercel.
