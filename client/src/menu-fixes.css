@@ -61,3 +61,73 @@ body:has(.modal-backdrop) {
     min-height: 44px;
   }
 }
+
+/* Painéis administrativos — inputs de ficheiro são acessíveis pelos botões
+   "Galeria" e "Tirar foto", sem deixar um campo vazio visível. */
+.photo-source-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.photo-source-actions > button {
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.product-image-editor input[type="file"].sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.product-image-editor {
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .photo-source-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .photo-source-actions > button {
+    width: 100%;
+    min-height: 46px;
+  }
+}
+
+/* Contraste e legibilidade dos controlos administrativos no mobile. */
+.products-form-grid input,
+.products-form-grid select,
+.products-form-grid textarea,
+.category-field select {
+  min-height: 44px;
+  color: var(--foreground);
+  background: var(--background);
+}
+
+@media (max-width: 560px) {
+  .products-toolbar {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .products-toolbar select,
+  .products-search,
+  .products-view-toggle {
+    width: 100%;
+    min-height: 44px;
+  }
+}
