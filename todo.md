@@ -1597,3 +1597,9 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar regressões para CRUD, validação, estilos, erros e invalidação de cache.
 - [x] Executar Vitest, TypeScript, build, smoke tests e validação responsiva.
 - [x] Rever diff sem secrets, criar commit final, checkpoint e sincronização GitHub/Vercel.
+
+## Anexo 53 — Confirmação do CRUD e sincronização
+- [x] Comparar os requisitos do Anexo 53 com o commit e checkpoint existentes.
+- [x] Confirmar visualmente os botões e formulários em mobile sem reutilizar imagens ou dados de teste.
+- [x] Confirmar que a produção exige sessão Admin real para validar mutações, sem executar operações destrutivas.
+- [x] Registar evidências, rever estado Git e guardar checkpoint sem duplicar código.
