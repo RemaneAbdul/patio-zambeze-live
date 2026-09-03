@@ -4,7 +4,7 @@ import { Pool } from "pg";
 import { InsertUser, users, auditLogs, garcons } from "../drizzle/schema";
 import * as schema from "../drizzle/schema";
 import { ENV } from './_core/env';
-import { createSupabaseAdminUser, createSupabaseWaiter, deleteSupabaseUser, deleteSupabaseWaiter, disableSupabaseUser, disableSupabaseWaiter, enableSupabaseUser, enableSupabaseWaiter, updateSupabaseAdmin, updateSupabaseWaiter } from './supabaseAuth';
+import { createSupabaseAdminUser, createSupabaseWaiter, deleteSupabaseUser, deleteSupabaseWaiter, disableSupabaseUser, disableSupabaseWaiter, enableSupabaseUser, enableSupabaseWaiter, setSupabaseWaiterAccessCode, updateSupabaseAdmin, updateSupabaseWaiter } from './supabaseAuth';
 import { normalizeWaiterAccessCode } from './waiterAccess';
 import { randomInt } from 'node:crypto';
 
@@ -182,6 +182,7 @@ export async function createGarcon(input: { fullName: string; username: string; 
   let legacyUserId: number | undefined;
   let createdGarconId: string | undefined;
   try {
+    await setSupabaseWaiterAccessCode(authUser.id, waiterCode);
     const openId = `supabase:${authUser.id}`;
     const [legacyUser] = await db.insert(users).values({ openId, name: fullName, email, loginMethod: "supabase", role: "garcom", waiterCode, waiterActive: input.active ? 1 : 0 }).onConflictDoNothing({ target: users.openId }).returning();
     if (!legacyUser) throw new Error("WAITER_EMAIL_OR_USER_ALREADY_EXISTS");
@@ -230,6 +231,7 @@ export async function updateGarcon(input: { id: string; fullName: string; userna
   const [codeOwner] = await db.select({ id: users.id }).from(users).where(and(eq(users.waiterCode, waiterCode), sql`${users.id} <> ${current.legacyUserId}`)).limit(1);
   if (codeOwner) throw new Error("WAITER_CODE_ALREADY_IN_USE");
   await updateSupabaseWaiter({ authUserId: current.authUserId, email: input.email.trim().toLowerCase(), password: input.password, fullName: input.fullName.trim(), phone: input.phone });
+  await setSupabaseWaiterAccessCode(current.authUserId, waiterCode);
   if (input.active) await enableSupabaseWaiter(current.authUserId); else await disableSupabaseWaiter(current.authUserId);
   const [updated] = await db.update(garcons).set({ fullName: input.fullName.trim(), username: input.username.trim().toLowerCase(), email: input.email.trim().toLowerCase(), phone: input.phone ?? null, status: input.active ? "ATIVO" : "INATIVO", disabledAt: input.active ? null : (current.disabledAt ?? new Date()), updatedAt: new Date() }).where(eq(garcons.id, input.id)).returning();
   await db.update(users).set({ name: input.fullName.trim(), email: input.email.trim().toLowerCase(), waiterCode, waiterActive: input.active ? 1 : 0, updatedAt: new Date() }).where(eq(users.id, current.legacyUserId));
