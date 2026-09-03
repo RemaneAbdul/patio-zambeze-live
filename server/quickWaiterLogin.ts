@@ -1,5 +1,6 @@
 import { randomInt } from "node:crypto";
 import { and, eq } from "drizzle-orm";
+import { createClient } from "@supabase/supabase-js";
 import { garcons, users } from "../drizzle/schema";
 import { getDb } from "./db";
 import { sdk } from "./_core/sdk";
@@ -8,8 +9,27 @@ const WINDOW_MS = 30_000;
 const MAX_ATTEMPTS = 5;
 const attempts = new Map<string, { count: number; resetAt: number }>();
 
+const supabaseUrl = process.env.SUPABASE_URL ?? "";
+const supabaseServiceRoleKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ??
+  process.env.SUPABASE_SECRET_KEY ??
+  process.env.SUPABASE_SERVICE_KEY ??
+  "";
+
+let supabaseAdmin: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseAdmin() {
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    throw new Error("SUPABASE_AUTH_SERVER_CONFIGURATION_MISSING");
+  }
+  supabaseAdmin ??= createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+  });
+  return supabaseAdmin;
+}
+
 function normalizeCode(code: string) {
-  return typeof code === "string" ? code : "";
+  return typeof code === "string" ? code.trim() : "";
 }
 
 function checkRateLimit(key: string) {
@@ -66,10 +86,8 @@ export async function assignNewWaiterCode(userId: number) {
 }
 
 /**
- * One-shot migration helper for legacy codes of the form GAR-XXXXXX (or any
- * non six-digit value). MUST NOT run on every list request in a way that can
- * race with an admin code change. Only migrates codes that are clearly not
- * already a valid six-digit credential — never regenerates a valid code.
+ * One-shot migration helper for legacy codes. Valid six-digit credentials are
+ * always preserved unchanged.
  */
 export async function ensureNumericWaiterCodes() {
   const db = await getDb();
@@ -77,13 +95,48 @@ export async function ensureNumericWaiterCodes() {
   const rows = await db.select({ id: users.id, waiterCode: users.waiterCode }).from(users).where(eq(users.role, "garcom"));
   for (const row of rows) {
     const code = row.waiterCode ?? "";
-    // Preserve any already-valid six-digit access code unchanged.
     if (/^\d{6}$/.test(code)) continue;
-    // Only migrate obvious legacy patterns (GAR-…) or empty/null codes.
     if (code === "" || /^GAR-/i.test(code) || !/^\d+$/.test(code)) {
       await assignNewWaiterCode(row.id);
     }
   }
+}
+
+/**
+ * Authenticate the six-digit waiter credential against the Supabase database.
+ * The legacy Drizzle connection is retained for the rest of the application,
+ * but login no longer depends on SUPABASE_DATABASE_URL being present in the
+ * runtime environment. Supabase public.users.waiterCode is the source of truth.
+ */
+async function findWaiterFromSupabase(code: string) {
+  const client = getSupabaseAdmin();
+
+  const { data: user, error: userError } = await client
+    .from("users")
+    .select("id, openId, name, role, waiterActive")
+    .eq("waiterCode", code)
+    .eq("role", "garcom")
+    .maybeSingle();
+
+  if (userError) {
+    console.error("[quickWaiterLogin] Supabase users lookup failed", userError.message);
+    throw new Error("SUPABASE_WAITER_LOGIN_DATABASE_FAILED");
+  }
+  if (!user) return null;
+
+  const { data: garcon, error: garconError } = await client
+    .from("garcons")
+    .select("id, legacyUserId, fullName, status")
+    .eq("legacyUserId", user.id)
+    .maybeSingle();
+
+  if (garconError) {
+    console.error("[quickWaiterLogin] Supabase garcons lookup failed", garconError.message);
+    throw new Error("SUPABASE_WAITER_LOGIN_DATABASE_FAILED");
+  }
+  if (!garcon) return null;
+
+  return { user, garcon };
 }
 
 export async function quickWaiterLogin(code: string, rateLimitKey: string) {
@@ -91,16 +144,28 @@ export async function quickWaiterLogin(code: string, rateLimitKey: string) {
   const normalized = normalizeCode(code);
   if (!/^\d{6}$/.test(normalized)) throw new Error("WAITER_CODE_INVALID");
 
-  const db = await getDb();
-  if (!db) throw new Error("Database is not available");
-
-  // PostgreSQL users.waiterCode is the single source of truth.
-  const [match] = await db
-    .select({ user: users, garcon: garcons })
-    .from(users)
-    .innerJoin(garcons, eq(garcons.legacyUserId, users.id))
-    .where(and(eq(users.waiterCode, normalized), eq(users.role, "garcom")))
-    .limit(1);
+  let match: Awaited<ReturnType<typeof findWaiterFromSupabase>>;
+  try {
+    match = await findWaiterFromSupabase(normalized);
+  } catch (supabaseError) {
+    // Keep a controlled fallback for local/dev environments that only have the
+    // PostgreSQL connection configured. Production with Supabase credentials
+    // uses the direct Supabase path above.
+    if (supabaseError instanceof Error && supabaseError.message === "SUPABASE_AUTH_SERVER_CONFIGURATION_MISSING") {
+      const db = await getDb();
+      if (!db) throw new Error("Database is not available");
+      const [legacyMatch] = await db
+        .select({ user: users, garcon: garcons })
+        .from(users)
+        .innerJoin(garcons, eq(garcons.legacyUserId, users.id))
+        .where(and(eq(users.waiterCode, normalized), eq(users.role, "garcom")))
+        .limit(1);
+      if (!legacyMatch) throw new Error("WAITER_CODE_INVALID");
+      match = legacyMatch as unknown as Awaited<ReturnType<typeof findWaiterFromSupabase>>;
+    } else {
+      throw supabaseError;
+    }
+  }
 
   if (!match) throw new Error("WAITER_CODE_INVALID");
 

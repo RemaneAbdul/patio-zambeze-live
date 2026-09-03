@@ -44,8 +44,6 @@ function TranslationWarmup() {
     };
     document.addEventListener("click", saveLanguageChoice, true);
 
-    // Home keeps its current language in React state. Restore the saved choice
-    // after the menu mounts, without changing the menu/session architecture.
     const restoreTimer = window.setTimeout(() => {
       const saved = localStorage.getItem(storageKey);
       if (saved !== "pt" && saved !== "en") return;
@@ -57,6 +55,45 @@ function TranslationWarmup() {
     return () => {
       window.clearTimeout(restoreTimer);
       document.removeEventListener("click", saveLanguageChoice, true);
+    };
+  }, []);
+
+  return null;
+}
+
+/**
+ * Keeps browser validation aligned with the server normalization contract.
+ * Existing waiter forms historically used a lowercase-only HTML pattern even
+ * though the server already trims and lowercases usernames. We accept common
+ * uppercase input and normalize it immediately before submission.
+ */
+function FormNormalizationGuard() {
+  useEffect(() => {
+    const normalize = (input: HTMLInputElement) => {
+      const pattern = input.getAttribute("pattern") ?? "";
+      if (pattern === "[a-z0-9._-]+") {
+        input.setAttribute("pattern", "[A-Za-z0-9._-]+");
+        input.setAttribute("autocomplete", input.getAttribute("autocomplete") || "username");
+      }
+    };
+
+    const scan = () => document.querySelectorAll<HTMLInputElement>("input[pattern]").forEach(normalize);
+    scan();
+
+    const observer = new MutationObserver(scan);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    const submit = (event: Event) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      form.querySelectorAll<HTMLInputElement>('input[pattern="[A-Za-z0-9._-]+"]')
+        .forEach((input) => { input.value = input.value.trim().toLowerCase(); });
+    };
+    document.addEventListener("submit", submit, true);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("submit", submit, true);
     };
   }, []);
 
@@ -108,6 +145,7 @@ export default function App() {
         <TooltipProvider>
           <Toaster />
           <TranslationWarmup />
+          <FormNormalizationGuard />
           <Suspense fallback={<PanelLoading />}>
             <Router />
           </Suspense>
