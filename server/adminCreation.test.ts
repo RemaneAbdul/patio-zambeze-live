@@ -32,7 +32,7 @@ describe("admin creation safeguards", () => {
     expect(panelSource).toContain('aria-labelledby="create-admin-title"');
     expect(panelSource).toContain('trpc.staff.createAdmin.useMutation');
     expect(panelSource).toContain('value="Administrador"');
-    expect(panelSource).toContain('Este email já está cadastrado.');
+    expect(panelSource).toContain('Este email já está registado. Use outro email.');
   });
 
   it("updates only permitted admin profile data and preserves the role", () => {

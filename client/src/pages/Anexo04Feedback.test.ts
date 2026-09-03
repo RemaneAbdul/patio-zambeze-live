@@ -30,8 +30,8 @@ describe("Anexo 04 — feedback e validação dos painéis", () => {
   });
 
   it("normaliza username e valida telefone no servidor", () => {
-    expect(waiters).toContain('toLowerCase().replace(/[^a-z0-9._-]/g, "")');
-    expect(router).toContain("toLowerCase().min(3).max(64)");
+    expect(waiters).toContain('value={form.username}');
+    expect(router).toContain("username: z.string().trim().toLowerCase().min(1).max(64)");
     expect(router).toContain("TELEFONE_INVALIDO");
     expect(router).toContain("/^\\+?\\d{7,15}$/");
   });

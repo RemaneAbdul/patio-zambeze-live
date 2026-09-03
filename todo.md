@@ -1586,3 +1586,14 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar regressões para feedbacks, validação, upload, CRUD, autorização e erros de duplicidade.
 - [x] Executar Vitest, TypeScript, build, auditoria de dependências e smoke tests controlados.
 - [x] Rever diff sem segredos, criar commit, guardar checkpoint e confirmar GitHub/Vercel.
+
+## Correcção seguinte — CRUD, formulários e sincronização do Dashboard
+- [x] Auditar o erro de criação/edição/remoção de utilizadores e mapear a causa backend/Supabase.
+- [x] Remover validações HTML indevidas que mostram `match the requested format` e aceitar os formatos de negócio suportados.
+- [x] Corrigir mutações de pratos e demais acções para persistirem e actualizarem o estado após sucesso real.
+- [x] Corrigir todos os botões transparentes, incluindo Remover, com contraste e estados visíveis em mobile/desktop.
+- [x] Corrigir erros backend sem expor detalhes sensíveis e manter autorização por função.
+- [x] Garantir sincronização consistente entre frontend, API, Supabase Auth, Database e Storage.
+- [x] Adicionar regressões para CRUD, validação, estilos, erros e invalidação de cache.
+- [x] Executar Vitest, TypeScript, build, smoke tests e validação responsiva.
+- [x] Rever diff sem secrets, criar commit final, checkpoint e sincronização GitHub/Vercel.
