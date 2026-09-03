@@ -10,10 +10,22 @@ import { canUseStaffShell, isAdminRole } from "@shared/roles";
 import { ArrowLeft, CheckCircle2, Circle, Eye, LoaderCircle, LockKeyhole, Plus, Printer, RefreshCw, Search, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { toast } from "sonner";
 
 const EMPTY_LOOKUP_TOKEN = "0".repeat(32);
 const money = (value: number) => `${value.toFixed(2)} MT`;
 const dateTime = (value: Date | string | number) => new Date(value).toLocaleString("pt-PT", { dateStyle: "short", timeStyle: "medium" });
+const mapOperationalError = (error: unknown) => {
+  const raw = error instanceof Error ? error.message : typeof error === "object" && error && "message" in error ? String((error as { message: unknown }).message) : "";
+  if (/ITEM_NOT_PENDING/i.test(raw)) return "Este item já não está pendente e não pode ser removido.";
+  if (/SELECTION_CANNOT_BE_EMPTY/i.test(raw)) return "O pedido precisa de manter pelo menos um item.";
+  if (/TABLE_ALREADY_ASSIGNED/i.test(raw)) return "Esta mesa já está a ser atendida por outro garçom.";
+  if (/TABLE_NOT_FOUND|SESSION_NOT_FOUND/i.test(raw)) return "A mesa ou sessão já não está disponível.";
+  if (/TABLE_NOT_ASSIGNED/i.test(raw)) return "Assuma a mesa antes de executar esta operação.";
+  if (/FORBIDDEN|UNAUTHENTICATED|permission/i.test(raw)) return "Não tem autorização para executar esta operação.";
+  if (/Database is not available|SUPABASE_|network|fetch/i.test(raw)) return "Não foi possível sincronizar com o servidor. Tente novamente.";
+  return "Não foi possível concluir esta operação. Tente novamente.";
+};
 
 type ReceiptWidth = "58mm" | "80mm";
 
@@ -50,13 +62,13 @@ export default function WaiterPanel() {
     const timer = window.setTimeout(() => manualOrderRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
     return () => window.clearTimeout(timer);
   }, [manualOpen]);
-  const assumeTable = trpc.tableHistory.assumeTable.useMutation({ onSuccess: () => { void utils.tableHistory.staffTables.invalidate(); void lookup.refetch(); }, onError: () => { void tables.refetch(); } });
-  const markViewed = trpc.tableHistory.markViewed.useMutation({ onSuccess: () => { void utils.tableHistory.staffTables.invalidate(); void lookup.refetch(); setViewedConfirmation(true); window.setTimeout(() => setViewedConfirmation(false), 3200); } });
-  const releaseTable = trpc.tableHistory.releaseTable.useMutation({ onSuccess: () => { void utils.tableHistory.staffTables.invalidate(); void lookup.refetch(); } });
-  const closeSession = trpc.tableHistory.closeSession.useMutation({ onSuccess: () => { setSelectedToken(""); void utils.tableHistory.staffTables.invalidate(); } });
-  const updateSelectionStatus = trpc.tableHistory.updateSelectionStatus.useMutation({ onSuccess: () => { void lookup.refetch(); void utils.tableHistory.staffTables.invalidate(); } });
-  const removeSelectionItem = trpc.tableHistory.removeSelectionItem.useMutation({ onSuccess: () => { void lookup.refetch(); void utils.tableHistory.staffTables.invalidate(); } });
-  const createManualOrder = trpc.tableHistory.createManualOrder.useMutation({ onSuccess: async () => { setManualSuccess(true); window.setTimeout(() => setManualSuccess(false), 3600); setManualOpen(false); setManualFiltersOpen(false); setManualTableId(""); setManualCategory(""); setManualSearch("");  setManualItems([]); setManualNotes(""); await Promise.all([utils.tableHistory.staffTables.invalidate(), qrCodes.refetch()]); } });
+  const assumeTable = trpc.tableHistory.assumeTable.useMutation({ onSuccess: () => { toast.success("Mesa assumida com sucesso."); void utils.tableHistory.staffTables.invalidate(); void lookup.refetch(); }, onError: (error) => { toast.error(mapOperationalError(error)); void tables.refetch(); } });
+  const markViewed = trpc.tableHistory.markViewed.useMutation({ onSuccess: () => { toast.success("Pedido marcado como visto."); void utils.tableHistory.staffTables.invalidate(); void lookup.refetch(); setViewedConfirmation(true); window.setTimeout(() => setViewedConfirmation(false), 3200); }, onError: (error) => toast.error(mapOperationalError(error)) });
+  const releaseTable = trpc.tableHistory.releaseTable.useMutation({ onSuccess: () => { toast.success("Mesa libertada."); void utils.tableHistory.staffTables.invalidate(); void lookup.refetch(); }, onError: (error) => toast.error(mapOperationalError(error)) });
+  const closeSession = trpc.tableHistory.closeSession.useMutation({ onSuccess: () => { toast.success("Sessão encerrada."); setSelectedToken(""); void utils.tableHistory.staffTables.invalidate(); }, onError: (error) => toast.error(mapOperationalError(error)) });
+  const updateSelectionStatus = trpc.tableHistory.updateSelectionStatus.useMutation({ onSuccess: () => { toast.success("Estado do pedido actualizado."); void lookup.refetch(); void utils.tableHistory.staffTables.invalidate(); }, onError: (error) => toast.error(mapOperationalError(error)) });
+  const removeSelectionItem = trpc.tableHistory.removeSelectionItem.useMutation({ onSuccess: () => { toast.success("Item removido do pedido."); void lookup.refetch(); void utils.tableHistory.staffTables.invalidate(); }, onError: (error) => toast.error(mapOperationalError(error)) });
+  const createManualOrder = trpc.tableHistory.createManualOrder.useMutation({ onSuccess: async () => { toast.success("Pedido criado com sucesso."); setManualSuccess(true); window.setTimeout(() => setManualSuccess(false), 3600); setManualOpen(false); setManualFiltersOpen(false); setManualTableId(""); setManualCategory(""); setManualSearch("");  setManualItems([]); setManualNotes(""); await Promise.all([utils.tableHistory.staffTables.invalidate(), qrCodes.refetch()]); }, onError: (error) => toast.error(mapOperationalError(error)) });
   const handleRefreshTables = async () => {
     await tables.refetch();
     setRefreshConfirmation(true);

@@ -116,9 +116,9 @@ export const appRouter = router({
     add: adminProcedure
       .input(z.object({
         fullName: z.string().trim().min(1).max(160),
-        username: z.string().trim().min(3).max(64).regex(/^[a-z0-9._-]+$/),
+        username: z.string().trim().toLowerCase().min(3).max(64).regex(/^[a-z0-9._-]+$/),
         email: z.string().email().max(320),
-        phone: z.string().max(32).optional(),
+        phone: z.string().trim().max(32).optional().transform((value) => value ? value.replace(/(?!^)\+/g, "").replace(/[^\d+]/g, "") : undefined).refine((value) => !value || /^\+?\d{7,15}$/.test(value), "TELEFONE_INVALIDO"),
         accessCode: z.string().regex(/^\d{6}$/, "O código de acesso deve conter exatamente 6 dígitos."),
         active: z.boolean().default(true),
       }))
@@ -165,9 +165,9 @@ export const appRouter = router({
       .input(z.object({
         id: z.string().uuid(),
         fullName: z.string().trim().min(1).max(160),
-        username: z.string().trim().min(3).max(64).regex(/^[a-z0-9._-]+$/),
+        username: z.string().trim().toLowerCase().min(3).max(64).regex(/^[a-z0-9._-]+$/),
         email: z.string().email().max(320),
-        phone: z.string().max(32).optional(),
+        phone: z.string().trim().max(32).optional().transform((value) => value ? value.replace(/(?!^)\+/g, "").replace(/[^\d+]/g, "") : undefined).refine((value) => !value || /^\+?\d{7,15}$/.test(value), "TELEFONE_INVALIDO"),
         password: z.string().min(6).max(128).optional(),
         accessCode: z.string().regex(/^\d{6}$/, "O código de acesso deve conter exatamente 6 dígitos."),
         active: z.boolean(),

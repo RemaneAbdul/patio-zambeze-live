@@ -1575,3 +1575,14 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Corrigir apenas falhas reais de integração e manter RLS, fonte de verdade Supabase e dados existentes.
 - [x] Executar Vitest determinísticos, TypeScript, build, auditoria de dependências e smoke tests; suite global com integrações externas ficou documentada como pendente por bloqueio de rede.
 - [x] Rever diff sem segredos, criar commit final, guardar checkpoint e confirmar GitHub/Vercel.
+
+## Anexo 04 — Feedbacks, UI, formulários e sincronização
+- [x] Auditar páginas, componentes, CRUDs, upload, Auth, RLS, Storage, Vercel e variáveis sem expor secrets.
+- [x] Padronizar toasts/alerts de sucesso e erro para todas as mutações administrativas e operacionais.
+- [x] Mapear erros backend/Supabase para mensagens claras sem ocultar causas úteis nem expor dados sensíveis.
+- [x] Corrigir o controlo invisível abaixo de “Tirar foto” e validar contraste, foco, corte e responsividade.
+- [x] Corrigir username, telefone e código de acesso de 6 dígitos com normalização e validação server-side.
+- [x] Verificar RLS/Storage sem desactivar protecções e manter Supabase como fonte de verdade.
+- [x] Adicionar regressões para feedbacks, validação, upload, CRUD, autorização e erros de duplicidade.
+- [x] Executar Vitest, TypeScript, build, auditoria de dependências e smoke tests controlados.
+- [x] Rever diff sem segredos, criar commit, guardar checkpoint e confirmar GitHub/Vercel.
