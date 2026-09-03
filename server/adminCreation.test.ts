@@ -55,6 +55,13 @@ describe("admin creation safeguards", () => {
     expect(dbSource).toContain('where(and(eq(users.role, "admin"), eq(users.waiterActive, 1)))');
   });
 
+  it("synchronises admin activation with Supabase Auth and compensates local failures", () => {
+    expect(dbSource).toContain('const syncAuth = active ? enableSupabaseUser : disableSupabaseUser;');
+    expect(dbSource).toContain('await syncAuth(authUserId);');
+    expect(dbSource).toContain('const rollbackAuth = active ? disableSupabaseUser : enableSupabaseUser;');
+    expect(dbSource).toContain('await rollbackAuth(authUserId);');
+  });
+
   it("deletes the Auth identity while retaining the historical users row", () => {
     expect(routerSource).toContain('deleteAdmin: adminProcedure');
     expect(dbSource).toContain('await deleteSupabaseUser(authUserId)');

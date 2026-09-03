@@ -1564,3 +1564,14 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Tornar o hook de sessão resiliente a localStorage bloqueado.
 - [x] Adicionar regressões estruturais e validar login inválido, TypeScript, Vitest, build e smoke HTTP.
 - [x] Rever diff sem segredos, criar commit final, guardar checkpoint e confirmar GitHub/Vercel.
+
+## Anexo 52 — Sincronização Supabase, GitHub e Vercel
+- [x] Auditar arquitectura, CRUDs, Auth, sessão, roles, RLS, migrations, Storage, APIs e configuração actual.
+- [x] Confirmar branch/commit do GitHub, ligação Vercel, build e deployment sem force push ou perda de histórico.
+- [x] Verificar referências e separação das variáveis sem expor secrets ou Service Role Key no frontend; confirmação de presença no painel Vercel fica documentada como acção manual.
+- [x] Testar conectividade segura Application → Vercel/API → Supabase Auth/Database/Storage, com rotas HTTP e testes Supabase disponíveis.
+- [x] Auditar e corrigir autorização Admin/Garçom, mass assignment, IDs, escopo e mensagens técnicas.
+- [x] Auditar/criar regressões para criação, edição, activação, desactivação, remoção, login, sessão e cache.
+- [x] Corrigir apenas falhas reais de integração e manter RLS, fonte de verdade Supabase e dados existentes.
+- [x] Executar Vitest determinísticos, TypeScript, build, auditoria de dependências e smoke tests; suite global com integrações externas ficou documentada como pendente por bloqueio de rede.
+- [x] Rever diff sem segredos, criar commit final, guardar checkpoint e confirmar GitHub/Vercel.

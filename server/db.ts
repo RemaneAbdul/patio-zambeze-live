@@ -4,7 +4,7 @@ import { Pool } from "pg";
 import { InsertUser, users, auditLogs, garcons } from "../drizzle/schema";
 import * as schema from "../drizzle/schema";
 import { ENV } from './_core/env';
-import { createSupabaseAdminUser, createSupabaseWaiter, deleteSupabaseUser, deleteSupabaseWaiter, disableSupabaseWaiter, enableSupabaseWaiter, updateSupabaseAdmin, updateSupabaseWaiter } from './supabaseAuth';
+import { createSupabaseAdminUser, createSupabaseWaiter, deleteSupabaseUser, deleteSupabaseWaiter, disableSupabaseUser, disableSupabaseWaiter, enableSupabaseUser, enableSupabaseWaiter, updateSupabaseAdmin, updateSupabaseWaiter } from './supabaseAuth';
 import { normalizeWaiterAccessCode } from './waiterAccess';
 import { randomInt } from 'node:crypto';
 
@@ -324,9 +324,21 @@ export async function setAdminActive(id: number, active: boolean) {
     const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(and(eq(users.role, "admin"), eq(users.waiterActive, 1)));
     if (Number(count) <= 1) throw new Error("LAST_ACTIVE_ADMIN");
   }
-  const [updated] = await db.update(users).set({ waiterActive: active ? 1 : 0, updatedAt: new Date() }).where(and(eq(users.id, id), eq(users.role, "admin"))).returning({ id: users.id, name: users.name, email: users.email, role: users.role, waiterActive: users.waiterActive });
-  if (!updated) throw new Error("ADMIN_UPDATE_FAILED");
-  return updated;
+
+  const syncAuth = active ? enableSupabaseUser : disableSupabaseUser;
+  const rollbackAuth = active ? disableSupabaseUser : enableSupabaseUser;
+  await syncAuth(authUserId);
+  try {
+    const [updated] = await db.update(users)
+      .set({ waiterActive: active ? 1 : 0, updatedAt: new Date() })
+      .where(and(eq(users.id, id), eq(users.role, "admin")))
+      .returning({ id: users.id, name: users.name, email: users.email, role: users.role, waiterActive: users.waiterActive });
+    if (!updated) throw new Error("ADMIN_UPDATE_FAILED");
+    return updated;
+  } catch (error) {
+    try { await rollbackAuth(authUserId); } catch (rollbackError) { console.error("[Auth] Failed to rollback admin active state", rollbackError); }
+    throw error;
+  }
 }
 
 export async function deleteAdminUser(id: number) {

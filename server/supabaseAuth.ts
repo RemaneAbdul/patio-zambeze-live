@@ -10,7 +10,7 @@ const serviceRoleKey =
 const publishableKey =
   process.env.SUPABASE_PUBLISHABLE_KEY ??
   process.env.SUPABASE_ANON_KEY ??
-  serviceRoleKey;
+  "";
 
 let adminClient: SupabaseClient | null = null;
 let authClient: SupabaseClient | null = null;
