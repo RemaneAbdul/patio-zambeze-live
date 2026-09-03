@@ -44,6 +44,27 @@ export function createApiApp() {
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ limit: "1mb", extended: true }));
 
+  // Browser-safe Supabase configuration. Only the public publishable/anon key
+  // is exposed; service-role secrets are never returned.
+  app.get("/api/auth-config", (_req, res) => {
+    const supabaseUrl = String(process.env.SUPABASE_URL ?? "").trim();
+    const publishableKey = String(
+      process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY ?? "",
+    ).trim();
+
+    if (!supabaseUrl || !publishableKey) {
+      res.status(503).json({ code: "SUPABASE_AUTH_CLIENT_CONFIGURATION_MISSING" });
+      return;
+    }
+
+    res.setHeader("Cache-Control", "no-store");
+    res.json({ supabaseUrl, publishableKey });
+  });
+
+  app.get("/api/health", (_req, res) => {
+    res.json({ ok: true, service: "patio-zambeze-api" });
+  });
+
   // CSRF protection for state-changing tRPC requests. The public Vercel
   // deployment is same-origin, while APP_ORIGIN can explicitly allow a custom
   // production domain or an additional trusted origin.
