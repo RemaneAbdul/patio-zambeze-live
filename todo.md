@@ -1605,12 +1605,12 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Registar evidências, rever estado Git e guardar checkpoint sem duplicar código.
 
 ## Correcção — Email já registado ao criar garçom
-- [ ] Auditar duplicidade no Supabase Auth, perfil local e tratamento de erro.
-- [ ] Impedir criação duplicada e permitir apenas reconciliação segura de perfil órfão/verificado.
-- [ ] Sincronizar username, telefone, código de acesso, role e estado sem apagar dados.
-- [ ] Actualizar a mensagem do painel para distinguir conta existente, perfil recuperável e conflito real.
-- [ ] Adicionar testes de duplicidade, reconciliação, rollback e autorização Admin.
-- [ ] Executar TypeScript, Vitest, build e smoke test; criar commit e checkpoint.
+- [x] Auditar duplicidade no Supabase Auth, perfil local e tratamento de erro.
+- [x] Impedir criação duplicada e permitir apenas reconciliação segura de perfil órfão/verificado.
+- [x] Sincronizar username, telefone, código de acesso, role e estado sem apagar dados.
+- [x] Actualizar a mensagem do painel para distinguir conta existente, perfil recuperável e conflito real.
+- [x] Adicionar testes de duplicidade, reconciliação, rollback e autorização Admin.
+- [x] Executar TypeScript, Vitest, build e smoke test; criar commit e checkpoint.
 
 ## Correcção — Página em branco na produção
 - [x] Reproduzir a página em branco no domínio Vercel e recolher erro de consola/rede sem expor secrets.
@@ -1619,4 +1619,4 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Aplicar correcção mínima sem apagar dados nem desactivar RLS.
 - [x] Adicionar regressão para carregamento inicial e fallback de erro.
 - [x] Executar TypeScript, Vitest, build, smoke HTTP e verificação mobile.
-- [ ] Criar commit, checkpoint e confirmar sincronização GitHub/Vercel/Supabase.
+- [x] Criar commit, checkpoint e confirmar sincronização GitHub/Vercel/Supabase.
