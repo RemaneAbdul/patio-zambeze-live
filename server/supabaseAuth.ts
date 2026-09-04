@@ -136,6 +136,13 @@ export async function createSupabaseAdmin(input: { email: string; password: stri
   return data.user;
 }
 
+export async function findSupabaseUserByEmail(email: string): Promise<SupabaseUser | null> {
+  const normalizedEmail = email.trim().toLowerCase();
+  const { data, error } = await getAdminClient().auth.admin.listUsers({ page: 1, perPage: 1000 });
+  if (error) throw new Error(`SUPABASE_AUTH_LOOKUP_FAILED:${error.message}`);
+  return data.users.find((user) => user.email?.trim().toLowerCase() === normalizedEmail) ?? null;
+}
+
 export async function createSupabaseWaiter(input: { email: string; password: string; fullName: string; phone?: string }) {
   const normalizedEmail = input.email.trim().toLowerCase();
   const { data, error } = await getAdminClient().auth.admin.createUser({

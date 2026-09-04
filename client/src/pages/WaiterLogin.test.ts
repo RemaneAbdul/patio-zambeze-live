@@ -36,7 +36,7 @@ describe("Supabase waiter login routing", () => {
 
   it("prevents an infinite production loading state", () => {
     expect(source).toContain("AUTH_OPERATION_TIMEOUT_MS = 15_000");
-    expect(source).toContain('supabase.auth.signInWithPassword');
+    expect(source).toContain('client.auth.signInWithPassword');
     expect(source).toContain('"AUTH_SIGN_IN_TIMEOUT"');
     expect(source).toContain('"AUTH_STATUS_TIMEOUT"');
     expect(source).toContain('"AUTH_PROFILE_TIMEOUT"');

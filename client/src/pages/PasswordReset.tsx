@@ -1,13 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
+import { getSupabaseBrowserConfig } from "@/lib/supabaseBrowserConfig";
 import { createClient } from "@supabase/supabase-js";
 import { LockKeyhole, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 
-const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, {
-  auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: false },
-});
+const supabaseConfig = getSupabaseBrowserConfig(import.meta.env);
+const supabase = supabaseConfig
+  ? createClient(supabaseConfig.url, supabaseConfig.publishableKey, {
+      auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: false },
+    })
+  : null;
 
 export default function PasswordReset() {
   const [, navigate] = useLocation();
@@ -21,6 +25,13 @@ export default function PasswordReset() {
 
   useEffect(() => {
     let mounted = true;
+    if (!supabase) {
+      setReady(true);
+      setHasSession(false);
+      return () => {
+        mounted = false;
+      };
+    }
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       const accessToken = data.session?.access_token;
@@ -44,6 +55,10 @@ export default function PasswordReset() {
     }
     if (password !== confirmation) {
       setError("As palavras-passe não coincidem.");
+      return;
+    }
+    if (!supabase) {
+      setError("O serviço de autenticação não está configurado neste ambiente.");
       return;
     }
     setLoading(true);

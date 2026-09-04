@@ -27,7 +27,7 @@ describe("Vercel routing", () => {
           destination: expect.stringContaining("/api/:path*"),
         }),
         expect.objectContaining({
-          source: "/:path((?!api/).*)",
+          source: "/((?!api(?:/|$)).*)",
           destination: "/index.html",
         }),
       ]),

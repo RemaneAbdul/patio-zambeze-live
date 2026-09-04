@@ -4,7 +4,7 @@ import { Pool } from "pg";
 import { InsertUser, users, auditLogs, garcons } from "../drizzle/schema";
 import * as schema from "../drizzle/schema";
 import { ENV } from './_core/env';
-import { createSupabaseAdminUser, createSupabaseWaiter, deleteSupabaseUser, deleteSupabaseWaiter, disableSupabaseUser, disableSupabaseWaiter, enableSupabaseUser, enableSupabaseWaiter, setSupabaseWaiterAccessCode, updateSupabaseAdmin, updateSupabaseWaiter } from './supabaseAuth';
+import { createSupabaseAdminUser, createSupabaseWaiter, deleteSupabaseUser, deleteSupabaseWaiter, disableSupabaseUser, disableSupabaseWaiter, enableSupabaseUser, enableSupabaseWaiter, findSupabaseUserByEmail, setSupabaseWaiterAccessCode, updateSupabaseAdmin, updateSupabaseWaiter } from './supabaseAuth';
 import { normalizeWaiterAccessCode } from './waiterAccess';
 import { randomInt } from 'node:crypto';
 
@@ -178,7 +178,20 @@ export async function createGarcon(input: { fullName: string; username: string; 
   if (input.password.length < 6) throw new Error("WAITER_PASSWORD_TOO_SHORT");
   const [codeOwner] = await db.select({ id: users.id }).from(users).where(eq(users.waiterCode, waiterCode)).limit(1);
   if (codeOwner) throw new Error("WAITER_CODE_ALREADY_IN_USE");
-  const authUser = await createSupabaseWaiter({ email, password: input.password, fullName, phone: input.phone });
+  const [localEmailOwner] = await db.select({ id: users.id, role: users.role }).from(users).where(sql`lower(${users.email}) = ${email}`).limit(1);
+  if (localEmailOwner) throw new Error("WAITER_EMAIL_ALREADY_EXISTS");
+
+  const existingAuthUser = await findSupabaseUserByEmail(email);
+  let authUser;
+  let ownsAuthUser = false;
+  if (existingAuthUser) {
+    const existingRole = String(existingAuthUser.user_metadata?.role ?? "").toUpperCase();
+    if (existingRole !== "GARCOM") throw new Error("WAITER_EMAIL_ALREADY_EXISTS");
+    authUser = await updateSupabaseWaiter({ authUserId: existingAuthUser.id, email, password: input.password, fullName, phone: input.phone });
+  } else {
+    authUser = await createSupabaseWaiter({ email, password: input.password, fullName, phone: input.phone });
+    ownsAuthUser = true;
+  }
   let legacyUserId: number | undefined;
   let createdGarconId: string | undefined;
   try {
@@ -195,7 +208,9 @@ export async function createGarcon(input: { fullName: string; username: string; 
   } catch (error) {
     try { if (createdGarconId) await db.delete(garcons).where(eq(garcons.id, createdGarconId)); } catch (cleanupError) { console.error("[Database] Failed to rollback waiter profile", cleanupError); }
     try { if (legacyUserId) await db.delete(users).where(eq(users.id, legacyUserId)); } catch (cleanupError) { console.error("[Database] Failed to rollback legacy waiter", cleanupError); }
-    try { await deleteSupabaseWaiter(authUser.id); } catch (cleanupError) { console.error("[Auth] Failed to rollback orphan waiter", cleanupError); }
+    if (ownsAuthUser) {
+      try { await deleteSupabaseWaiter(authUser.id); } catch (cleanupError) { console.error("[Auth] Failed to rollback orphan waiter", cleanupError); }
+    }
     throw error;
   }
 }
