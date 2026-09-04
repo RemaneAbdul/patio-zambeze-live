@@ -1,0 +1,62 @@
+name: Surgical client feedback cleanup
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Remove green QR/order feedback UI only
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('client/src/pages/Home.tsx')
+          text = path.read_text(encoding='utf-8')
+          original = text
+
+          qr_pattern = re.compile(r'\n\s*\{qrFeedback\s*&&\s*<div[\s\S]*?</div>\}', re.M)
+          selection_pattern = re.compile(r'\n\s*\{selectionNotice\s*&&\s*<div[\s\S]*?</div>\}', re.M)
+
+          qr_matches = list(qr_pattern.finditer(text))
+          selection_matches = list(selection_pattern.finditer(text))
+
+          if len(qr_matches) != 1:
+              raise SystemExit(f'Expected exactly 1 qrFeedback render block, found {len(qr_matches)}')
+          if len(selection_matches) != 1:
+              raise SystemExit(f'Expected exactly 1 selectionNotice render block, found {len(selection_matches)}')
+
+          text = qr_pattern.sub('', text, count=1)
+          text = selection_pattern.sub('', text, count=1)
+
+          if text == original:
+              raise SystemExit('No UI change was made')
+          if 'qrFeedback &&' in text:
+              raise SystemExit('qrFeedback visual render was not fully removed')
+          if 'selectionNotice &&' in text:
+              raise SystemExit('selectionNotice visual render was not fully removed')
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+          git diff --check
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add client/src/pages/Home.tsx .github/workflows/surgical-remove-green-client-feedback.yml
+          git rm .github/workflows/surgical-remove-green-client-feedback.yml
+          git commit -m 'fix(menu): remove green QR and order feedback UI'
+          git push
