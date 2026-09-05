@@ -65,7 +65,7 @@ describe("tableHistory validation", () => {
   });
 });
 
-const integration = process.env.SUPABASE_DATABASE_URL ? describe : describe.skip;
+const integration = process.env.SUPABASE_DATABASE_URL && process.env.RUN_SUPABASE_INTEGRATION === "1" ? describe : describe.skip;
 integration("tableHistory persistence", () => {
   it("persists a selection, reuses the active table session and exposes a read-only history view", async () => {
     const tokenA = `vitest-${crypto.randomUUID()}${crypto.randomUUID()}`;

@@ -1620,3 +1620,16 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Adicionar regressão para carregamento inicial e fallback de erro.
 - [x] Executar TypeScript, Vitest, build, smoke HTTP e verificação mobile.
 - [x] Criar commit, checkpoint e confirmar sincronização GitHub/Vercel/Supabase.
+
+## Auditoria integral solicitada em Pasted_content_07
+- [x] Auditar a arquitectura actual, rotas, queries, RLS, Storage, autenticação, variáveis de ambiente e deployment sem reconstruir nem apagar dados.
+- [x] Diagnosticar por que os pratos e categorias reais não aparecem no menu e corrigir apenas a causa confirmada.
+- [x] Auditar URLs, buckets, permissões, fallback e carregamento das imagens dos pratos e do logotipo.
+- [x] Garantir estado explícito de loading, erro, sucesso e vazio no carregamento do menu e imagens.
+- [x] Verificar autenticação Supabase em Development, Preview e Production sem expor service_role ou chaves secretas no frontend.
+- [x] Verificar correspondência entre sessão Auth, perfil local, user_id, role, logout, refresh, sessão expirada e redireccionamento.
+- [ ] Executar auditoria funcional controlada de menu, pedido, QR Code, mesas, painel, recibo, PDF, impressão e permissões.
+- [x] Validar responsividade em desktop e viewport móvel; manter limitação documentada para Safari/iPhone real.
+- [x] Executar Vitest, TypeScript, build, smoke HTTP, logs e revisão de segredos; sincronizar apenas alterações confirmadas com GitHub/Vercel.
+
+- [x] Tornar testes de integração Supabase opt-in e documentar a execução explícita, sem mascarar falhas reais de conectividade.

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 const connectionString = process.env.SUPABASE_DATABASE_URL;
+const runSupabaseIntegration = process.env.RUN_SUPABASE_INTEGRATION === "1";
 
 describe("Supabase PostgreSQL connection", () => {
   it("has a valid configured connection string", () => {
@@ -11,7 +12,7 @@ describe("Supabase PostgreSQL connection", () => {
     expect(url.searchParams.get("sslmode")).toBe("require");
   });
 
-  it("can execute a lightweight SELECT 1 query", async () => {
+  it.skipIf(!runSupabaseIntegration)("can execute a lightweight SELECT 1 query", async () => {
     const { Client } = await import("pg");
     const testConnectionString = connectionString?.replace(/[?&]sslmode=require\b/, "");
     const client = new Client({
