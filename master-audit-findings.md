@@ -23,3 +23,9 @@ A consulta SQL directa falhou com `SSL connection error: unexpected eof while re
 TypeScript e build de produção passaram. A suite padrão passou com 62 ficheiros, 204 testes e 5 testes externos explicitamente ignorados; os testes de integração Supabase permanecem disponíveis com `RUN_SUPABASE_INTEGRATION=1`, mas falharam de forma intermitente com `Connection terminated unexpectedly` no pooler durante operações Drizzle. Um `SELECT 1` directo com a mesma URL funcionou nas variantes original e password encoded.
 
 A captura visual desktop e mobile confirmou que o menu monta, o logotipo aparece, os 19 pratos são apresentados, o login usa código numérico de seis dígitos e a interface continua utilizável em viewport 390px. Os cards sem imagem deixam de ficar silenciosamente quebrados: o componente resiliente mostra fallback acessível quando o Storage falha.
+
+## Auditoria funcional controlada
+
+Foram verificadas em modo somente leitura as rotas `/`, `/menu`, `/painel/login`, `/painel/qr-codes`, `/painel/mesas`, `/painel/impressoes` e `/api/health`; todas responderam HTTP 200. As procedures públicas `menu.active` e `menu.publicCategories` responderam HTTP 200 na repetição final; `menu.active` entregou 19 produtos reais. A primeira chamada manual de `menu.active` devolveu 500 transitório, mas a resposta subsequente foi 200 com dados, sem alteração de código ou dados.
+
+A cobertura automatizada aprovada inclui sessões/mesas/QR e permissões, PDF e impressão térmica, guards Admin/Garçom, criação/edição de garçons e catálogo. Não foram submetidos pedidos, gerados QR Codes, alteradas mesas, impressos recibos reais ou executadas mutações Supabase durante esta auditoria controlada.

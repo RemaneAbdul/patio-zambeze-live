@@ -1628,7 +1628,7 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Garantir estado explícito de loading, erro, sucesso e vazio no carregamento do menu e imagens.
 - [x] Verificar autenticação Supabase em Development, Preview e Production sem expor service_role ou chaves secretas no frontend.
 - [x] Verificar correspondência entre sessão Auth, perfil local, user_id, role, logout, refresh, sessão expirada e redireccionamento.
-- [ ] Executar auditoria funcional controlada de menu, pedido, QR Code, mesas, painel, recibo, PDF, impressão e permissões.
+- [x] Executar auditoria funcional controlada de menu, pedido, QR Code, mesas, painel, recibo, PDF, impressão e permissões em modo somente leitura, apoiada pela cobertura automatizada; não foram feitas mutações reais.
 - [x] Validar responsividade em desktop e viewport móvel; manter limitação documentada para Safari/iPhone real.
 - [x] Executar Vitest, TypeScript, build, smoke HTTP, logs e revisão de segredos; sincronizar apenas alterações confirmadas com GitHub/Vercel.
 
