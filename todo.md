@@ -1633,3 +1633,13 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Executar Vitest, TypeScript, build, smoke HTTP, logs e revisão de segredos; sincronizar apenas alterações confirmadas com GitHub/Vercel.
 
 - [x] Tornar testes de integração Supabase opt-in e documentar a execução explícita, sem mascarar falhas reais de conectividade.
+
+## Correcção urgente — Vercel, Admin e integração real
+- [ ] Diagnosticar e corrigir o menu vazio no domínio Vercel, incluindo erro de API, configuração pública e proxy de Storage.
+- [ ] Diagnosticar e corrigir o login Admin de yuranremane51@gmail.com sem expor ou alterar a palavra-passe em código.
+- [ ] Executar integração Supabase real somente leitura/fluxos controlados e confirmar as variáveis públicas no projecto Vercel.
+- [ ] Validar QR, pedido e impressão em dispositivo móvel ou documentar claramente o que requer teste físico do utilizador.
+- [ ] Executar testes, build, sincronizar GitHub/Vercel e guardar checkpoint da correcção.
+
+- [ ] Corrigir o handler Vercel `api/[...path].ts` para produzir um bundle serverless válido, eliminando `ERR_MODULE_NOT_FOUND` em `/api/health` e `/api/auth-config`.
+- [ ] Adicionar no Vercel as variáveis privadas necessárias ao login Admin e testar o fluxo real.

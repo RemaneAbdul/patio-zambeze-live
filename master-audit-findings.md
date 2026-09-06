@@ -29,3 +29,7 @@ A captura visual desktop e mobile confirmou que o menu monta, o logotipo aparece
 Foram verificadas em modo somente leitura as rotas `/`, `/menu`, `/painel/login`, `/painel/qr-codes`, `/painel/mesas`, `/painel/impressoes` e `/api/health`; todas responderam HTTP 200. As procedures públicas `menu.active` e `menu.publicCategories` responderam HTTP 200 na repetição final; `menu.active` entregou 19 produtos reais. A primeira chamada manual de `menu.active` devolveu 500 transitório, mas a resposta subsequente foi 200 com dados, sem alteração de código ou dados.
 
 A cobertura automatizada aprovada inclui sessões/mesas/QR e permissões, PDF e impressão térmica, guards Admin/Garçom, criação/edição de garçons e catálogo. Não foram submetidos pedidos, gerados QR Codes, alteradas mesas, impressos recibos reais ou executadas mutações Supabase durante esta auditoria controlada.
+
+## Correcção Vercel — confirmação 2026-09-06
+
+A sessão autenticada confirmou que o projecto Vercel `patio-zambeze-live` está ligado ao repositório `RemaneAbdul/patio-zambeze-live` e que as variáveis públicas foram guardadas: `SUPABASE_URL` em todos os ambientes, `SUPABASE_PUBLISHABLE_KEY` em Production/Preview/Development, `VITE_SUPABASE_URL` em todos os ambientes e `VITE_SUPABASE_PUBLISHABLE_KEY` em todos os ambientes. `SUPABASE_DATABASE_URL` aparece na lista em Production. Os valores não foram lidos nem registados.
