@@ -1,4 +1,4 @@
-import { createApiApp } from "../server/_core/app.ts";
+import { createApiApp } from "./app.bundle.mjs";
 
 // Vercel Node function entrypoint for the existing Express + tRPC API.
 // Keeping the API under /api preserves the current client contract while
