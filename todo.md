@@ -1650,3 +1650,6 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 - [ ] Corrigir a configuração Vite pública (`VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`) que ainda provoca `Invalid supabaseUrl` no bundle frontend.
 - [ ] Adicionar regressão para impedir que URL PostgreSQL ou valor não-HTTP seja aceite como configuração Supabase do browser.
+
+- [ ] Confirmar a resposta sanitizada de `/api/auth-config` no deployment activo e corrigir a causa de “A configuração de autenticação não está disponível neste ambiente”.
+- [ ] Validar o login Admin real depois de a configuração Supabase estar disponível no browser.

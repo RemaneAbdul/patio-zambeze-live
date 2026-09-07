@@ -1,12 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
+import { getSupabaseBrowserConfig } from "@/lib/supabaseBrowserConfig";
 import { createClient } from "@supabase/supabase-js";
 import { KeyRound, LogIn, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 
-const ENV_SUPABASE_URL = String(import.meta.env.VITE_SUPABASE_URL ?? "").trim();
-const ENV_SUPABASE_PUBLISHABLE_KEY = String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY ?? "").trim();
+const ENV_SUPABASE_CONFIG = getSupabaseBrowserConfig({
+  VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
+  VITE_SUPABASE_PUBLISHABLE_KEY: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY,
+});
+const ENV_SUPABASE_URL = ENV_SUPABASE_CONFIG?.url ?? "";
+const ENV_SUPABASE_PUBLISHABLE_KEY = ENV_SUPABASE_CONFIG?.publishableKey ?? "";
 const AUTH_OPERATION_TIMEOUT_MS = 15_000;
 const AUTH_SIGN_OUT_TIMEOUT_MS = 5_000;
 
