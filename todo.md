@@ -1641,5 +1641,9 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [ ] Validar QR, pedido e impressão em dispositivo móvel ou documentar claramente o que requer teste físico do utilizador.
 - [ ] Executar testes, build, sincronizar GitHub/Vercel e guardar checkpoint da correcção.
 
-- [ ] Corrigir o handler Vercel `api/[...path].ts` para produzir um bundle serverless válido, eliminando `ERR_MODULE_NOT_FOUND` em `/api/health` e `/api/auth-config`.
+- [x] Corrigir o handler Vercel `api/[...path].ts` para produzir um bundle serverless válido, eliminando `ERR_MODULE_NOT_FOUND` em `/api/health` e `/api/auth-config`.
 - [ ] Adicionar no Vercel as variáveis privadas necessárias ao login Admin e testar o fluxo real.
+
+- [x] Corrigir imediatamente os valores Vercel de `SUPABASE_URL` e `SUPABASE_PUBLISHABLE_KEY`; não aceitar URL PostgreSQL como configuração pública.
+- [ ] Avaliar rotação da palavra-passe PostgreSQL e das chaves Supabase caso tenham sido guardadas ou expostas em configuração incorrecta.
+- [ ] Corrigir o input tRPC público no deployment e validar `menu.active` com o formato exacto do cliente.
