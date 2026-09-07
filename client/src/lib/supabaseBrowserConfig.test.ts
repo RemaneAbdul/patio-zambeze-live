@@ -14,4 +14,19 @@ describe("getSupabaseBrowserConfig", () => {
       VITE_SUPABASE_PUBLISHABLE_KEY: " public-key ",
     })).toEqual({ url: "https://example.supabase.co", publishableKey: "public-key" });
   });
+
+  it("rejects database URLs and non-Supabase browser URLs", () => {
+    expect(getSupabaseBrowserConfig({
+      VITE_SUPABASE_URL: "postgresql://user:password@db.example.com:5432/postgres",
+      VITE_SUPABASE_PUBLISHABLE_KEY: "public-key",
+    })).toBeNull();
+    expect(getSupabaseBrowserConfig({
+      VITE_SUPABASE_URL: "https://example.com",
+      VITE_SUPABASE_PUBLISHABLE_KEY: "public-key",
+    })).toBeNull();
+    expect(getSupabaseBrowserConfig({
+      VITE_SUPABASE_URL: "https://example.supabase.co",
+      VITE_SUPABASE_PUBLISHABLE_KEY: "postgresql://user:password@db.example.com:5432/postgres",
+    })).toBeNull();
+  });
 });
