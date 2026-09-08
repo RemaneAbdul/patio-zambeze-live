@@ -23,11 +23,15 @@ describe("Vercel routing", () => {
     expect(vercelConfig.rewrites).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
+          source: "/manus-storage/:path*",
+          destination: "/api/manus-storage/:path*",
+        }),
+        expect.objectContaining({
           source: "/api/:path*",
           destination: expect.stringContaining("/api/:path*"),
         }),
         expect.objectContaining({
-          source: "/((?!api(?:/|$)).*)",
+          source: "/((?!api(?:/|$)|manus-storage(?:/|$)).*)",
           destination: "/index.html",
         }),
       ]),
