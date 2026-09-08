@@ -131,6 +131,20 @@ function mapLoginStatusError(status: string | undefined): string {
   }
 }
 
+function mapRecoveryError(error: unknown): string {
+  const message = error instanceof Error ? error.message : typeof error === "object" && error && "message" in error ? String((error as { message: unknown }).message) : "";
+  if (/redirect|redirect.?url|not allowed|not authorized/i.test(message)) {
+    return "O domínio de recuperação ainda não está autorizado no Supabase. Contacte o administrador.";
+  }
+  if (/rate.?limit|too many|email rate/i.test(message)) {
+    return "Foi atingido o limite de emails de recuperação. Aguarde alguns minutos e tente novamente.";
+  }
+  if (/configuration|SUPABASE|failed to fetch|network|connection/i.test(message)) {
+    return "O serviço de recuperação não está disponível neste momento. Tente novamente mais tarde.";
+  }
+  return "Não foi possível enviar o email de recuperação. Verifique o endereço e tente novamente.";
+}
+
 export default function WaiterLogin() {
   const [, navigate] = useLocation();
   const [mode, setMode] = useState<"code" | "credentials">("code");
@@ -207,7 +221,7 @@ export default function WaiterLogin() {
       setRecoverySent(true);
     } catch (recoveryError) {
       console.error("[Auth recovery] Password recovery failed", recoveryError);
-      setError(mapCredentialsLoginError(recoveryError));
+      setError(mapRecoveryError(recoveryError));
     }
   };
 

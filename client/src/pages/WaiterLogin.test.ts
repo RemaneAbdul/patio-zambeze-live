@@ -50,4 +50,12 @@ describe("Supabase waiter login routing", () => {
     expect(source).toContain("navigate(profile.role === \"admin\" ? \"/painel/admin\" : \"/painel/garcom\")");
     expect(source).toContain("mapCredentialsLoginError");
   });
+
+  it("gives actionable password recovery errors without exposing secrets", () => {
+    expect(source).toContain("function mapRecoveryError");
+    expect(source).toContain("O domínio de recuperação ainda não está autorizado no Supabase");
+    expect(source).toContain("Foi atingido o limite de emails de recuperação");
+    expect(source).toContain("Não foi possível enviar o email de recuperação");
+    expect(source).toContain("/redefinir-senha");
+  });
 });

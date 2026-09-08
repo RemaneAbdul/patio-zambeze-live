@@ -1653,3 +1653,10 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 - [ ] Confirmar a resposta sanitizada de `/api/auth-config` no deployment activo e corrigir a causa de “A configuração de autenticação não está disponível neste ambiente”.
 - [ ] Validar o login Admin real depois de a configuração Supabase estar disponível no browser.
+
+- [ ] Diagnosticar a falha “Não foi possível concluir a autenticação” no login Admin, distinguindo credenciais inválidas, chave service-role ausente, redirect ou erro Supabase Auth.
+- [ ] Validar o login Admin real após a correcção, sem guardar palavra-passe em código ou logs.
+
+- [ ] Diagnosticar por que o botão de recuperação de palavra-passe não conclui o fluxo para `yuranremane51@gmail.com`.
+- [ ] Substituir a mensagem genérica de autenticação por feedback seguro e accionável, preservando a não exposição de credenciais.
+- [ ] Validar login Admin após recuperação ou sincronização segura da palavra-passe no Supabase Auth.
