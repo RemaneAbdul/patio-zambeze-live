@@ -1646,17 +1646,17 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 - [x] Corrigir imediatamente os valores Vercel de `SUPABASE_URL` e `SUPABASE_PUBLISHABLE_KEY`; não aceitar URL PostgreSQL como configuração pública.
 - [ ] Avaliar rotação da palavra-passe PostgreSQL e das chaves Supabase caso tenham sido guardadas ou expostas em configuração incorrecta.
-- [ ] Corrigir o input tRPC público no deployment e validar `menu.active` com o formato exacto do cliente.
+- [x] Corrigir o input tRPC público no deployment e validar `menu.active` com o formato exacto do cliente.
 
-- [ ] Corrigir a configuração Vite pública (`VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`) que ainda provoca `Invalid supabaseUrl` no bundle frontend.
-- [ ] Adicionar regressão para impedir que URL PostgreSQL ou valor não-HTTP seja aceite como configuração Supabase do browser.
+- [x] Corrigir a configuração Vite pública (`VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`) que ainda provoca `Invalid supabaseUrl` no bundle frontend.
+- [x] Adicionar regressão para impedir que URL PostgreSQL ou valor não-HTTP seja aceite como configuração Supabase do browser.
 
-- [ ] Confirmar a resposta sanitizada de `/api/auth-config` no deployment activo e corrigir a causa de “A configuração de autenticação não está disponível neste ambiente”.
+- [x] Confirmar a resposta sanitizada de `/api/auth-config` no deployment activo e corrigir a causa de “A configuração de autenticação não está disponível neste ambiente”.
 - [ ] Validar o login Admin real depois de a configuração Supabase estar disponível no browser.
 
-- [ ] Diagnosticar a falha “Não foi possível concluir a autenticação” no login Admin, distinguindo credenciais inválidas, chave service-role ausente, redirect ou erro Supabase Auth.
+- [x] Diagnosticar a falha “Não foi possível concluir a autenticação” no login Admin: a causa observada foi `Invalid login credentials`.
 - [ ] Validar o login Admin real após a correcção, sem guardar palavra-passe em código ou logs.
 
 - [ ] Diagnosticar por que o botão de recuperação de palavra-passe não conclui o fluxo para `yuranremane51@gmail.com`.
-- [ ] Substituir a mensagem genérica de autenticação por feedback seguro e accionável, preservando a não exposição de credenciais.
+- [x] Substituir a mensagem genérica de autenticação por feedback seguro e accionável, preservando a não exposição de credenciais.
 - [ ] Validar login Admin após recuperação ou sincronização segura da palavra-passe no Supabase Auth.
