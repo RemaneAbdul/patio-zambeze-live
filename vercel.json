@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/manus-storage/:path*",
-      "destination": "/api/manus-storage/:path*"
+      "destination": "/api/storage?path=:path*"
     },
     {
       "source": "/api/:path*",

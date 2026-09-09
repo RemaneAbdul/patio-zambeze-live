@@ -24,7 +24,7 @@ describe("Vercel routing", () => {
       expect.arrayContaining([
         expect.objectContaining({
           source: "/manus-storage/:path*",
-          destination: "/api/manus-storage/:path*",
+          destination: "/api/storage?path=:path*",
         }),
         expect.objectContaining({
           source: "/api/:path*",
