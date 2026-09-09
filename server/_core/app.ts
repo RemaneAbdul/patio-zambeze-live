@@ -47,13 +47,15 @@ export function createApiApp() {
   // Browser-safe Supabase configuration. Only the public publishable/anon key
   // is exposed; service-role secrets are never returned.
   app.get("/api/auth-config", (_req, res) => {
-    const supabaseUrl = String(process.env.SUPABASE_URL ?? "").trim();
+    const rawSupabaseUrl = String(process.env.SUPABASE_URL ?? "").trim();
+    const supabaseUrl = rawSupabaseUrl.replace(/\/rest\/v1\/?$/i, "").replace(/\/+$/, "");
     const publishableKey = String(
       process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY ?? "",
     ).trim();
 
-    if (!supabaseUrl || !publishableKey) {
-      res.status(503).json({ code: "SUPABASE_AUTH_CLIENT_CONFIGURATION_MISSING" });
+    const isValidSupabaseUrl = /^https:\/\/[^/]+\.supabase\.co$/i.test(supabaseUrl);
+    if (!isValidSupabaseUrl || !publishableKey || /^postgres(?:ql)?:\/\//i.test(publishableKey)) {
+      res.status(503).json({ code: "SUPABASE_AUTH_CLIENT_CONFIGURATION_INVALID" });
       return;
     }
 

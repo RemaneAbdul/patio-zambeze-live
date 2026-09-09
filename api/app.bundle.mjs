@@ -2550,12 +2550,14 @@ function createApiApp() {
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ limit: "1mb", extended: true }));
   app.get("/api/auth-config", (_req, res) => {
-    const supabaseUrl2 = String(process.env.SUPABASE_URL ?? "").trim();
+    const rawSupabaseUrl = String(process.env.SUPABASE_URL ?? "").trim();
+    const supabaseUrl2 = rawSupabaseUrl.replace(/\/rest\/v1\/?$/i, "").replace(/\/+$/, "");
     const publishableKey2 = String(
       process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY ?? ""
     ).trim();
-    if (!supabaseUrl2 || !publishableKey2) {
-      res.status(503).json({ code: "SUPABASE_AUTH_CLIENT_CONFIGURATION_MISSING" });
+    const isValidSupabaseUrl = /^https:\/\/[^/]+\.supabase\.co$/i.test(supabaseUrl2);
+    if (!isValidSupabaseUrl || !publishableKey2 || /^postgres(?:ql)?:\/\//i.test(publishableKey2)) {
+      res.status(503).json({ code: "SUPABASE_AUTH_CLIENT_CONFIGURATION_INVALID" });
       return;
     }
     res.setHeader("Cache-Control", "no-store");
