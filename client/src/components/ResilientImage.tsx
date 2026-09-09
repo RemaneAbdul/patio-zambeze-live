@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
 
+const MANAGED_STORAGE_ORIGIN = "https://menudigital-8xuhohcp.manus.space";
+
+function resolveImageSrc(src?: string | null): string | undefined {
+  if (!src) return undefined;
+  if (src.startsWith("/manus-storage/")) return `${MANAGED_STORAGE_ORIGIN}${src}`;
+  return src;
+}
+
 type ResilientImageProps = {
   src?: string | null;
   alt: string;
@@ -10,15 +18,16 @@ type ResilientImageProps = {
 };
 
 export default function ResilientImage({ src, alt, className = "", fallbackClassName = "", fallback, loading = "lazy" }: ResilientImageProps) {
-  const [failed, setFailed] = useState(!src);
+  const resolvedSrc = resolveImageSrc(src);
+  const [failed, setFailed] = useState(!resolvedSrc);
 
   useEffect(() => {
-    setFailed(!src);
+    setFailed(!resolvedSrc);
   }, [src]);
 
   if (!src || failed) {
     return <div role="img" aria-label={`${alt} — imagem indisponível`} className={`${className} ${fallbackClassName}`.trim()}>{fallback}</div>;
   }
 
-  return <img loading={loading} src={src} alt={alt} className={className} onError={() => setFailed(true)} />;
+  return <img loading={loading} src={resolvedSrc} alt={alt} className={className} onError={() => setFailed(true)} />;
 }

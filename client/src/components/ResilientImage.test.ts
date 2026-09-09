@@ -14,7 +14,7 @@ describe("ResilientImage", () => {
 
   it("resets the failed state when a new source is provided", () => {
     expect(source).toContain("useEffect(() => {");
-    expect(source).toContain("setFailed(!src);");
+    expect(source).toContain("setFailed(!resolvedSrc);");
     expect(source).toContain("[src]");
   });
 });
