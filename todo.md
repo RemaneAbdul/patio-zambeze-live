@@ -1669,3 +1669,9 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 - [ ] Publicar e validar a função Vercel dedicada `/api/manus-storage/*`; os URLs reais do catálogo ainda devolvem 404 no domínio activo.
 - [ ] Normalizar `SUPABASE_URL`/`VITE_SUPABASE_URL` para `https://xtqhebrgrepjjxwniirz.supabase.co` sem o sufixo `/rest/v1/`, mantendo a URL REST apenas onde explicitamente necessária.
+
+## Novo administrador solicitado
+
+- [x] Criar ou reconciliar a conta Supabase Auth `yuran@gmail.com` sem expor a palavra-passe.
+- [x] Criar ou actualizar o perfil local correspondente com função `admin` e estado activo; UID `supabase:64594059-91a0-462b-a10a-79247c83e990`, perfil local id 1963.
+- [ ] Validar login e permissões Admin sem guardar credenciais em código, logs ou documentação.
