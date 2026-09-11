@@ -212,6 +212,7 @@ var supabaseUrl = process.env.SUPABASE_URL ?? "";
 var serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_KEY ?? "";
 var publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY ?? "";
 var adminClient = null;
+var authClient = null;
 function getAdminClient() {
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error("SUPABASE_AUTH_SERVER_CONFIGURATION_MISSING");
@@ -220,6 +221,15 @@ function getAdminClient() {
     auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
   });
   return adminClient;
+}
+function getAuthClient() {
+  if (!supabaseUrl || !publishableKey) {
+    throw new Error("SUPABASE_AUTH_CLIENT_CONFIGURATION_MISSING");
+  }
+  authClient ??= createClient(supabaseUrl, publishableKey, {
+    auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
+  });
+  return authClient;
 }
 function assertWaiterAccessCode(accessCode) {
   if (!/^\d{6}$/.test(accessCode)) {
@@ -244,9 +254,18 @@ async function setSupabaseWaiterAccessCode(authUserId, accessCode) {
 }
 async function getSupabaseUserFromAccessToken(accessToken) {
   if (!accessToken) return null;
-  const { data, error } = await getAdminClient().auth.getUser(accessToken);
-  if (error) return null;
-  return data.user;
+  try {
+    const { data, error } = await getAdminClient().auth.getUser(accessToken);
+    if (!error && data.user) return data.user;
+  } catch {
+  }
+  try {
+    const { data, error } = await getAuthClient().auth.getUser(accessToken);
+    if (error) return null;
+    return data.user;
+  } catch {
+    return null;
+  }
 }
 async function createSupabaseAdminUser(input) {
   const client = getAdminClient();

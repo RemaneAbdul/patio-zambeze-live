@@ -72,6 +72,13 @@ describe("admin creation safeguards", () => {
     expect(routerSource).toContain('"DEACTIVATE_ADMIN"');
   });
 
+  it("validates Supabase bearer sessions with a public-key fallback", () => {
+    expect(authSource).toContain("getAdminClient().auth.getUser(accessToken)");
+    expect(authSource).toContain("getAuthClient().auth.getUser(accessToken)");
+    expect(contextSource).toContain('const isSupabaseToken = opts.req.headers["x-auth-provider"] === "supabase"');
+    expect(contextSource).toContain('opts.req.headers.authorization');
+  });
+
   it("blocks inactive admins in both Supabase and legacy session resolution", () => {
     expect(contextSource).toContain('legacyUser.waiterActive === 1 ? legacyUser : null');
     expect(contextSource).toContain('user?.role === "admin" && user.waiterActive === 0 ? null : user');

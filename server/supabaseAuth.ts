@@ -83,9 +83,25 @@ export async function signInSupabaseWaiterByCode(input: { authUserId: string; em
 
 export async function getSupabaseUserFromAccessToken(accessToken: string): Promise<SupabaseUser | null> {
   if (!accessToken) return null;
-  const { data, error } = await getAdminClient().auth.getUser(accessToken);
-  if (error) return null;
-  return data.user;
+
+  // Validate the bearer with the service-role client when configured, but do not
+  // make the Admin session depend on a private key being present in every
+  // preview/runtime. Supabase Auth accepts the same access token through the
+  // publishable-key client for user lookup.
+  try {
+    const { data, error } = await getAdminClient().auth.getUser(accessToken);
+    if (!error && data.user) return data.user;
+  } catch {
+    // Fall through to the public Auth client below.
+  }
+
+  try {
+    const { data, error } = await getAuthClient().auth.getUser(accessToken);
+    if (error) return null;
+    return data.user;
+  } catch {
+    return null;
+  }
 }
 
 export async function createSupabaseAdminUser(input: { email: string; password: string; fullName: string }) {

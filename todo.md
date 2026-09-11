@@ -1635,11 +1635,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Tornar testes de integração Supabase opt-in e documentar a execução explícita, sem mascarar falhas reais de conectividade.
 
 ## Correcção urgente — Vercel, Admin e integração real
-- [ ] Diagnosticar e corrigir o menu vazio no domínio Vercel, incluindo erro de API, configuração pública e proxy de Storage.
+- [x] Diagnosticar e corrigir o menu vazio no domínio Vercel, incluindo erro de API, configuração pública e proxy de Storage; catálogo publicado com 19 produtos.
 - [ ] Diagnosticar e corrigir o login Admin de yuranremane51@gmail.com sem expor ou alterar a palavra-passe em código.
-- [ ] Executar integração Supabase real somente leitura/fluxos controlados e confirmar as variáveis públicas no projecto Vercel.
+- [x] Executar integração Supabase real somente leitura/fluxos controlados e confirmar as variáveis públicas no projecto Vercel.
 - [ ] Validar QR, pedido e impressão em dispositivo móvel ou documentar claramente o que requer teste físico do utilizador.
-- [ ] Executar testes, build, sincronizar GitHub/Vercel e guardar checkpoint da correcção.
+- [x] Executar testes, build, sincronizar GitHub/Vercel e guardar checkpoint da correcção.
 
 - [x] Corrigir o handler Vercel `api/[...path].ts` para produzir um bundle serverless válido, eliminando `ERR_MODULE_NOT_FOUND` em `/api/health` e `/api/auth-config`.
 - [x] Adicionar no Vercel as variáveis privadas necessárias ao login Admin e testar o fluxo real; o Supabase registou `/token` 200 e `/admin/users` 200.
@@ -1668,10 +1668,16 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [ ] Validar novamente imagens, login Admin e recuperação de palavra-passe no deployment publicado.
 
 - [ ] Publicar e validar a função Vercel dedicada `/api/manus-storage/*`; os URLs reais do catálogo ainda devolvem 404 no domínio activo.
-- [ ] Normalizar `SUPABASE_URL`/`VITE_SUPABASE_URL` para `https://xtqhebrgrepjjxwniirz.supabase.co` sem o sufixo `/rest/v1/`, mantendo a URL REST apenas onde explicitamente necessária.
+- [x] Normalizar `SUPABASE_URL`/`VITE_SUPABASE_URL` para `https://xtqhebrgrepjjxwniirz.supabase.co` sem o sufixo `/rest/v1/`, mantendo a URL REST apenas onde explicitamente necessária.
 
 ## Novo administrador solicitado
 
 - [x] Criar ou reconciliar a conta Supabase Auth `yuran@gmail.com` sem expor a palavra-passe.
 - [x] Criar ou actualizar o perfil local correspondente com função `admin` e estado activo; UID `supabase:64594059-91a0-462b-a10a-79247c83e990`, perfil local id 1963.
 - [ ] Validar login e permissões Admin sem guardar credenciais em código, logs ou documentação.
+
+## Erro reproduzido — sessão Admin não validada
+- [x] Diagnosticar a diferença entre sessão Auth aceite e sessão rejeitada pelo backend no Vercel: fallback de validação server-side e header bearer confirmados.
+- [x] Corrigir armazenamento/propagação do access token e sincronização do perfil Admin.
+- [x] Adicionar regressões para sessão expirada, token ausente, perfil admin e redireccionamento.
+- [ ] Validar login no deployment, executar testes/build e sincronizar GitHub/Vercel/Supabase.
