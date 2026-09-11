@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 
-const MANAGED_STORAGE_ORIGIN = "https://menudigital-8xuhohcp.manus.space";
-
 function resolveImageSrc(src?: string | null): string | undefined {
   if (!src) return undefined;
-  if (src.startsWith("/manus-storage/")) return `${MANAGED_STORAGE_ORIGIN}${src}`;
+  // Keep managed-storage URLs same-origin so Vercel can proxy them through
+  // the current storage endpoint. The previous hard-coded Manus origin could
+  // be unavailable after deployment and caused every menu image to break.
+  if (src.startsWith("/manus-storage/")) return src;
+  if (src.startsWith("/api/storage?path=")) return src;
   return src;
 }
 
@@ -23,7 +25,7 @@ export default function ResilientImage({ src, alt, className = "", fallbackClass
 
   useEffect(() => {
     setFailed(!resolvedSrc);
-  }, [src]);
+  }, [resolvedSrc]);
 
   if (!src || failed) {
     return <div role="img" aria-label={`${alt} — imagem indisponível`} className={`${className} ${fallbackClassName}`.trim()}>{fallback}</div>;
