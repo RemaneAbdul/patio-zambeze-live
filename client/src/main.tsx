@@ -1,7 +1,7 @@
 import { trpc } from "@/lib/trpc";
-import { COOKIE_NAME, UNAUTHED_ERR_MSG } from '@shared/const';
+import { COOKIE_NAME } from '@shared/const';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { httpBatchLink, TRPCClientError } from "@trpc/client";
+import { httpBatchLink } from "@trpc/client";
 import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
@@ -20,56 +20,17 @@ function readSupabaseAccessToken(): string | null {
       localStorage.setItem(SUPABASE_TOKEN_KEY, sessionToken);
       return sessionToken;
     }
-  } catch {
-    // Continue with localStorage below.
-  }
+  } catch {}
   try {
     const localToken = localStorage.getItem(SUPABASE_TOKEN_KEY)?.trim()
       || localStorage.getItem(SUPABASE_TOKEN_FALLBACK_KEY)?.trim();
     if (localToken) {
-      try { sessionStorage.setItem(SUPABASE_TOKEN_KEY, localToken); } catch { /* storage may be blocked */ }
+      try { sessionStorage.setItem(SUPABASE_TOKEN_KEY, localToken); } catch {}
       return localToken;
     }
-  } catch {
-    // Storage can be unavailable in private browsing/WebView.
-  }
+  } catch {}
   return null;
 }
-
-const redirectToLoginIfUnauthorized = (error: unknown) => {
-  if (!(error instanceof TRPCClientError)) return;
-  if (typeof window === "undefined") return;
-
-  const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
-  if (!isUnauthorized) return;
-
-  try {
-    sessionStorage.removeItem(SUPABASE_TOKEN_KEY);
-    // Keep the persistent token here. It is removed only after a confirmed
-    // invalid/expired session, avoiding accidental logout during navigation.
-  } catch {
-    // sessionStorage may be unavailable in private browsing.
-  }
-  if (window.location.pathname.startsWith("/painel")) {
-    window.location.assign("/painel/login");
-  }
-};
-
-queryClient.getQueryCache().subscribe(event => {
-  if (event.type === "updated" && event.action.type === "error") {
-    const error = event.query.state.error;
-    redirectToLoginIfUnauthorized(error);
-    console.error("[API Query Error]", error);
-  }
-});
-
-queryClient.getMutationCache().subscribe(event => {
-  if (event.type === "updated" && event.action.type === "error") {
-    const error = event.mutation.state.error;
-    redirectToLoginIfUnauthorized(error);
-    console.error("[API Mutation Error]", error);
-  }
-});
 
 const trpcClient = trpc.createClient({
   links: [
@@ -93,9 +54,7 @@ const trpcClient = trpc.createClient({
             const token = pair?.trim().slice(prefix.length);
             if (token) return { Authorization: `Bearer ${token}` };
           }
-        } catch {
-          // sessionStorage may be unavailable.
-        }
+        } catch {}
         return {};
       },
       fetch(input, init) {
