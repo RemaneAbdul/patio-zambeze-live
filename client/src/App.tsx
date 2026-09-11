@@ -1,4 +1,4 @@
-/* Pátio Solar: o QR Code abre diretamente o menu; nenhuma camada de login, pedido ou checkout. */
+/* Pátio Zambeze: o painel e o menu são acessíveis directamente, sem camada de login. */
 import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,7 +8,6 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-import WaiterLogin from "./pages/WaiterLogin";
 import PasswordReset from "./pages/PasswordReset";
 import "./menu-fixes.css";
 
@@ -44,8 +43,6 @@ function TranslationWarmup() {
     };
     document.addEventListener("click", saveLanguageChoice, true);
 
-    // Home keeps its current language in React state. Restore the saved choice
-    // after the menu mounts, without changing the menu/session architecture.
     const restoreTimer = window.setTimeout(() => {
       const saved = localStorage.getItem(storageKey);
       if (saved !== "pt" && saved !== "en") return;
@@ -80,20 +77,19 @@ function Router() {
   return (
     <Switch>
       <Route path="/menu" component={Home} />
-      <Route path="/login" component={WaiterLogin} />
       <Route path="/redefinir-senha" component={PasswordReset} />
-      <Route path="/painel/login" component={WaiterLogin} />
       <Route path="/painel/redefinir-senha" component={PasswordReset} />
       <Route path="/" component={Home} />
       <Route path="/painel/admin" component={WaiterPanel} />
       <Route path="/painel/pratos" component={ProductsPanel} />
       <Route path="/painel/qr-codes" component={QrCodesPanel} />
       <Route path="/painel/garcons" component={WaitersPanel} />
-      <Route path="/painel" component={WaiterPanel} />
-      <Route path="/painel/garcom" component={WaiterPanel} />
       <Route path="/painel/mesas" component={WaiterPanel} />
       <Route path="/painel/impressoes" component={PrintsPanel} />
       <Route path="/painel/definicoes" component={SettingsPanel} />
+      <Route path="/painel/login" component={WaiterPanel} />
+      <Route path="/painel" component={WaiterPanel} />
+      <Route path="/painel/garcom" component={WaiterPanel} />
       <Route path="/waiter" component={WaiterPanel} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
