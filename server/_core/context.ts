@@ -10,35 +10,70 @@ export type TrpcContext = {
   user: User | null;
 };
 
+function getBearerToken(authorization: unknown): string {
+  if (typeof authorization !== "string") return "";
+  const match = authorization.match(/^Bearer\\s+(.+)$/i);
+  return match?.[1]?.trim() ?? "";
+}
+
 async function resolveSupabaseUser(accessToken: string): Promise<User | null> {
   const supabaseUser = await getSupabaseUserFromAccessToken(accessToken);
-  if (!supabaseUser) return null;
+  if (!supabaseUser?.id) return null;
 
-  const legacyUser = await getUserByOpenId(`supabase:${supabaseUser.id}`);
-  if (legacyUser?.role === "admin") return legacyUser.waiterActive === 1 ? legacyUser : null;
-  if (!legacyUser) return null;
+  // The database identity is deliberately bound to the exact Supabase Auth UUID.
+  // Never fall back to email/name matching: the canonical key is supabase:<UUID>.
+  const expectedOpenId = `supabase:${supabaseUser.id}`;
+  const legacyUser = await getUserByOpenId(expectedOpenId);
+  if (!legacyUser || legacyUser.openId !== expectedOpenId) return null;
+
+  if (legacyUser.role === "admin") {
+    return legacyUser.waiterActive === 1 ? legacyUser : null;
+  }
 
   const garconProfile = await getGarconProfileByLegacyUserId(legacyUser.id);
-  if (garconProfile?.authUserId !== supabaseUser.id || garconProfile.role !== "GARCOM" || garconProfile.status !== "ATIVO") return null;
+  if (
+    !garconProfile ||
+    garconProfile.authUserId !== supabaseUser.id ||
+    garconProfile.role !== "GARCOM" ||
+    garconProfile.status !== "ATIVO"
+  ) {
+    return null;
+  }
+
   return { ...legacyUser, role: "garcom", waiterActive: 1 };
 }
 
 export async function createContext(
   opts: CreateExpressContextOptions
 ): Promise<TrpcContext> {
-  const authorization = opts.req.headers.authorization;
-  const accessToken = authorization?.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
+  const accessToken = getBearerToken(opts.req.headers.authorization);
+  const authProvider = String(opts.req.headers["x-auth-provider"] ?? "").trim().toLowerCase();
 
-  // Prefer a valid Supabase bearer identity over a stale Manus cookie. This is
-  // essential when an administrator and a waiter use the same browser session.
+  // A Supabase bearer is authoritative when the client explicitly identifies
+  // the provider. This prevents a stale legacy cookie from masking a valid
+  // Supabase session in production.
+  if (accessToken && authProvider === "supabase") {
+    try {
+      return {
+        req: opts.req,
+        res: opts.res,
+        user: await resolveSupabaseUser(accessToken),
+      };
+    } catch (error) {
+      console.error("[Auth] Supabase session validation failed", error);
+      return { req: opts.req, res: opts.res, user: null };
+    }
+  }
+
+  // Also accept a valid Supabase bearer without the optional provider header.
+  // This keeps the API interoperable with clients/proxies that preserve only
+  // the standard Authorization header.
   if (accessToken) {
-    const isSupabaseToken = opts.req.headers["x-auth-provider"] === "supabase";
     try {
       const supabaseUser = await resolveSupabaseUser(accessToken);
-      if (supabaseUser || isSupabaseToken) return { req: opts.req, res: opts.res, user: supabaseUser };
-    } catch {
-      if (isSupabaseToken) return { req: opts.req, res: opts.res, user: null };
-      // The token may be a legacy Manus bearer token; let the Manus SDK try it.
+      if (supabaseUser) return { req: opts.req, res: opts.res, user: supabaseUser };
+    } catch (error) {
+      console.warn("[Auth] Bearer is not a valid Supabase session; trying legacy auth", error);
     }
   }
 
