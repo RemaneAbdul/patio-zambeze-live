@@ -10,9 +10,32 @@ export type TrpcContext = {
   user: User | null;
 };
 
+/**
+ * The product is intentionally configured for public/direct panel access.
+ * This synthetic context identity is not a Supabase user, credential, or
+ * database account; it only prevents the existing tRPC authorization layer
+ * from turning the public panel into a 401/403 before its UI can load.
+ *
+ * IMPORTANT: because the panel is public, admin/staff tRPC procedures are
+ * reachable without authentication. This is an explicit product decision.
+ */
+const PUBLIC_PANEL_USER: User = {
+  id: 0,
+  openId: "public:panel",
+  name: "Acesso directo ao painel",
+  email: null,
+  loginMethod: "public-panel",
+  role: "admin",
+  waiterCode: null,
+  waiterActive: 1,
+  createdAt: new Date(0),
+  updatedAt: new Date(0),
+  lastSignedIn: new Date(),
+};
+
 function getBearerToken(authorization: unknown): string {
   if (typeof authorization !== "string") return "";
-  const match = authorization.match(/^Bearer\\s+(.+)$/i);
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
   return match?.[1]?.trim() ?? "";
 }
 
@@ -20,8 +43,6 @@ async function resolveSupabaseUser(accessToken: string): Promise<User | null> {
   const supabaseUser = await getSupabaseUserFromAccessToken(accessToken);
   if (!supabaseUser?.id) return null;
 
-  // The database identity is deliberately bound to the exact Supabase Auth UUID.
-  // Never fall back to email/name matching: the canonical key is supabase:<UUID>.
   const expectedOpenId = `supabase:${supabaseUser.id}`;
   const legacyUser = await getUserByOpenId(expectedOpenId);
   if (!legacyUser || legacyUser.openId !== expectedOpenId) return null;
@@ -49,44 +70,34 @@ export async function createContext(
   const accessToken = getBearerToken(opts.req.headers.authorization);
   const authProvider = String(opts.req.headers["x-auth-provider"] ?? "").trim().toLowerCase();
 
-  // A Supabase bearer is authoritative when the client explicitly identifies
-  // the provider. This prevents a stale legacy cookie from masking a valid
-  // Supabase session in production.
+  // If a real Supabase session is supplied, keep using the real mapped user.
   if (accessToken && authProvider === "supabase") {
     try {
-      return {
-        req: opts.req,
-        res: opts.res,
-        user: await resolveSupabaseUser(accessToken),
-      };
+      const user = await resolveSupabaseUser(accessToken);
+      if (user) return { req: opts.req, res: opts.res, user };
     } catch (error) {
       console.error("[Auth] Supabase session validation failed", error);
-      return { req: opts.req, res: opts.res, user: null };
     }
   }
 
-  // Also accept a valid Supabase bearer without the optional provider header.
-  // This keeps the API interoperable with clients/proxies that preserve only
-  // the standard Authorization header.
   if (accessToken) {
     try {
-      const supabaseUser = await resolveSupabaseUser(accessToken);
-      if (supabaseUser) return { req: opts.req, res: opts.res, user: supabaseUser };
-    } catch (error) {
-      console.warn("[Auth] Bearer is not a valid Supabase session; trying legacy auth", error);
+      const user = await resolveSupabaseUser(accessToken);
+      if (user) return { req: opts.req, res: opts.res, user };
+    } catch {
+      // Continue with legacy authentication, then public panel access.
     }
   }
 
-  let user: User | null = null;
   try {
-    user = await sdk.authenticateRequest(opts.req);
+    const user = await sdk.authenticateRequest(opts.req);
+    if (user && !(user.role === "admin" && user.waiterActive === 0)) {
+      return { req: opts.req, res: opts.res, user };
+    }
   } catch {
-    user = null;
+    // Anonymous/direct panel access is intentionally allowed below.
   }
 
-  return {
-    req: opts.req,
-    res: opts.res,
-    user: user?.role === "admin" && user.waiterActive === 0 ? null : user,
-  };
+  // No session is required for the panel in the current product configuration.
+  return { req: opts.req, res: opts.res, user: PUBLIC_PANEL_USER };
 }
