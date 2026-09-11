@@ -16,9 +16,15 @@ function isBrowserSupabaseUrl(value: string): boolean {
 
 export function getSupabaseBrowserConfig(env: unknown): SupabaseBrowserConfig | null {
   const source = env as Record<string, unknown>;
-  const url = String(source.VITE_SUPABASE_URL ?? "").trim();
-  const publishableKey = String(source.VITE_SUPABASE_PUBLISHABLE_KEY ?? "").trim();
-  return isBrowserSupabaseUrl(url) && publishableKey && !publishableKey.startsWith("postgresql://")
+  const url = String(source.VITE_SUPABASE_URL ?? source.SUPABASE_URL ?? "").trim();
+  const publishableKey = String(
+    source.VITE_SUPABASE_PUBLISHABLE_KEY ??
+      source.VITE_SUPABASE_ANON_KEY ??
+      source.SUPABASE_PUBLISHABLE_KEY ??
+      source.SUPABASE_ANON_KEY ??
+      "",
+  ).trim();
+  return isBrowserSupabaseUrl(url) && publishableKey && !/^postgres(?:ql)?:\/\//i.test(publishableKey)
     ? { url, publishableKey }
     : null;
 }
