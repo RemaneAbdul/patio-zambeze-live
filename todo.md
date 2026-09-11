@@ -1665,9 +1665,9 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 - [x] Diagnosticar e corrigir por que as imagens reais dos pratos/logotipo não carregam no domínio Vercel: o rewrite SPA devolvia `index.html`; adicionada rota API para Storage.
 - [ ] Diagnosticar e corrigir o erro persistente de autenticação Admin no Safari/iPhone, distinguindo sessão antiga, palavra-passe inválida, endpoint/redirect e erro de perfil.
-- [ ] Validar novamente imagens, login Admin e recuperação de palavra-passe no deployment publicado.
+- [ ] Validar imagens no deployment publicado — concluído; validar login Admin e recuperação de palavra-passe no dispositivo.
 
-- [ ] Publicar e validar a função Vercel dedicada `/api/manus-storage/*`; os URLs reais do catálogo ainda devolvem 404 no domínio activo.
+- [x] Publicar e validar a função Vercel dedicada `/api/manus-storage/*`; catálogo e imagem real responderam 200 no domínio activo.
 - [x] Normalizar `SUPABASE_URL`/`VITE_SUPABASE_URL` para `https://xtqhebrgrepjjxwniirz.supabase.co` sem o sufixo `/rest/v1/`, mantendo a URL REST apenas onde explicitamente necessária.
 
 ## Novo administrador solicitado
