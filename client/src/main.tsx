@@ -8,17 +8,45 @@ import App from "./App";
 import "./index.css";
 
 const queryClient = new QueryClient();
+const SUPABASE_TOKEN_KEY = "supabase-access-token";
+const SUPABASE_TOKEN_FALLBACK_KEY = "supabase-access-token-fallback";
+
+function readSupabaseAccessToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const sessionToken = sessionStorage.getItem(SUPABASE_TOKEN_KEY)?.trim();
+    if (sessionToken) {
+      localStorage.setItem(SUPABASE_TOKEN_FALLBACK_KEY, sessionToken);
+      localStorage.setItem(SUPABASE_TOKEN_KEY, sessionToken);
+      return sessionToken;
+    }
+  } catch {
+    // Continue with localStorage below.
+  }
+  try {
+    const localToken = localStorage.getItem(SUPABASE_TOKEN_KEY)?.trim()
+      || localStorage.getItem(SUPABASE_TOKEN_FALLBACK_KEY)?.trim();
+    if (localToken) {
+      try { sessionStorage.setItem(SUPABASE_TOKEN_KEY, localToken); } catch { /* storage may be blocked */ }
+      return localToken;
+    }
+  } catch {
+    // Storage can be unavailable in private browsing/WebView.
+  }
+  return null;
+}
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
 
   const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
-
   if (!isUnauthorized) return;
 
   try {
-    sessionStorage.removeItem("supabase-access-token");
+    sessionStorage.removeItem(SUPABASE_TOKEN_KEY);
+    // Keep the persistent token here. It is removed only after a confirmed
+    // invalid/expired session, avoiding accidental logout during navigation.
   } catch {
     // sessionStorage may be unavailable in private browsing.
   }
@@ -49,24 +77,24 @@ const trpcClient = trpc.createClient({
       url: "/api/trpc",
       transformer: superjson,
       headers() {
-        // Preview auto-login fallback: when the browser blocks iframe cookies
-        // (Safari ITP / private browsing / WebView), the runtime mirrors the
-        // session into sessionStorage so we can forward it as a Bearer token.
-        // The regular OAuth cookie flow keeps working and takes priority server-side.
-          try {
-            const supabaseToken = sessionStorage.getItem("supabase-access-token");
-            if (supabaseToken) return { Authorization: `Bearer ${supabaseToken}`, "X-Auth-Provider": "supabase" };
-            const raw = sessionStorage.getItem("manus-cookie");
+        try {
+          const supabaseToken = readSupabaseAccessToken();
+          if (supabaseToken) {
+            return {
+              Authorization: `Bearer ${supabaseToken}`,
+              "X-Auth-Provider": "supabase",
+            };
+          }
+
+          const raw = sessionStorage.getItem("manus-cookie");
           if (raw) {
             const prefix = `${COOKIE_NAME}=`;
             const pair = raw.split(";").find(s => s.trim().startsWith(prefix));
             const token = pair?.trim().slice(prefix.length);
-            if (token) {
-              return { Authorization: `Bearer ${token}` };
-            }
+            if (token) return { Authorization: `Bearer ${token}` };
           }
         } catch {
-          // sessionStorage unavailable
+          // sessionStorage may be unavailable.
         }
         return {};
       },
