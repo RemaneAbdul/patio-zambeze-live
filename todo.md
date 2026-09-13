@@ -1681,3 +1681,26 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Corrigir armazenamento/propagação do access token e sincronização do perfil Admin.
 - [x] Adicionar regressões para sessão expirada, token ausente, perfil admin e redireccionamento.
 - [ ] Validar login no deployment, executar testes/build e sincronizar GitHub/Vercel/Supabase.
+
+## Sessão Admin — validação específica
+
+- [ ] Confirmar que o access token fica persistido no navegador após o login Supabase.
+- [ ] Confirmar que o token é enviado no header `Authorization: Bearer` em todas as chamadas tRPC protegidas.
+- [ ] Confirmar e corrigir os nomes/valores Supabase nos ambientes Production, Preview e Development do Vercel.
+- [ ] Confirmar correspondência exacta entre `supabase:<UUID>` e o perfil local activo com `role = admin`.
+- [ ] Testar login real, build, testes e sincronização GitHub/Vercel/Supabase.
+
+## Actualização solicitada nos anexos 08, 09 e 11
+
+- [ ] Ler e consolidar os requisitos dos três ficheiros anexados.
+- [ ] Mapear cada requisito ao frontend, backend, Supabase, Vercel e testes existentes.
+- [ ] Implementar as alterações sem remover as correcções de sessão, Storage, QR, recibos ou permissões já publicadas.
+- [ ] Criar regressões e executar TypeScript, Vitest, build, smoke HTTP e validação visual.
+- [ ] Sincronizar o resultado com GitHub/Vercel e documentar pendências reais.
+
+## Acesso directo seguro confirmado
+
+- [x] Implementar acesso directo seguro ao painel: não bloquear a abertura da interface nem redireccionar automaticamente para login, mantendo autenticação obrigatória no backend e nas operações protegidas.
+- [x] Auditar e corrigir o fluxo de sessão Supabase Admin, incluindo armazenamento do token, header Authorization e correspondência exacta do perfil admin.
+- [x] Validar logo, imagens, rotas Vercel, API/tRPC e persistência Supabase sem apagar dados existentes.
+- [x] Executar testes Vitest, TypeScript, build e smoke/validação visual antes do checkpoint final.

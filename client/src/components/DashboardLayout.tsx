@@ -25,7 +25,6 @@ import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { canUseStaffShell, isAdminRole } from "@shared/roles";
-import { Button } from "./ui/button";
 import REMAFooter from "./REMAFooter";
 
 const menuItems = [
@@ -53,7 +52,6 @@ export default function DashboardLayout({
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
   const { loading, user } = useAuth();
-  const [, navigate] = useLocation();
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
@@ -63,23 +61,10 @@ export default function DashboardLayout({
     return <DashboardLayoutSkeleton />
   }
 
-  if (!user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
-        <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 text-card-foreground shadow-xl">
-          <h1 className="text-2xl font-semibold tracking-tight text-center">Sessão terminada</h1>
-          <p className="mt-3 text-center text-sm text-muted-foreground">
-            Entre novamente com o email e a palavra-passe do painel interno.
-          </p>
-          <Button onClick={() => navigate("/painel/login")} size="lg" className="mt-6 w-full">
-            Ir para o login
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  // O shell do painel pode ser aberto directamente. As páginas e procedures
+  // continuam a aplicar autorização para impedir operações sem sessão válida.
 
-  if (!canUseStaffShell(user.role, user.waiterActive)) {
+  if (user && !canUseStaffShell(user.role, user.waiterActive)) {
     return (
       <div className="flex items-center justify-center min-h-screen p-6">
         <div className="waiter-alert max-w-lg text-center" role="alert">

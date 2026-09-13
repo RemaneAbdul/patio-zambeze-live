@@ -17,14 +17,10 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
 
   if (!isUnauthorized) return;
 
-  try {
-    sessionStorage.removeItem("supabase-access-token");
-  } catch {
-    // sessionStorage may be unavailable in private browsing.
-  }
-  if (window.location.pathname.startsWith("/painel")) {
-    window.location.assign("/painel/login");
-  }
+  // O painel permanece navegável sem redireccionamento automático. As
+  // procedures protegidas continuam a rejeitar pedidos sem sessão válida;
+  // o utilizador pode iniciar sessão explicitamente em /painel/login.
+  console.warn("[Auth] Sessão necessária para esta operação; sem redireccionamento automático.");
 };
 
 queryClient.getQueryCache().subscribe(event => {
