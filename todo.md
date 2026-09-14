@@ -1692,11 +1692,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 ## Actualização solicitada nos anexos 08, 09 e 11
 
-- [ ] Ler e consolidar os requisitos dos três ficheiros anexados.
-- [ ] Mapear cada requisito ao frontend, backend, Supabase, Vercel e testes existentes.
-- [ ] Implementar as alterações sem remover as correcções de sessão, Storage, QR, recibos ou permissões já publicadas.
-- [ ] Criar regressões e executar TypeScript, Vitest, build, smoke HTTP e validação visual.
-- [ ] Sincronizar o resultado com GitHub/Vercel e documentar pendências reais.
+- [x] Ler e consolidar os requisitos dos três ficheiros anexados.
+- [x] Mapear cada requisito ao frontend, backend, Supabase, Vercel e testes existentes.
+- [x] Implementar as alterações sem remover as correcções de sessão, Storage, QR, recibos ou permissões já publicadas.
+- [x] Criar regressões e executar TypeScript, Vitest, build, smoke HTTP e validação visual.
+- [x] Sincronizar o resultado com GitHub/Vercel e documentar pendências reais.
 
 ## Acesso directo seguro confirmado
 
