@@ -8,3 +8,10 @@ export const ENV = {
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
 };
+
+// Keep the database layer compatible with both names used by existing
+// deployments. The runtime database adapter reads SUPABASE_DATABASE_URL,
+// while ENV also supports the conventional DATABASE_URL fallback.
+if (!process.env.SUPABASE_DATABASE_URL && process.env.DATABASE_URL) {
+  process.env.SUPABASE_DATABASE_URL = process.env.DATABASE_URL;
+}

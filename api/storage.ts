@@ -10,8 +10,9 @@ type VercelResponse = {
   end(body?: string): void;
 };
 
-function first(value: string | string[] | undefined): string {
-  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
+function firstPath(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value.filter(Boolean).join("/");
+  return value ?? "";
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -20,7 +21,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const path = first(req.query.path).replace(/^\/+/, "");
+  const path = firstPath(req.query.path).replace(/^\/+/, "");
   const forgeBase = String(process.env.BUILT_IN_FORGE_API_URL ?? "").replace(/\/+$/, "");
   const forgeKey = String(process.env.BUILT_IN_FORGE_API_KEY ?? "").trim();
   if (!path || !forgeBase || !forgeKey) {

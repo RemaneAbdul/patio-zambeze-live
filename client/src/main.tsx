@@ -8,18 +8,15 @@ import App from "./App";
 import "./index.css";
 
 const queryClient = new QueryClient();
+const SUPABASE_TOKEN_KEY = "supabase-access-token";
+const SUPABASE_TOKEN_FALLBACK_KEY = "supabase-access-token-fallback";
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
-
-  const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
-
-  if (!isUnauthorized) return;
-
+  if (error.message !== UNAUTHED_ERR_MSG) return;
   // O painel permanece navegável sem redireccionamento automático. As
-  // procedures protegidas continuam a rejeitar pedidos sem sessão válida;
-  // o utilizador pode iniciar sessão explicitamente em /painel/login.
+  // procedures protegidas continuam a rejeitar pedidos sem sessão válida.
   console.warn("[Auth] Sessão necessária para esta operação; sem redireccionamento automático.");
 };
 
@@ -39,31 +36,50 @@ queryClient.getMutationCache().subscribe(event => {
   }
 });
 
+function readSupabaseAccessToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const sessionToken = sessionStorage.getItem(SUPABASE_TOKEN_KEY)?.trim();
+    if (sessionToken) {
+      localStorage.setItem(SUPABASE_TOKEN_FALLBACK_KEY, sessionToken);
+      localStorage.setItem(SUPABASE_TOKEN_KEY, sessionToken);
+      return sessionToken;
+    }
+  } catch {}
+  try {
+    const localToken = localStorage.getItem(SUPABASE_TOKEN_KEY)?.trim()
+      || localStorage.getItem(SUPABASE_TOKEN_FALLBACK_KEY)?.trim();
+    if (localToken) {
+      try { sessionStorage.setItem(SUPABASE_TOKEN_KEY, localToken); } catch {}
+      return localToken;
+    }
+  } catch {}
+  return null;
+}
+
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
       url: "/api/trpc",
       transformer: superjson,
       headers() {
-        // Preview auto-login fallback: when the browser blocks iframe cookies
-        // (Safari ITP / private browsing / WebView), the runtime mirrors the
-        // session into sessionStorage so we can forward it as a Bearer token.
-        // The regular OAuth cookie flow keeps working and takes priority server-side.
-          try {
-            const supabaseToken = sessionStorage.getItem("supabase-access-token");
-            if (supabaseToken) return { Authorization: `Bearer ${supabaseToken}`, "X-Auth-Provider": "supabase" };
-            const raw = sessionStorage.getItem("manus-cookie");
+        try {
+          const supabaseToken = readSupabaseAccessToken();
+          if (supabaseToken) {
+            return {
+              Authorization: `Bearer ${supabaseToken}`,
+              "X-Auth-Provider": "supabase",
+            };
+          }
+
+          const raw = sessionStorage.getItem("manus-cookie");
           if (raw) {
             const prefix = `${COOKIE_NAME}=`;
             const pair = raw.split(";").find(s => s.trim().startsWith(prefix));
             const token = pair?.trim().slice(prefix.length);
-            if (token) {
-              return { Authorization: `Bearer ${token}` };
-            }
+            if (token) return { Authorization: `Bearer ${token}` };
           }
-        } catch {
-          // sessionStorage unavailable
-        }
+        } catch {}
         return {};
       },
       fetch(input, init) {
