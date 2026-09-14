@@ -204,6 +204,9 @@ var ENV = {
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? ""
 };
+if (!process.env.SUPABASE_DATABASE_URL && process.env.DATABASE_URL) {
+  process.env.SUPABASE_DATABASE_URL = process.env.DATABASE_URL;
+}
 
 // server/supabaseAuth.ts
 import { createHmac } from "node:crypto";
@@ -2577,10 +2580,12 @@ function createApiApp() {
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ limit: "1mb", extended: true }));
   app.get("/api/auth-config", (_req, res) => {
-    const rawSupabaseUrl = String(process.env.SUPABASE_URL ?? "").trim();
+    const rawSupabaseUrl = String(
+      process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ""
+    ).trim();
     const supabaseUrl2 = rawSupabaseUrl.replace(/\/rest\/v1\/?$/i, "").replace(/\/+$/, "");
     const publishableKey2 = String(
-      process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY ?? ""
+      process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_ANON_KEY ?? ""
     ).trim();
     const isValidSupabaseUrl = /^https:\/\/[^/]+\.supabase\.co$/i.test(supabaseUrl2);
     if (!isValidSupabaseUrl || !publishableKey2 || /^postgres(?:ql)?:\/\//i.test(publishableKey2)) {

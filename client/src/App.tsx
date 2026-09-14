@@ -8,6 +8,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import WaiterLogin from "./pages/WaiterLogin";
 import PasswordReset from "./pages/PasswordReset";
 import "./menu-fixes.css";
 
@@ -77,8 +78,10 @@ function Router() {
   return (
     <Switch>
       <Route path="/menu" component={Home} />
+      <Route path="/login" component={WaiterLogin} />
       <Route path="/redefinir-senha" component={PasswordReset} />
       <Route path="/painel/redefinir-senha" component={PasswordReset} />
+      <Route path="/painel/login" component={WaiterLogin} />
       <Route path="/" component={Home} />
       <Route path="/painel/admin" component={WaiterPanel} />
       <Route path="/painel/pratos" component={ProductsPanel} />
@@ -87,7 +90,6 @@ function Router() {
       <Route path="/painel/mesas" component={WaiterPanel} />
       <Route path="/painel/impressoes" component={PrintsPanel} />
       <Route path="/painel/definicoes" component={SettingsPanel} />
-      <Route path="/painel/login" component={WaiterPanel} />
       <Route path="/painel" component={WaiterPanel} />
       <Route path="/painel/garcom" component={WaiterPanel} />
       <Route path="/waiter" component={WaiterPanel} />
