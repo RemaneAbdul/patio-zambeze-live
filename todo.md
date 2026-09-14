@@ -1684,11 +1684,11 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 ## Sessão Admin — validação específica
 
-- [ ] Confirmar que o access token fica persistido no navegador após o login Supabase.
-- [ ] Confirmar que o token é enviado no header `Authorization: Bearer` em todas as chamadas tRPC protegidas.
+- [x] Confirmar que o access token fica persistido no navegador após o login Supabase.
+- [x] Confirmar que o token é enviado no header `Authorization: Bearer` em todas as chamadas tRPC protegidas.
 - [ ] Confirmar e corrigir os nomes/valores Supabase nos ambientes Production, Preview e Development do Vercel.
-- [ ] Confirmar correspondência exacta entre `supabase:<UUID>` e o perfil local activo com `role = admin`.
-- [ ] Testar login real, build, testes e sincronização GitHub/Vercel/Supabase.
+- [x] Confirmar correspondência exacta entre `supabase:<UUID>` e o perfil local activo com `role = admin`.
+- [x] Testar login real, build, testes e sincronização GitHub/Vercel/Supabase.
 
 ## Actualização solicitada nos anexos 08, 09 e 11
 
