@@ -1704,3 +1704,9 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Auditar e corrigir o fluxo de sessão Supabase Admin, incluindo armazenamento do token, header Authorization e correspondência exacta do perfil admin.
 - [x] Validar logo, imagens, rotas Vercel, API/tRPC e persistência Supabase sem apagar dados existentes.
 - [x] Executar testes Vitest, TypeScript, build e smoke/validação visual antes do checkpoint final.
+
+## Bloqueios reportados em 2026-09-14
+
+- [x] Corrigir a mensagem de configuração de autenticação indisponível no login Admin do deployment e validar a sessão sem expor credenciais.
+- [x] Diagnosticar e corrigir as operações de guardar, editar e remover no painel, garantindo persistência no backend/Supabase.
+- [x] Alterar o acesso ao menu público para depender do fluxo de QR Code, mantendo links de login/painel funcionais.

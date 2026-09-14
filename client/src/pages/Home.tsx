@@ -33,6 +33,10 @@ const tagClass: Record<Tag, string> = { "Especial da Casa": "tag-house", "Mais P
 
 export default function Home() {
   const tableRoute = useMemo(() => parseTableRoute(window.location.search), []);
+  const hasQrAccess = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    return Boolean(params.get("table")?.trim() || params.get("mesa")?.trim() || params.get("qr")?.trim());
+  }, []);
   const tableNumber = tableRoute.tableNumber;
   const tableId = tableRoute.tableId;
   const restaurantId = "default";
@@ -290,8 +294,8 @@ export default function Home() {
   const toggleDarkMode = () => setDarkMode((current) => { const next = !current; localStorage.setItem("patio-zambeze-dark-mode", String(next)); return next; });
   const callWaiter = () => { setNotice(true); window.setTimeout(() => setNotice(false), 4200); };
 
-  if (invalidQrCode) {
-    return <div className={`menu-app-shell min-h-screen ${darkMode ? "theme-dark" : "theme-light"} bg-[#F7F2E9] px-5 py-6 text-[#183A32] sm:px-8`}><main className="mx-auto flex min-h-[70vh] max-w-xl items-center justify-center"><section className="w-full border border-[#183A32]/12 bg-white p-7 text-center shadow-sm sm:p-10"><p className="font-sans text-[10px] font-bold uppercase tracking-[0.28em] text-[#C85A3F]">Pátio Zambeze · Menu</p><h1 className="mt-3 font-display text-3xl">QR Code inválido</h1><p className="mt-4 font-sans text-sm leading-relaxed text-[#183A32]/65">QR Code inválido ou mesa não encontrada.</p><p className="mt-2 font-sans text-xs text-[#183A32]/50">Peça ao restaurante para fornecer um QR Code válido.</p></section></main></div>;
+  if (!hasQrAccess || invalidQrCode) {
+    return <div className={`menu-app-shell min-h-screen ${darkMode ? "theme-dark" : "theme-light"} bg-[#F7F2E9] px-5 py-6 text-[#183A32] sm:px-8`}><main className="mx-auto flex min-h-[70vh] max-w-xl items-center justify-center"><section className="w-full border border-[#183A32]/12 bg-white p-7 text-center shadow-sm sm:p-10"><p className="font-sans text-[10px] font-bold uppercase tracking-[0.28em] text-[#C85A3F]">Pátio Zambeze · Menu</p><h1 className="mt-3 font-display text-3xl">{invalidQrCode ? "QR Code inválido" : "Acesso pelo QR Code"}</h1><p className="mt-4 font-sans text-sm leading-relaxed text-[#183A32]/65">{invalidQrCode ? "QR Code inválido ou mesa não encontrada." : "Este menu é exclusivo para clientes dentro do restaurante."}</p><p className="mt-2 font-sans text-xs text-[#183A32]/50">{invalidQrCode ? "Peça ao restaurante para fornecer um QR Code válido." : "Aponte a câmara do telemóvel para o QR Code da sua mesa."}</p><a href="/painel/login" className="mt-6 inline-flex rounded-md bg-[#183A32] px-5 py-3 font-sans text-sm font-semibold text-white">Aceder ao painel</a></section></main></div>;
   }
 
   return <div className={`menu-app-shell min-h-screen ${darkMode ? "theme-dark" : "theme-light"} bg-[#F7F2E9] text-[#183A32]`}>

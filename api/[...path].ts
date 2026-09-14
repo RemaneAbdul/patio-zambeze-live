@@ -1,9 +1,8 @@
-import { createApiApp } from "../server/_core/app";
+import { createApiApp } from "./app.bundle.mjs";
 
-// Vercel Node function entrypoint for the existing Express + tRPC API.
-// Import the source application directly so production always uses the same
-// server code committed to GitHub instead of a potentially stale checked-in
-// bundle artifact.
+// Vercel Node function entrypoint. The checked-in bundle avoids runtime
+// resolution failures from source aliases and server-only imports in the
+// serverless environment.
 const app = createApiApp();
 
 export default app;

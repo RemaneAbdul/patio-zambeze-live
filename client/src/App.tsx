@@ -82,7 +82,7 @@ function Router() {
       <Route path="/redefinir-senha" component={PasswordReset} />
       <Route path="/painel/redefinir-senha" component={PasswordReset} />
       <Route path="/painel/login" component={WaiterLogin} />
-      <Route path="/" component={Home} />
+      <Route path="/" component={WaiterLogin} />
       <Route path="/painel/admin" component={WaiterPanel} />
       <Route path="/painel/pratos" component={ProductsPanel} />
       <Route path="/painel/qr-codes" component={QrCodesPanel} />
