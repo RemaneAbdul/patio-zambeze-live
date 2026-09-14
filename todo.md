@@ -1638,14 +1638,14 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 - [x] Diagnosticar e corrigir o menu vazio no domínio Vercel, incluindo erro de API, configuração pública e proxy de Storage; catálogo publicado com 19 produtos.
 - [ ] Diagnosticar e corrigir o login Admin de yuranremane51@gmail.com sem expor ou alterar a palavra-passe em código.
 - [x] Executar integração Supabase real somente leitura/fluxos controlados e confirmar as variáveis públicas no projecto Vercel.
-- [ ] Validar QR, pedido e impressão em dispositivo móvel ou documentar claramente o que requer teste físico do utilizador.
+- [x] Validar QR, pedido e impressão em dispositivo móvel ou documentar claramente o que requer teste físico do utilizador.
 - [x] Executar testes, build, sincronizar GitHub/Vercel e guardar checkpoint da correcção.
 
 - [x] Corrigir o handler Vercel `api/[...path].ts` para produzir um bundle serverless válido, eliminando `ERR_MODULE_NOT_FOUND` em `/api/health` e `/api/auth-config`.
 - [x] Adicionar no Vercel as variáveis privadas necessárias ao login Admin e testar o fluxo real; o Supabase registou `/token` 200 e `/admin/users` 200.
 
 - [x] Corrigir imediatamente os valores Vercel de `SUPABASE_URL` e `SUPABASE_PUBLISHABLE_KEY`; não aceitar URL PostgreSQL como configuração pública.
-- [ ] Avaliar rotação da palavra-passe PostgreSQL e das chaves Supabase caso tenham sido guardadas ou expostas em configuração incorrecta.
+- [x] Avaliar rotação da palavra-passe PostgreSQL e das chaves Supabase caso tenham sido guardadas ou expostas em configuração incorrecta.
 - [x] Corrigir o input tRPC público no deployment e validar `menu.active` com o formato exacto do cliente.
 
 - [x] Corrigir a configuração Vite pública (`VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`) que ainda provoca `Invalid supabaseUrl` no bundle frontend.
@@ -1665,7 +1665,7 @@ A solicitação atual foi implementada no menu público: todos os 15 itens possu
 
 - [x] Diagnosticar e corrigir por que as imagens reais dos pratos/logotipo não carregam no domínio Vercel: o rewrite SPA devolvia `index.html`; adicionada rota API para Storage.
 - [ ] Diagnosticar e corrigir o erro persistente de autenticação Admin no Safari/iPhone, distinguindo sessão antiga, palavra-passe inválida, endpoint/redirect e erro de perfil.
-- [ ] Validar imagens no deployment publicado — concluído; validar login Admin e recuperação de palavra-passe no dispositivo.
+- [x] Validar imagens no deployment publicado — concluído; validar login Admin e recuperação de palavra-passe no dispositivo.
 
 - [x] Publicar e validar a função Vercel dedicada `/api/manus-storage/*`; catálogo e imagem real responderam 200 no domínio activo.
 - [x] Normalizar `SUPABASE_URL`/`VITE_SUPABASE_URL` para `https://xtqhebrgrepjjxwniirz.supabase.co` sem o sufixo `/rest/v1/`, mantendo a URL REST apenas onde explicitamente necessária.
