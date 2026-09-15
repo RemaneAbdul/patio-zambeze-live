@@ -48,7 +48,10 @@ export function createApiApp() {
   // is exposed; service-role secrets are never returned.
   app.get("/api/auth-config", (_req, res) => {
     const rawSupabaseUrl = String(
-      process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "",
+      process.env.SUPABASE_URL ??
+        process.env.VITE_SUPABASE_URL ??
+        process.env.NEXT_PUBLIC_SUPABASE_URL ??
+        "",
     ).trim();
     const supabaseUrl = rawSupabaseUrl.replace(/\/rest\/v1\/?$/i, "").replace(/\/+$/, "");
     const publishableKey = String(

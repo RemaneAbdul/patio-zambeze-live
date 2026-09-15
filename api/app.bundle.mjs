@@ -2581,7 +2581,7 @@ function createApiApp() {
   app.use(express.urlencoded({ limit: "1mb", extended: true }));
   app.get("/api/auth-config", (_req, res) => {
     const rawSupabaseUrl = String(
-      process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ""
+      process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""
     ).trim();
     const supabaseUrl2 = rawSupabaseUrl.replace(/\/rest\/v1\/?$/i, "").replace(/\/+$/, "");
     const publishableKey2 = String(

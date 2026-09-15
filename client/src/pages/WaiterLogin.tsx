@@ -7,8 +7,12 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 
 const ENV_SUPABASE_CONFIG = getSupabaseBrowserConfig({
-  VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
-  VITE_SUPABASE_PUBLISHABLE_KEY: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY,
+  VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL ?? import.meta.env.NEXT_PUBLIC_SUPABASE_URL,
+  VITE_SUPABASE_PUBLISHABLE_KEY:
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+    import.meta.env.VITE_SUPABASE_ANON_KEY ??
+    import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
 });
 const ENV_SUPABASE_URL = ENV_SUPABASE_CONFIG?.url ?? "";
 const ENV_SUPABASE_PUBLISHABLE_KEY = ENV_SUPABASE_CONFIG?.publishableKey ?? "";
