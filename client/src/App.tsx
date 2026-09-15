@@ -1,10 +1,10 @@
-/* Pátio Zambeze: o painel e o menu são acessíveis directamente, sem camada de login. */
 import { lazy, Suspense, useEffect } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { trpc } from "@/lib/trpc";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
@@ -74,6 +74,46 @@ function PanelLoading() {
   );
 }
 
+function PanelAccessGuard({
+  children,
+  allowedRoles,
+}: {
+  children: React.ReactNode;
+  allowedRoles: Array<"admin" | "garcom">;
+}) {
+  const [, navigate] = useLocation();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) navigate("/painel/login");
+  }, [loading, navigate, user]);
+
+  if (loading || !user) return <PanelLoading />;
+  if (!allowedRoles.includes(user.role as "admin" | "garcom")) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground">
+        <section className="waiter-alert max-w-lg text-center" role="alert">
+          Esta área não está disponível para o seu perfil.
+        </section>
+      </main>
+    );
+  }
+
+  return <>{children}</>;
+}
+
+function AdminPanel({ children }: { children: React.ReactNode }) {
+  return <PanelAccessGuard allowedRoles={["admin"]}>{children}</PanelAccessGuard>;
+}
+
+function WaiterPanelRoute({ children }: { children: React.ReactNode }) {
+  return <PanelAccessGuard allowedRoles={["garcom"]}>{children}</PanelAccessGuard>;
+}
+
+function StaffPanel({ children }: { children: React.ReactNode }) {
+  return <PanelAccessGuard allowedRoles={["admin", "garcom"]}>{children}</PanelAccessGuard>;
+}
+
 function Router() {
   return (
     <Switch>
@@ -83,16 +123,16 @@ function Router() {
       <Route path="/painel/redefinir-senha" component={PasswordReset} />
       <Route path="/painel/login" component={WaiterLogin} />
       <Route path="/" component={WaiterLogin} />
-      <Route path="/painel/admin" component={WaiterPanel} />
-      <Route path="/painel/pratos" component={ProductsPanel} />
-      <Route path="/painel/qr-codes" component={QrCodesPanel} />
-      <Route path="/painel/garcons" component={WaitersPanel} />
-      <Route path="/painel/mesas" component={WaiterPanel} />
-      <Route path="/painel/impressoes" component={PrintsPanel} />
-      <Route path="/painel/definicoes" component={SettingsPanel} />
-      <Route path="/painel" component={WaiterPanel} />
-      <Route path="/painel/garcom" component={WaiterPanel} />
-      <Route path="/waiter" component={WaiterPanel} />
+      <Route path="/painel/admin"><AdminPanel><WaiterPanel /></AdminPanel></Route>
+      <Route path="/painel/pratos"><AdminPanel><ProductsPanel /></AdminPanel></Route>
+      <Route path="/painel/qr-codes"><AdminPanel><QrCodesPanel /></AdminPanel></Route>
+      <Route path="/painel/garcons"><AdminPanel><WaitersPanel /></AdminPanel></Route>
+      <Route path="/painel/mesas"><StaffPanel><WaiterPanel /></StaffPanel></Route>
+      <Route path="/painel/impressoes"><AdminPanel><PrintsPanel /></AdminPanel></Route>
+      <Route path="/painel/definicoes"><AdminPanel><SettingsPanel /></AdminPanel></Route>
+      <Route path="/painel"><StaffPanel><WaiterPanel /></StaffPanel></Route>
+      <Route path="/painel/garcom"><WaiterPanelRoute><WaiterPanel /></WaiterPanelRoute></Route>
+      <Route path="/waiter"><WaiterPanelRoute><WaiterPanel /></WaiterPanelRoute></Route>
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
