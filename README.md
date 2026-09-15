@@ -17,4 +17,4 @@ Configure no ambiente de execução as variáveis necessárias, incluindo `SUPAB
 
 Antes de colocar a instalação em produção, execute `pnpm exec tsc --noEmit`, `pnpm test` e `pnpm build`. O teste `server/supabaseConnection.test.ts` valida a configuração por defeito e executa `SELECT 1` quando `RUN_SUPABASE_INTEGRATION=1`; `server/tableHistory.test.ts` executa as operações reais de sessão apenas com essa mesma variável. Para uma verificação externa explícita, use `RUN_SUPABASE_INTEGRATION=1 pnpm test -- server/supabaseConnection.test.ts server/tableHistory.test.ts`.
 
-A integração de deployment específica do Vercel não faz parte do fluxo atual. O build de produção gera apenas o servidor Node/Express e os recursos estáticos necessários para o ambiente atual.
+O build de produção gera apenas o servidor Node/Express e os recursos estáticos necessários para o ambiente atual.
